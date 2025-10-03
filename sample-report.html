@@ -3,21 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>樣本報表｜星級引擎</title>
+  <title>智慧口碑智能初檢｜樣本報表</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f7f9ff;
-      --card: #ffffff;
-      --border: rgba(15, 23, 42, 0.08);
-      --shadow: 0 24px 48px -30px rgba(15, 23, 42, 0.28);
-      --text: #1f2937;
-      --muted: #536079;
-      --primary: #1d4ed8;
-      --accent: #f97316;
-      --link: #77aadd;
+      --bg-gradient-start: #f1f5ff;
+      --bg-gradient-end: #e4ecff;
+      --card-bg: #ffffff;
+      --card-border: rgba(15, 23, 42, 0.08);
+      --shadow: 0 32px 60px -42px rgba(15, 35, 95, 0.45);
+      --text-main: #12213d;
+      --text-muted: #4b5872;
+      --primary: #1f3fff;
+      --primary-soft: rgba(31, 63, 255, 0.08);
+      --accent: #ff8a4c;
+      --badge-bg: rgba(31, 63, 255, 0.12);
+      --badge-text: #1f3fff;
+      --divider: rgba(18, 33, 61, 0.06);
       --font: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     }
 
@@ -25,232 +29,249 @@
 
     body {
       margin: 0;
-      padding: clamp(32px, 6vw, 64px) 20px;
+      padding: clamp(36px, 7vw, 72px) 20px;
       min-height: 100vh;
-      font-family: var(--font);
-      color: var(--text);
-      background: linear-gradient(135deg, #fbfdff 0%, #eef4ff 60%, #e8f1ff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
+      font-family: var(--font);
+      color: var(--text-main);
+      background: linear-gradient(160deg, var(--bg-gradient-start), var(--bg-gradient-end));
     }
 
     main {
-      width: min(960px, 100%);
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 28px;
+      width: min(880px, 100%);
+      background: var(--card-bg);
+      border-radius: 32px;
+      border: 1px solid var(--card-border);
       box-shadow: var(--shadow);
-      padding: clamp(28px, 5vw, 48px);
+      padding: clamp(32px, 6vw, 56px);
       display: grid;
-      gap: 24px;
+      gap: clamp(24px, 5vw, 36px);
     }
 
-    header {
-      display: grid;
-      gap: 12px;
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-weight: 600;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
     }
+
+    header { display: grid; gap: 12px; }
 
     header h1 {
       margin: 0;
-      font-size: clamp(2rem, 3.8vw, 2.6rem);
-      color: var(--text);
+      font-size: clamp(2rem, 4vw, 2.6rem);
+      font-weight: 700;
     }
 
     header p {
       margin: 0;
-      color: var(--muted);
+      color: var(--text-muted);
+      line-height: 1.75;
       font-size: 1.05rem;
-      line-height: 1.7;
     }
 
-    .grid {
+    section {
+      background: rgba(255, 255, 255, 0.97);
+      border-radius: 24px;
+      border: 1px solid var(--card-border);
+      padding: clamp(24px, 4vw, 32px);
       display: grid;
       gap: 18px;
     }
 
-    .card {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 22px;
-      border: 1px solid var(--border);
-      padding: 24px;
-      display: grid;
-      gap: 16px;
+    section.highlight {
+      background: linear-gradient(145deg, rgba(31,63,255,0.08), rgba(255,255,255,0.9));
+      border: 1px solid rgba(31, 63, 255, 0.16);
     }
 
-    .card h2 {
+    section h2 {
       margin: 0;
-      font-size: 1.3rem;
+      font-size: 1.35rem;
       color: var(--primary);
+      font-weight: 700;
+    }
+
+    section .subtitle {
+      margin: -6px 0 0;
+      color: var(--text-muted);
+      font-size: 0.95rem;
     }
 
     .metrics {
       display: grid;
-      gap: 16px;
+      gap: 14px;
     }
 
-    .metric-row {
+    .metric {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px 24px;
-      align-items: center;
-      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      gap: 12px 20px;
+      align-items: baseline;
+      border-bottom: 1px solid var(--divider);
       padding-bottom: 12px;
     }
 
-    .metric-row:last-child { border-bottom: none; }
+    .metric:last-child { border-bottom: none; }
 
-    .metric-label {
-      font-weight: 600;
-      color: var(--text);
-    }
+    .metric-label { font-weight: 600; color: var(--text-main); }
 
     .metric-value {
+      font-weight: 700;
       color: var(--primary);
       font-size: 1.15rem;
-      font-weight: 600;
     }
 
-    .list {
+    .list, .paragraph-list {
       margin: 0;
       padding-left: 20px;
-      color: var(--muted);
+      color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    .paragraph-list li + li { margin-top: 10px; }
+
+    .insight {
+      background: rgba(255, 138, 76, 0.08);
+      border-left: 4px solid var(--accent);
+      padding: 14px 20px;
+      border-radius: 16px;
+      color: var(--text-main);
       line-height: 1.7;
     }
 
-    .cta {
+    .cta-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
     }
 
-    .cta a {
-      flex: 1 1 240px;
+    .cta-row a {
+      flex: 1 1 220px;
       text-align: center;
-      padding: 14px 20px;
-      border-radius: 14px;
+      padding: 16px 24px;
+      border-radius: 16px;
       font-weight: 600;
+      font-size: 1.05rem;
       text-decoration: none;
-      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .cta a.primary {
+    .cta-row a.primary {
       background: var(--primary);
-      color: #ffffff;
-      box-shadow: 0 18px 38px -26px rgba(29, 78, 216, 0.6);
+      color: #fff;
+      box-shadow: 0 20px 46px -28px rgba(31, 63, 255, 0.6);
     }
 
-    .cta a.secondary {
-      background: rgba(29, 78, 216, 0.08);
+    .cta-row a.secondary {
+      background: var(--primary-soft);
       color: var(--primary);
-      border: 1px solid rgba(29, 78, 216, 0.18);
+      border: 1px solid rgba(31, 63, 255, 0.16);
     }
+
+    .cta-row a:hover { transform: translateY(-2px); }
 
     .note {
       margin: 0;
-      color: var(--muted);
-      font-size: 0.95rem;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      text-align: center;
+      line-height: 1.6;
     }
 
-    a.link { color: var(--link); text-decoration: underline; }
-
     @media (max-width: 640px) {
-      main { border-radius: 20px; padding: 28px; }
-      .cta a { flex: 1 1 100%; }
+      body { padding: 20px; }
+      main { border-radius: 24px; }
+      section { border-radius: 20px; }
+      .cta-row a { flex: 1 1 100%; }
     }
   </style>
 </head>
 <body>
   <main>
     <header>
-      <div class="heading">
-        <span class="heading-badge">
-          <span class="heading-badge__icon"><img src="logo.png" alt="星級引擎" width="24" height="24" /></span>
-          <span>星級引擎</span>
-        </span>
-        <h1>智慧口碑智能初檢｜樣本報表</h1>
-      </div>
-      <p>以下內容為星級引擎在 30 秒內產出的示例。實際結果會依據商家資料、競品密度與近期評論組成動態調整。</p>
+      <span class="badge">星級智匯</span>
+      <h1>智慧口碑智能初檢｜樣本報表</h1>
+      <p>以下內容為智慧引擎在 30 秒內生成的預覽：藉由整合 Google 最新評論、競品差距與 AI 危機分析，快速呈現出店家在網路口碑上的危機指標與建議。</p>
     </header>
 
-    <section class="report-hero">
-      <div class="report-hero__header">
-        <div>
-          <h2 class="report-hero__title">星河咖啡館｜3.6 ★</h2>
-          <p class="report-hero__subtitle">最近 7 天出現 <strong>4 則 1–3★ 負評</strong>，預估每月流失 <strong>NT$32,000</strong></p>
+    <section class="highlight">
+      <h2>{{store_name}}｜{{store_rating}} ★</h2>
+      <p class="subtitle">最近 7 天評論：{{recent_reviews_count}} 筆｜1~3★ 負評：{{recent_lowstar_count}} 筆｜預估流失：NT${{potential_loss}}</p>
+      <div class="metrics">
+        <div class="metric">
+          <span class="metric-label">常見風險主題</span>
+          <span class="metric-value">{{top_risk_theme}}</span>
+          <span class="metric-detail">多出 {{risk_gap_percent}}% 的負面聲量</span>
         </div>
-        <span class="hero-chip hero-chip--danger">危機指標：高</span>
+        <div class="metric">
+          <span class="metric-label">顧客等待時間</span>
+          <span class="metric-value">{{avg_wait_minutes}} 分鐘</span>
+          <span class="metric-detail">相較競品高出 {{wait_gap_percent}}%</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">當前危機等級</span>
+          <span class="metric-value">{{risk_level}}</span>
+          <span class="metric-detail">若未回應，預估 30 天將流失 NT${{projected_loss}}</span>
+        </div>
       </div>
-
-      <div class="hero-metrics">
-        <div class="hero-metric"><span>差距</span><strong>-0.5 ★</strong><small class="risk-note">商圈平均 4.1 ★，落後明顯</small></div>
-        <div class="hero-metric"><span>評論量</span><strong>-128 則</strong><small class="risk-note">主要競品為「星辰咖啡」</small></div>
-        <div class="hero-metric"><span>曝光風險</span><strong>↓ 38%</strong><small class="risk-note">若分數跌破 3.3 ★，搜尋曝光大幅下降</small></div>
-      </div>
-
-      <ul class="report-hero__checklist">
-        <li>LINE 在 10 分鐘內推播所有 1–3★ 評論，不怕漏看</li>
-        <li>AI 根據您的語氣設定，生成 2–3 版回覆草稿</li>
-        <li>30 秒內完成專屬報表：競品雷達、三件事與補救腳本</li>
-      </ul>
     </section>
 
-    <section class="report-section">
+    <section>
       <h2>鄰近競品差距雷達</h2>
-      <div class="report-highlight">
-        <strong>離您 450 公尺內的 5 家熱門店家</strong>
-        <p class="note-inline">我們已根據評論量與距離自動挑選以下競品，並計算星級與評論差距。</p>
-      </div>
-      <ul class="report-list">
-        <li><span class="report-pill">4.4 ★</span> 星辰咖啡（評論 612 則、距離 280 公尺）</li>
-        <li><span class="report-pill">4.2 ★</span> LUNA Brunch（評論 341 則、距離 180 公尺）</li>
-        <li><span class="report-pill">4.1 ★</span> 森林拾光咖啡（評論 219 則、距離 520 公尺）</li>
-        <li><span class="report-pill">3.9 ★</span> 貓舌頭甜點（評論 198 則、距離 610 公尺）</li>
-        <li><span class="report-pill">3.8 ★</span> 野餐日咖啡（評論 165 則、距離 430 公尺）</li>
+      <p class="subtitle">半徑 {{search_radius}} 公尺內的 5 家對手，即時評估星等、評論量與回覆率。</p>
+      <ul class="list">
+        <li>{{competitor_1_name}} ｜ {{competitor_1_rating}} ★ ｜ 評論 {{competitor_1_reviews}} 筆｜近期回覆率 {{competitor_1_reply_rate}}</li>
+        <li>{{competitor_2_name}} ｜ {{competitor_2_rating}} ★ ｜ 評論 {{competitor_2_reviews}} 筆｜近期回覆率 {{competitor_2_reply_rate}}</li>
+        <li>{{competitor_3_name}} ｜ {{competitor_3_rating}} ★ ｜ 評論 {{competitor_3_reviews}} 筆｜近期回覆率 {{competitor_3_reply_rate}}</li>
+        <li>{{competitor_4_name}} ｜ {{competitor_4_rating}} ★ ｜ 評論 {{competitor_4_reviews}} 筆｜近期回覆率 {{competitor_4_reply_rate}}</li>
+        <li>{{competitor_5_name}} ｜ {{competitor_5_rating}} ★ ｜ 評論 {{competitor_5_reviews}} 筆｜近期回覆率 {{competitor_5_reply_rate}}</li>
       </ul>
     </section>
 
-    <section class="report-section report-actions">
+    <section>
       <h2>立即行動：本週三件事</h2>
-      <ul class="report-list">
-        <li>午晚高峰增加 1 位外場人員，並在桌邊主動邀請掃描評論 QR Code。</li>
-        <li>建立「補寄＋折價券」SOP，6 小時內主動聯繫外送客、提供補償。</li>
-        <li>週五午餐安排店長巡檢，錄製 30 秒特色短影，上傳官方貼文與 Reels。</li>
+      <ul class="paragraph-list">
+        <li><strong>{{action_1_title}}</strong>：{{action_1_body}}</li>
+        <li><strong>{{action_2_title}}</strong>：{{action_2_body}}</li>
+        <li><strong>{{action_3_title}}</strong>：{{action_3_body}}</li>
       </ul>
-      <p class="note-inline">以上任務已同步到 LINE，點擊即可複製並貼給團隊。</p>
     </section>
 
-    <section class="report-section">
-      <h2>AI 回覆草稿（已套用您的語氣）</h2>
-      <div class="reply-card">
-        <h3>危機點 #1｜服務體驗</h3>
-        <p class="note-inline">「服務生態度冷淡，排隊很久，最後還出錯飲料。」</p>
-        <p>您好，我是門市經理，第一時間收到您對服務態度的提醒，我們立即調整午間人力並重新教育外場流程。這次造成的等待與錯誤飲品，我們已為您保留「星河拿鐵＋折抵券」，期待下次在 24 小時內完成補償與追蹤。</p>
+    <section>
+      <h2>AI 回覆草稿（已替你寫好的範本）</h2>
+      <div class="insight">
+        <strong>危機焦點 1｜{{ai_theme_1}}</strong><br />
+        {{ai_response_1}}
       </div>
-      <div class="reply-card">
-        <h3>危機點 #2｜外送品質</h3>
-        <p>感謝告知外送餐點溫度不足，我們已將「雙層保溫包＋即時通知」納入外送流程，並主動補寄一份新品讓您試飲。任何補償需求歡迎透過官方 LINE 24 小時聯繫。</p>
+      <div class="insight">
+        <strong>危機焦點 2｜{{ai_theme_2}}</strong><br />
+        {{ai_response_2}}
+      </div>
+      <p class="note" style="text-align:left; font-size:0.95rem;">以上內容可直接貼到 LINE 官方帳號或 Google 回覆框。若需第三版草稿或其他語氣，可於正式版開通後一鍵生成。</p>
+    </section>
+
+    <section>
+      <h2>我們會如何守護你的店</h2>
+      <ul class="paragraph-list">
+        <li><strong>全面監控</strong>：24/7 追蹤所有評論、星等與競品動態，超出閾值立即 LINE 通知。</li>
+        <li><strong>智能回覆</strong>：負評生成 2~3 版草稿，含 SOP 團隊協作提醒，避免漏回覆。</li>
+        <li><strong>周/月策略報</strong>：結合評論、競品與行銷渠道，量化「失守點」與 ROI，提供決策版建議。</li>
+      </ul>
+      <div class="cta-row">
+        <a href="https://line.me/ti/p/@star-up" class="primary" target="_blank" rel="noopener">立即啟動 30 秒初檢</a>
+        <a href="https://chelov134999.app.n8n.cloud/pay/star-guard-4980" class="secondary" target="_blank" rel="noopener">了解專屬守護方案</a>
       </div>
     </section>
 
-    <section class="report-section">
-      <h2>我們會如何守護您的店</h2>
-      <div class="report-highlight">
-        <strong>從偵測到補救，全部自動完成：</strong>
-        <ul class="report-list">
-          <li>營業時段每 10 分鐘偵測 1–3★ 評論，合併推播不洗版。</li>
-          <li>客製化三件事、KPI 與 ROI 提示，每週一包，30 分鐘收尾。</li>
-          <li>LINE 上直接貼上 AI 草稿，送出前可再調整語氣與補強資訊。</li>
-        </ul>
-      </div>
-    </section>
-
-    <div class="cta">
-      <a class="primary" href="index.html">立即啟動 30 秒初檢</a>
-      <a class="secondary warm" href="about.html">智能守護方案</a>
-    </div>
-
-    <p class="note">完整報表會於授權後提供 PDF / LINE Flex 卡片，可自動匯入您的 CRM 或客服流程。</p>
+    <p class="note">完整報表可匯出 PDF / LINE Flex 卡片；資料來源含 DataForSEO、Google Places API、星級引擎 CRM 營運資料庫。</p>
   </main>
 </body>
 </html>

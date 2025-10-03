@@ -57,24 +57,33 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 12px 18px;
-  border-radius: 18px;
-  box-shadow: 0 18px 34px -30px rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.96), rgba(37, 99, 235, 0.82));
+  padding: 12px 20px;
+  border-radius: 999px;
+  box-shadow: 0 18px 36px -28px rgba(29, 78, 216, 0.5);
+  color: #ffffff;
 }
 
-.app-header__brand img {
-  border-radius: 16px;
-  padding: 4px;
-  background: rgba(29, 78, 216, 0.08);
+.app-header__brand-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 22px -16px rgba(29, 78, 216, 0.45);
+}
+
+.app-header__brand-logo img {
+  width: 24px;
+  height: 24px;
 }
 
 .app-header__title {
   font-weight: 600;
   letter-spacing: 0.05em;
   font-size: 1rem;
-  color: var(--text);
+  color: #ffffff;
 }
 
 .page {

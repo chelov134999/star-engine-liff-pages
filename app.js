@@ -66,6 +66,7 @@ const els = {
   toast: document.getElementById('toast'),
   transitionBar: document.getElementById('transition-bar'),
   transitionCounter: document.getElementById('transition-counter'),
+  aboutLink: document.getElementById('about-link'),
 };
 
 const state = {
@@ -113,6 +114,15 @@ function showToast(message, duration = 2600) {
   setTimeout(() => {
     els.toast.hidden = true;
   }, duration);
+}
+
+function openAboutPage() {
+  const targetUrl = config.aboutUrl || 'about.html';
+  if (state.liffReady && window.liff?.openWindow) {
+    window.liff.openWindow({ url: targetUrl, external: false });
+  } else {
+    window.open(targetUrl, '_blank');
+  }
 }
 
 function setStage(nextStage) {
@@ -813,11 +823,21 @@ function attachEventListeners() {
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
   });
+  els.aboutLink?.addEventListener('click', (event) => {
+    event.preventDefault();
+    openAboutPage();
+  });
 }
 
 (function bootstrap() {
+  const viewMode = params.get('view');
   if (state.mode === 'report') {
     redirectToReport();
+    return;
+  }
+
+  if (viewMode === 'about') {
+    window.location.replace('about.html');
     return;
   }
 
@@ -829,6 +849,9 @@ function attachEventListeners() {
   }
   if (els.ctaPlan && planUrl) {
     els.ctaPlan.href = planUrl;
+  }
+  if (els.aboutLink) {
+    els.aboutLink.href = config.aboutUrl || 'about.html';
   }
 
   attachEventListeners();

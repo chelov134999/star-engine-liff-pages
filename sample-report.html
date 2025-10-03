@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>樣本報表｜星級引擎</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f9ff;
+      --card: #ffffff;
+      --border: rgba(15, 23, 42, 0.08);
+      --shadow: 0 24px 48px -30px rgba(15, 23, 42, 0.28);
+      --text: #1f2937;
+      --muted: #536079;
+      --primary: #1d4ed8;
+      --accent: #f97316;
+      --link: #77aadd;
+      --font: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: clamp(32px, 6vw, 64px) 20px;
+      min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background: linear-gradient(135deg, #fbfdff 0%, #eef4ff 60%, #e8f1ff 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    main {
+      width: min(960px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: clamp(28px, 5vw, 48px);
+      display: grid;
+      gap: 24px;
+    }
+
+    header {
+      display: grid;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3.8vw, 2.6rem);
+      color: var(--text);
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 22px;
+      border: 1px solid var(--border);
+      padding: 24px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: var(--primary);
+    }
+
+    .metrics {
+      display: grid;
+      gap: 16px;
+    }
+
+    .metric-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 24px;
+      align-items: center;
+      border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+      padding-bottom: 12px;
+    }
+
+    .metric-row:last-child { border-bottom: none; }
+
+    .metric-label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .metric-value {
+      color: var(--primary);
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+
+    .list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .cta a {
+      flex: 1 1 240px;
+      text-align: center;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .cta a.primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 18px 38px -26px rgba(29, 78, 216, 0.6);
+    }
+
+    .cta a.secondary {
+      background: rgba(29, 78, 216, 0.08);
+      color: var(--primary);
+      border: 1px solid rgba(29, 78, 216, 0.18);
+    }
+
+    .note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    a.link { color: var(--link); text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      main { border-radius: 20px; padding: 28px; }
+      .cta a { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>智慧口碑智能初檢｜樣本報表</h1>
+      <p>以下內容為星級引擎在 30 秒內產出的示例。實際結果會依據商家資料、競品密度與近期評論組成動態調整。</p>
+    </header>
+
+    <div class="grid">
+      <article class="card">
+        <h2>關鍵指標概覽</h2>
+        <div class="metrics">
+          <div class="metric-row">
+            <span class="metric-label">Google 評分</span>
+            <span class="metric-value">3.6 ★</span>
+            <span class="note">商圈平均 4.1 ★｜落後 0.5 ★</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">近 7 天低評</span>
+            <span class="metric-value">4 則</span>
+            <span class="note">主要集中在服務速度、外送包裝</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">評論量差距</span>
+            <span class="metric-value">-128 則</span>
+            <span class="note">領先競品為「星辰咖啡」｜建議 30 天補量計畫</span>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">預估損失風險</span>
+            <span class="metric-value">NT$32,000 / 月</span>
+            <span class="note">若分數跌破 3.3 ★，可能引發搜尋曝光大幅下降</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>本週三件事</h2>
+        <ul class="list">
+          <li>外場人力提升 1 人，並加強桌邊詢問與填寫評論 QR Code。</li>
+          <li>針對外送負評建立「補寄＋折價券」SOP，於 6 小時內主動聯繫。</li>
+          <li>週五午餐時段安排店長巡檢，現場錄製 30 秒特色短影放在官方貼文。</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>AI 回覆草稿示例</h2>
+        <div class="metrics" style="gap:14px;">
+          <div class="metric-row" style="flex-direction:column; align-items:flex-start; border:none; background:rgba(29,78,216,.06); padding:16px; border-radius:16px;">
+            <span class="metric-label">危機點 #1｜服務體驗</span>
+            <span class="note">「服務生態度冷淡，排隊很久，最後還出錯飲料。」</span>
+            <p class="note" style="margin:0; line-height:1.7; color:var(--text);">
+              您好，我是門市經理，第一時間收到您對服務態度的提醒，我們立即調整午間人力並重新教育外場流程。這次造成的等待與錯誤飲品，我們已為您保留「星河拿鐵＋折抵券」，期待下次在 24 小時內完成補償與追蹤。
+            </p>
+          </div>
+          <div class="metric-row" style="flex-direction:column; align-items:flex-start; border:none; background:rgba(29,78,216,.06); padding:16px; border-radius:16px;">
+            <span class="metric-label">危機點 #2｜外送品質</span>
+            <p class="note" style="margin:0; line-height:1.7; color:var(--text);">
+              感謝告知外送餐點溫度不足，我們已將「雙層保溫包＋即時通知」納入外送流程，並主動補寄一份新品讓您試飲。任何補償需求歡迎透過官方 LINE 24 小時聯繫。
+            </p>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="cta">
+      <a class="primary" href="index.html">開始 30 秒初檢</a>
+      <a class="secondary" href="about.html">了解我們怎麼做</a>
+    </div>
+
+    <p class="note">完整報表會於授權後提供 PDF / LINE Flex 卡片，可自動匯入您的 CRM 或客服流程。</p>
+  </main>
+</body>
+</html>

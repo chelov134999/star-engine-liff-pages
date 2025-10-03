@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>關於我們｜星級引擎</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-from: #f9fbff;
+      --bg-to: #eef4ff;
+      --card-bg: #ffffff;
+      --card-accent: rgba(29, 78, 216, 0.12);
+      --border: rgba(15, 23, 42, 0.08);
+      --text: #1f2937;
+      --muted: #536079;
+      --primary: #1d4ed8;
+      --accent: #f97316;
+      --link: #77aadd;
+      --font: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(32px, 6vw, 64px) 20px;
+      font-family: var(--font);
+      color: var(--text);
+      background: radial-gradient(circle at 14% 12%, rgba(122, 170, 255, 0.22), transparent 48%),
+                  radial-gradient(circle at 78% 14%, rgba(255, 220, 186, 0.18), transparent 46%),
+                  linear-gradient(135deg, var(--bg-from) 0%, var(--bg-to) 55%, #e7f1ff 100%);
+    }
+
+    main {
+      width: min(820px, 100%);
+      background: var(--card-bg);
+      border-radius: 28px;
+      border: 1px solid var(--border);
+      box-shadow: 0 32px 54px -34px rgba(15, 23, 42, 0.32);
+      padding: clamp(28px, 5vw, 44px);
+      display: grid;
+      gap: 28px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(2rem, 3.6vw, 2.6rem);
+      color: var(--text);
+    }
+
+    header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    section {
+      background: rgba(29, 78, 216, 0.05);
+      border-radius: 22px;
+      border: 1px solid rgba(29, 78, 216, 0.12);
+      padding: clamp(22px, 4vw, 32px);
+      display: grid;
+      gap: 16px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.35rem;
+      color: var(--primary);
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .cta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .cta a {
+      flex: 1 1 220px;
+      text-align: center;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+
+    .cta a.primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 18px 38px -28px rgba(29, 78, 216, 0.55);
+    }
+
+    .cta a.primary:hover { transform: translateY(-1px); }
+
+    .cta a.secondary {
+      background: rgba(29, 78, 216, 0.08);
+      color: var(--primary);
+      border: 1px solid rgba(29, 78, 216, 0.18);
+    }
+
+    a.link {
+      color: var(--link);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    @media (max-width: 640px) {
+      main { border-radius: 20px; padding: 28px; }
+      .cta a { flex: 1 1 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>關於星級引擎</h1>
+      <p>我們專注於 Google Maps 評論治理，以 AI 智能與自動化流程，協助品牌在 30 秒內掌握口碑風險、生成策略行動並落地執行。</p>
+    </header>
+
+    <section>
+      <h2>我們的承諾</h2>
+      <p>線上評論控管與回覆不該耗費大量人力。我們結合即時監控、智能分析與自動回覆流程，將評論治理化繁為簡。</p>
+      <ul>
+        <li>24 小時即時監控與回覆草稿提案</li>
+        <li>商圈競品差距雷達 + 口碑風險預警</li>
+        <li>自動化任務管理與每週檢視節奏</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>核心能力</h2>
+      <ul>
+        <li>DataForSEO × Google Places 雙源資料整合</li>
+        <li>AI 文案生成與 tone of voice 客製化</li>
+        <li>n8n 自動化工作流，覆蓋授權前後旅程</li>
+      </ul>
+    </section>
+
+    <div class="cta">
+      <a class="primary" href="index.html">立即啟動 30 秒初檢</a>
+      <a class="secondary" href="sample-report.html">先看範例報表</a>
+    </div>
+
+    <p style="margin:0; color: var(--muted); font-size:0.95rem;">
+      需要協助？寫信至 <a class="link" href="mailto:hello@mdzh.io">hello@mdzh.io</a> 或加入官方 LINE 進一步了解。
+    </p>
+  </main>
+</body>
+</html>

@@ -3,22 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>關於我們｜星級引擎</title>
+  <title>關於星級引擎</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-from: #f9fbff;
-      --bg-to: #eef4ff;
-      --card-bg: #ffffff;
-      --card-accent: rgba(29, 78, 216, 0.12);
-      --border: rgba(15, 23, 42, 0.08);
+      --bg: #f5f8ff;
+      --card: #ffffff;
+      --subtle: #eef3ff;
+      --stroke: rgba(21, 45, 90, 0.12);
+      --shadow: 0 24px 48px -32px rgba(15, 23, 42, 0.28);
       --text: #1f2937;
-      --muted: #536079;
+      --muted: #566074;
       --primary: #1d4ed8;
-      --accent: #f97316;
+      --primary-600: #1741b8;
+      --accent: #7a3bff;
+      --warm: #ff8a4c;
       --link: #77aadd;
+      --radius: 22px;
       --font: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     }
 
@@ -27,54 +30,110 @@
     body {
       margin: 0;
       min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background: radial-gradient(circle at 18% 12%, rgba(119, 170, 221, 0.18), transparent 46%),
+                  radial-gradient(circle at 78% 18%, rgba(255, 217, 187, 0.18), transparent 48%),
+                  linear-gradient(135deg, #f9fbff 0%, #eef4ff 58%, #e7f1ff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: clamp(32px, 6vw, 64px) 20px;
-      font-family: var(--font);
-      color: var(--text);
-      background: radial-gradient(circle at 14% 12%, rgba(122, 170, 255, 0.22), transparent 48%),
-                  radial-gradient(circle at 78% 14%, rgba(255, 220, 186, 0.18), transparent 46%),
-                  linear-gradient(135deg, var(--bg-from) 0%, var(--bg-to) 55%, #e7f1ff 100%);
+      padding: clamp(32px, 6vw, 72px) 20px;
     }
 
     main {
-      width: min(820px, 100%);
-      background: var(--card-bg);
-      border-radius: 28px;
-      border: 1px solid var(--border);
-      box-shadow: 0 32px 54px -34px rgba(15, 23, 42, 0.32);
-      padding: clamp(28px, 5vw, 44px);
+      width: min(900px, 100%);
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      padding: clamp(32px, 6vw, 58px);
       display: grid;
       gap: 28px;
     }
 
     header {
+      display: grid;
+      gap: 18px;
+    }
+
+    .heading {
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .heading-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      border-radius: 999px;
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 16px 32px -22px rgba(29, 78, 216, 0.55);
+    }
+
+    .heading-badge img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      padding: 4px;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
     }
 
     header h1 {
       margin: 0;
-      font-size: clamp(2rem, 3.6vw, 2.6rem);
-      color: var(--text);
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
+      letter-spacing: 0.02em;
+    }
+
+    header h1::after {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 3px;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(29, 78, 216, 0.3), rgba(122, 59, 255, 0.4));
     }
 
     header p {
       margin: 0;
-      color: var(--muted);
       font-size: 1.05rem;
-      line-height: 1.7;
+      color: var(--muted);
     }
 
-    section {
-      background: rgba(29, 78, 216, 0.05);
-      border-radius: 22px;
-      border: 1px solid rgba(29, 78, 216, 0.12);
-      padding: clamp(22px, 4vw, 32px);
+    .section-card {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      padding: clamp(24px, 4vw, 36px);
       display: grid;
-      gap: 16px;
+      gap: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .section-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 40px -30px rgba(15, 23, 42, 0.3);
+    }
+
+    .section-card--hero {
+      background: linear-gradient(135deg, rgba(77, 114, 255, 0.18), rgba(199, 209, 255, 0.08));
+      border-color: rgba(29, 78, 216, 0.25);
+    }
+
+    .section-card--cool {
+      background: linear-gradient(135deg, rgba(122, 59, 255, 0.12), rgba(221, 229, 255, 0.1));
+      border-color: rgba(122, 59, 255, 0.22);
+    }
+
+    .section-card--warm {
+      background: linear-gradient(135deg, rgba(255, 193, 166, 0.18), rgba(255, 225, 205, 0.12));
+      border-color: rgba(255, 138, 76, 0.24);
     }
 
     h2 {
@@ -83,51 +142,89 @@
       color: var(--primary);
     }
 
+    p {
+      line-height: 1.7;
+    }
+
     ul {
       margin: 0;
-      padding-left: 20px;
+      padding-left: 24px;
       color: var(--muted);
-      line-height: 1.7;
+      line-height: 1.8;
+      list-style: none;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 14px;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: -18px;
+      top: 0.75em;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px rgba(122, 59, 255, 0.45);
+    }
+
+    .note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
     }
 
     .cta {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
     }
 
     .cta a {
-      flex: 1 1 220px;
+      flex: 1 1 240px;
       text-align: center;
       padding: 14px 20px;
       border-radius: 14px;
       font-weight: 600;
       text-decoration: none;
-      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid transparent;
     }
 
     .cta a.primary {
       background: var(--primary);
       color: #ffffff;
-      box-shadow: 0 18px 38px -28px rgba(29, 78, 216, 0.55);
+      box-shadow: 0 18px 36px -24px rgba(29, 78, 216, 0.5);
     }
 
-    .cta a.primary:hover { transform: translateY(-1px); }
+    .cta a.primary:hover { transform: translateY(-2px); }
 
     .cta a.secondary {
-      background: rgba(29, 78, 216, 0.08);
-      color: var(--primary);
-      border: 1px solid rgba(29, 78, 216, 0.18);
+      background: var(--warm);
+      color: #ffffff;
+      box-shadow: 0 18px 32px -24px rgba(255, 138, 76, 0.4);
     }
 
-    a.link {
+    .cta a.secondary:hover { transform: translateY(-2px); }
+
+    .contact {
+      margin: 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .contact a {
       color: var(--link);
       text-decoration: underline;
-      font-weight: 500;
     }
 
     @media (max-width: 640px) {
-      main { border-radius: 20px; padding: 28px; }
+      main { border-radius: 18px; padding: 28px; }
+      .heading { flex-direction: column; align-items: flex-start; }
       .cta a { flex: 1 1 100%; }
     }
   </style>
@@ -135,37 +232,46 @@
 <body>
   <main>
     <header>
-      <h1>關於星級引擎</h1>
-      <p>我們專注於 Google Maps 評論治理，以 AI 智能與自動化流程，協助品牌在 30 秒內掌握口碑風險、生成策略行動並落地執行。</p>
+      <div class="heading">
+        <div class="heading-badge">
+          <img src="logo.png" alt="星級引擎" />
+          <span>星級引擎</span>
+        </div>
+        <h1>關於我們</h1>
+      </div>
+      <p>星級引擎由脈動智匯打造，我們專注於把原本只屬於大型企業的口碑分析，轉化成中小企業也能即時啟用的自動化服務。</p>
     </header>
 
-    <section>
-      <h2>我們的承諾</h2>
-      <p>線上評論控管與回覆不該耗費大量人力。我們結合即時監控、智能分析與自動回覆流程，將評論治理化繁為簡。</p>
-      <ul>
-        <li>24 小時即時監控與回覆草稿提案</li>
-        <li>商圈競品差距雷達 + 口碑風險預警</li>
-        <li>自動化任務管理與每週檢視節奏</li>
-      </ul>
+    <section class="section-card section-card--hero">
+      <h2>我們在做什麼</h2>
+      <p>我們的工程團隊持續迭代 AI 技術、資料整合與自動化流程，只為讓店家在 30 秒內掌握真實狀況、當天就知道接下來該做什麼。從偵測、整理到行動建議，我們負責做好每一個環節。</p>
     </section>
 
-    <section>
+    <section class="section-card section-card--cool">
+      <h2>我們的承諾</h2>
+      <ul>
+        <li>不學新系統：所有提醒與回覆草稿都在 LINE 完成</li>
+        <li>不漏關鍵評價：營業時段 10 分鐘偵測，1–3★ 合併推送不洗版</li>
+        <li>不再瞎忙：每週一包「待辦＋草稿＋三件事」，30 分鐘收尾</li>
+      </ul>
+      <p class="note">如需停用，資料可一鍵刪除。</p>
+    </section>
+
+    <section class="section-card section-card--warm">
       <h2>核心能力</h2>
       <ul>
-        <li>DataForSEO × Google Places 雙源資料整合</li>
-        <li>AI 文案生成與 tone of voice 客製化</li>
-        <li>n8n 自動化工作流，覆蓋授權前後旅程</li>
+        <li>競品差距，一眼看懂：每月五家對手雷達圖（星等／評論量／距離）</li>
+        <li>回覆更快、更到位：兩至三種語氣草稿（安撫／直接解決／專業）一鍵貼上</li>
+        <li>報表會說人話：Star 日／週／月報，附 ROI 提示與下月三件事</li>
       </ul>
     </section>
 
     <div class="cta">
       <a class="primary" href="index.html">立即啟動 30 秒初檢</a>
-      <a class="secondary" href="sample-report.html">先看範例報表</a>
+      <a class="secondary" href="sample-report.html">智能守護方案</a>
     </div>
 
-    <p style="margin:0; color: var(--muted); font-size:0.95rem;">
-      需要協助？寫信至 <a class="link" href="mailto:hello@mdzh.io">hello@mdzh.io</a> 或加入官方 LINE 進一步了解。
-    </p>
+    <p class="contact">需要協助？ 寫信 <a href="mailto:ai@mdzh.io">ai@mdzh.io</a> 或加入官方 LINE <a href="https://line.me/ti/p/@star-up" target="_blank" rel="noopener">@star-up</a></p>
   </main>
 </body>
 </html>

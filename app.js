@@ -15,13 +15,17 @@ const planUrl = config.checkoutPrimaryUrl || config.checkout_primary_url || '#';
 const sampleReportUrl = config.sampleReportUrl || 'https://app.mdzh.io/samples/report-v1.html';
 
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
-const PROGRESS_TICKS = [18, 32, 48];
-const PROGRESS_TIMEOUT_MS = 60 * 1000;
+const PROGRESS_TICKS = [
+  { percent: 45, label: '資料收集中… 進度 45%', eta: '最近 7 天評論載入中' },
+  { percent: 60, label: '正在比對競品差距… 進度 60%', eta: '附近競品完成定位' },
+  { percent: 75, label: '生成專屬草稿… 進度 75%', eta: 'AI 正撰寫回覆草稿與建議' }
+];
+const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
 const POLL_INTERVAL_MS = 5000;
 const MAX_TONE_SELECTION = 2;
 const NINETY_HINT_DELAY_MS = 15_000;
-const PROGRESS_FAKE_LIMIT = 20;
+const PROGRESS_FAKE_LIMIT = PROGRESS_TICKS[0].percent;
 
 const els = {
   stages: {
@@ -60,6 +64,8 @@ const els = {
   timeoutBack: document.getElementById('timeout-back'),
   copyActions: document.getElementById('copy-actions'),
   toast: document.getElementById('toast'),
+  transitionBar: document.getElementById('transition-bar'),
+  transitionCounter: document.getElementById('transition-counter'),
 };
 
 const state = {
@@ -84,6 +90,10 @@ const state = {
     timeoutFired: false,
     ninetyReachedAt: 0,
     lastStage: '',
+  },
+  transition: {
+    countdownId: null,
+    timeoutId: null,
   },
   report: null,
   mode: params.get('view') === 'report' ? 'report' : 'form',
@@ -198,12 +208,18 @@ function startMessageTicker() {
   state.progress.tickerIndex = 0;
   state.progress.messageId = setInterval(() => {
     if (state.stage !== 's2' && state.stage !== 's3') return;
-    const tick = PROGRESS_TICKS[state.progress.tickerIndex % PROGRESS_TICKS.length];
-    const target = state.progress.percent < PROGRESS_FAKE_LIMIT
-      ? Math.min(tick, PROGRESS_FAKE_LIMIT)
-      : tick;
+    const step = PROGRESS_TICKS[state.progress.tickerIndex % PROGRESS_TICKS.length];
+    const target = step.percent;
     if (target > state.progress.percent) {
-      updateProgressUI(target);
+      updateProgressUI(target, null, step.label);
+    } else if (step.label && els.progressLabelS2) {
+      els.progressLabelS2.textContent = step.label;
+      if (els.progressLabelS3) {
+        els.progressLabelS3.textContent = step.label;
+      }
+    }
+    if (step.eta && els.progressEtaS2) {
+      els.progressEtaS2.textContent = step.eta;
     }
     state.progress.tickerIndex += 1;
   }, 10_000);
@@ -221,6 +237,14 @@ function stopProgressTimers() {
   if (state.progress.messageId) {
     clearInterval(state.progress.messageId);
     state.progress.messageId = null;
+  }
+  if (state.transition.countdownId) {
+    clearInterval(state.transition.countdownId);
+    state.transition.countdownId = null;
+  }
+  if (state.transition.timeoutId) {
+    clearTimeout(state.transition.timeoutId);
+    state.transition.timeoutId = null;
   }
 }
 
@@ -342,11 +366,47 @@ async function handleLeadSubmit(event) {
 }
 
 function startTransitionToQuiz() {
-  setTimeout(() => {
+  if (state.transition.countdownId) {
+    clearInterval(state.transition.countdownId);
+    state.transition.countdownId = null;
+  }
+  if (state.transition.timeoutId) {
+    clearTimeout(state.transition.timeoutId);
+    state.transition.timeoutId = null;
+  }
+
+  if (els.transitionBar) {
+    els.transitionBar.style.transition = 'none';
+    els.transitionBar.style.width = '0%';
+    requestAnimationFrame(() => {
+      els.transitionBar.style.transition = 'width 3s ease';
+      els.transitionBar.style.width = '100%';
+    });
+  }
+
+  if (els.transitionCounter) {
+    let remaining = 3;
+    els.transitionCounter.textContent = remaining;
+    state.transition.countdownId = setInterval(() => {
+      remaining -= 1;
+      if (remaining <= 0) {
+        clearInterval(state.transition.countdownId);
+        state.transition.countdownId = null;
+        els.transitionCounter.textContent = '0';
+      } else {
+        els.transitionCounter.textContent = remaining;
+      }
+    }, 1000);
+  }
+
+  state.transition.timeoutId = setTimeout(() => {
     setStage('s2');
     els.submitBtn.disabled = false;
     els.submitBtn.textContent = '開始 30 秒初檢';
-    updateProgressUI(Math.max(state.progress.frontPercent, PROGRESS_FAKE_LIMIT));
+    updateProgressUI(PROGRESS_FAKE_LIMIT, null, PROGRESS_TICKS[0].label);
+    if (els.progressEtaS2) {
+      els.progressEtaS2.textContent = PROGRESS_TICKS[0].eta;
+    }
     startPolling();
   }, TRANSITION_DURATION_MS);
 }

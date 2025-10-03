@@ -60,7 +60,11 @@
         </div>
         <div class="transition-copy">
           <h2>已收到！正在定位您的店家與商圈…</h2>
-          <p>我們正向 Google Maps 收集最新資料，稍後會自動生成您的專屬設定。</p>
+          <p class="muted">我們正向 Google Maps 收集最新資料，稍後會自動生成您的專屬設定。</p>
+          <div class="transition-meta">
+            <span id="transition-counter">3</span>
+            <small>秒後帶您進入專屬調校</small>
+          </div>
         </div>
       </div>
     </section>
@@ -69,7 +73,7 @@
     <section id="stage-s2" class="stage" data-stage="s2" hidden>
       <div class="stage-panel stage-panel--quiz">
         <header class="stage-panel__header">
-          <span class="stage-tag">S2 · 風格設定</span>
+          <span class="stage-tag">請調適您的專屬引擎</span>
           <h2>先幫您客製化風格（約 60 秒）</h2>
           <p class="muted">同時我們正在抓取評論與競品資料，完成後會自動帶入結果。</p>
         </header>
@@ -96,7 +100,7 @@
           </fieldset>
 
           <fieldset class="quiz-group">
-            <legend>Q2. 回覆語氣偏好（可複選 1–2 項）</legend>
+            <legend>Q2. 希望回覆語氣？（可複選 1–2 項）</legend>
             <div class="quiz-columns">
               <label class="option option--checkbox">
                 <input type="checkbox" name="quiz-tone" value="soothing" />
@@ -119,7 +123,7 @@
           </fieldset>
 
           <fieldset class="quiz-group">
-            <legend>Q3. 想關注的競品（1–3 家，可略過）</legend>
+            <legend>Q3. 想關注的競品（可略過）</legend>
             <textarea id="quiz-competitors" name="quiz-competitors" rows="3" placeholder="輸入店名或地址；用逗號 / 換行分隔，例如：鼎好鍋物, 阿蘭餃子館"></textarea>
             <p class="helper-text">若留空，系統會依據資料自動挑選 5 家同商圈競品。</p>
           </fieldset>
@@ -140,7 +144,7 @@
         </div>
         <div class="progress-dock__meta">
           <span id="progress-label">資料收集中… 進度 0%</span>
-          <span id="progress-eta" class="muted">預估完成時間 60 秒內</span>
+          <span id="progress-eta" class="muted">正在抓取評論與競品資料</span>
         </div>
       </div>
     </section>
@@ -149,9 +153,9 @@
     <section id="stage-s3" class="stage" data-stage="s3" hidden>
       <div class="stage-panel stage-panel--summary">
         <header class="stage-panel__header">
-          <span class="stage-tag">S3 · 個人化設定完成</span>
-          <h2>已設定完成，以下內容將為您專屬生成</h2>
-          <p class="muted">完成後您會看到：① 5 名競品差距雷達 ② 本週三件事 ③ 3 版回覆草稿。</p>
+          <span class="stage-tag">專屬調校完成</span>
+          <h2>設定已鎖定，專屬報表正在生成</h2>
+          <p class="muted">完成後您會看到：① 競品雷達差距 ② 本週三件事 ③ 3 版回覆草稿。</p>
         </header>
 
         <div class="summary-card">

@@ -53,14 +53,24 @@
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 10px;
+      padding: 6px 16px 6px 10px;
       border-radius: 999px;
       background: var(--badge-bg);
       color: var(--badge-text);
       font-weight: 600;
       font-size: 0.95rem;
       letter-spacing: 0.04em;
+      box-shadow: inset 0 0 0 1px rgba(31, 63, 255, 0.12);
+    }
+
+    .badge img {
+      width: 28px;
+      height: 28px;
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 4px;
+      box-shadow: 0 6px 12px -10px rgba(18, 33, 61, 0.6);
     }
 
     header { display: grid; gap: 12px; }
@@ -197,9 +207,12 @@
 <body>
   <main>
     <header>
-      <span class="badge">星級智匯</span>
+      <span class="badge">
+        <img src="logo.png" alt="星級引擎" />
+        <span>脈動智匯｜星級引擎</span>
+      </span>
       <h1>智慧口碑智能初檢｜樣本報表</h1>
-      <p>以下內容為智慧引擎在 30 秒內生成的預覽：藉由整合 Google 最新評論、競品差距與 AI 危機分析，快速呈現出店家在網路口碑上的危機指標與建議。</p>
+      <p>以下內容為星級引擎在 30 秒內生成的預覽：藉由整合 Google 最新評論、競品差距與 AI 危機分析，快速呈現出店家在網路口碑上的危機指標與建議。</p>
     </header>
 
     <section class="highlight">

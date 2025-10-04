@@ -9,19 +9,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-gradient-start: #f1f5ff;
-      --bg-gradient-end: #e4ecff;
-      --card-bg: #ffffff;
-      --card-border: rgba(15, 23, 42, 0.08);
-      --shadow: 0 32px 60px -42px rgba(15, 35, 95, 0.45);
-      --text-main: #12213d;
-      --text-muted: #4b5872;
-      --primary: #1f3fff;
-      --primary-soft: rgba(31, 63, 255, 0.08);
-      --accent: #ff8a4c;
-      --badge-bg: rgba(31, 63, 255, 0.12);
-      --badge-text: #1f3fff;
-      --divider: rgba(18, 33, 61, 0.06);
+      --bg: #f5f8ff;
+      --bg-glow-1: rgba(119, 170, 221, 0.18);
+      --bg-glow-2: rgba(255, 217, 187, 0.2);
+      --card: #ffffff;
+      --stroke: rgba(21, 45, 90, 0.12);
+      --shadow: 0 28px 60px -38px rgba(15, 23, 42, 0.38);
+      --text: #12213d;
+      --muted: #4b5870;
+      --primary: #1d4ed8;
+      --primary-deep: #193fbe;
+      --accent-cool: #7a3bff;
+      --accent-warm: #ff8a4c;
+      --badge-gradient: linear-gradient(135deg, rgba(29, 78, 216, 0.95), rgba(37, 99, 235, 0.82));
+      --section-hero: linear-gradient(140deg, rgba(33, 78, 218, 0.15), rgba(151, 177, 255, 0.08));
+      --section-cool: linear-gradient(145deg, rgba(122, 59, 255, 0.14), rgba(222, 229, 255, 0.08));
+      --section-warm: linear-gradient(145deg, rgba(255, 193, 166, 0.22), rgba(255, 227, 205, 0.12));
+      --section-neutral: rgba(255, 255, 255, 0.96);
       --font: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     }
 
@@ -29,144 +33,175 @@
 
     body {
       margin: 0;
-      padding: clamp(36px, 7vw, 72px) 20px;
       min-height: 100vh;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 12%, var(--bg-glow-1), transparent 46%),
+        radial-gradient(circle at 80% 16%, var(--bg-glow-2), transparent 48%),
+        linear-gradient(135deg, #f9fbff 0%, #eef4ff 58%, #e6efff 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font);
-      color: var(--text-main);
-      background: linear-gradient(160deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      padding: clamp(32px, 7vw, 72px) 20px;
     }
 
     main {
-      width: min(880px, 100%);
-      background: var(--card-bg);
-      border-radius: 32px;
-      border: 1px solid var(--card-border);
+      width: min(900px, 100%);
+      background: var(--card);
+      border-radius: 30px;
+      border: 1px solid var(--stroke);
       box-shadow: var(--shadow);
-      padding: clamp(32px, 6vw, 56px);
+      padding: clamp(34px, 6vw, 60px);
       display: grid;
       gap: clamp(24px, 5vw, 36px);
     }
 
+    header { display: grid; gap: 16px; }
+
     .badge {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
-      padding: 6px 16px 6px 10px;
+      gap: 14px;
+      padding: 10px 22px 10px 12px;
       border-radius: 999px;
-      background: var(--badge-bg);
-      color: var(--badge-text);
+      background: var(--badge-gradient);
+      color: #ffffff;
       font-weight: 600;
-      font-size: 0.95rem;
-      letter-spacing: 0.04em;
-      box-shadow: inset 0 0 0 1px rgba(31, 63, 255, 0.12);
+      letter-spacing: 0.05em;
+      box-shadow: 0 18px 38px -24px rgba(29, 78, 216, 0.48);
     }
 
     .badge img {
-      width: 28px;
-      height: 28px;
-      border-radius: 12px;
+      width: 34px;
+      height: 34px;
+      border-radius: 16px;
       background: #ffffff;
-      padding: 4px;
-      box-shadow: 0 6px 12px -10px rgba(18, 33, 61, 0.6);
+      padding: 5px;
+      box-shadow: 0 8px 18px -14px rgba(18, 33, 61, 0.52);
     }
-
-    header { display: grid; gap: 12px; }
 
     header h1 {
       margin: 0;
-      font-size: clamp(2rem, 4vw, 2.6rem);
+      font-size: clamp(2.2rem, 4vw, 2.8rem);
       font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    header h1::after {
+      content: '';
+      display: block;
+      width: 56px;
+      height: 3px;
+      margin-top: 12px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(29, 78, 216, 0.35), rgba(122, 59, 255, 0.42));
     }
 
     header p {
       margin: 0;
-      color: var(--text-muted);
+      color: var(--muted);
       line-height: 1.75;
-      font-size: 1.05rem;
+      font-size: 1.04rem;
     }
 
-    section {
-      background: rgba(255, 255, 255, 0.97);
-      border-radius: 24px;
-      border: 1px solid var(--card-border);
-      padding: clamp(24px, 4vw, 32px);
+    .section-card {
+      border-radius: 26px;
+      border: 1px solid rgba(31, 63, 255, 0.08);
+      padding: clamp(26px, 5vw, 34px);
       display: grid;
       gap: 18px;
+      background: var(--section-neutral);
+      box-shadow: 0 14px 32px -28px rgba(18, 33, 61, 0.26);
     }
 
-    section.highlight {
-      background: linear-gradient(145deg, rgba(31,63,255,0.08), rgba(255,255,255,0.9));
-      border: 1px solid rgba(31, 63, 255, 0.16);
+    .section-card--hero {
+      background: var(--section-hero);
+      border-color: rgba(29, 78, 216, 0.22);
     }
 
-    section h2 {
+    .section-card--cool {
+      background: var(--section-cool);
+      border-color: rgba(122, 59, 255, 0.22);
+    }
+
+    .section-card--warm {
+      background: var(--section-warm);
+      border-color: rgba(255, 138, 76, 0.26);
+    }
+
+    .section-card h2 {
       margin: 0;
-      font-size: 1.35rem;
+      font-size: 1.32rem;
       color: var(--primary);
       font-weight: 700;
     }
 
-    section .subtitle {
+    .section-card .subtitle {
       margin: -6px 0 0;
-      color: var(--text-muted);
+      color: var(--muted);
       font-size: 0.95rem;
+      letter-spacing: 0.02em;
     }
 
     .metrics {
       display: grid;
-      gap: 14px;
+      gap: 16px;
     }
 
     .metric {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px 20px;
       align-items: baseline;
-      border-bottom: 1px solid var(--divider);
-      padding-bottom: 12px;
+      gap: 12px 20px;
+      border-bottom: 1px solid rgba(18, 33, 61, 0.08);
+      padding-bottom: 14px;
     }
 
     .metric:last-child { border-bottom: none; }
 
-    .metric-label { font-weight: 600; color: var(--text-main); }
+    .metric-label { font-weight: 600; color: var(--text); }
 
     .metric-value {
       font-weight: 700;
-      color: var(--primary);
-      font-size: 1.15rem;
+      color: var(--primary-deep);
+      font-size: 1.18rem;
+    }
+
+    .metric-detail {
+      color: var(--muted);
+      font-size: 0.98rem;
     }
 
     .list, .paragraph-list {
       margin: 0;
-      padding-left: 20px;
-      color: var(--text-muted);
-      line-height: 1.8;
+      padding-left: 22px;
+      color: var(--muted);
+      line-height: 1.78;
     }
 
     .paragraph-list li + li { margin-top: 10px; }
 
     .insight {
-      background: rgba(255, 138, 76, 0.08);
-      border-left: 4px solid var(--accent);
-      padding: 14px 20px;
-      border-radius: 16px;
-      color: var(--text-main);
-      line-height: 1.7;
+      background: rgba(255, 186, 145, 0.16);
+      border-left: 4px solid var(--accent-warm);
+      padding: 16px 22px;
+      border-radius: 18px;
+      color: var(--text);
+      line-height: 1.72;
+      box-shadow: inset 0 0 0 1px rgba(255, 138, 76, 0.1);
     }
 
     .cta-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 14px;
+      gap: 16px;
     }
 
     .cta-row a {
       flex: 1 1 220px;
       text-align: center;
-      padding: 16px 24px;
+      padding: 16px 26px;
       border-radius: 16px;
       font-weight: 600;
       font-size: 1.05rem;
@@ -176,21 +211,21 @@
 
     .cta-row a.primary {
       background: var(--primary);
-      color: #fff;
-      box-shadow: 0 20px 46px -28px rgba(31, 63, 255, 0.6);
+      color: #ffffff;
+      box-shadow: 0 24px 50px -28px rgba(29, 78, 216, 0.62);
     }
 
     .cta-row a.secondary {
-      background: var(--primary-soft);
+      background: rgba(29, 63, 255, 0.1);
       color: var(--primary);
-      border: 1px solid rgba(31, 63, 255, 0.16);
+      border: 1px solid rgba(29, 63, 255, 0.18);
     }
 
     .cta-row a:hover { transform: translateY(-2px); }
 
     .note {
       margin: 0;
-      color: var(--text-muted);
+      color: var(--muted);
       font-size: 0.92rem;
       text-align: center;
       line-height: 1.6;
@@ -199,7 +234,7 @@
     @media (max-width: 640px) {
       body { padding: 20px; }
       main { border-radius: 24px; }
-      section { border-radius: 20px; }
+      .section-card { border-radius: 22px; }
       .cta-row a { flex: 1 1 100%; }
     }
   </style>
@@ -215,7 +250,7 @@
       <p>以下內容為星級引擎在 30 秒內生成的預覽：藉由整合 Google 最新評論、競品差距與 AI 危機分析，快速呈現出店家在網路口碑上的危機指標與建議。</p>
     </header>
 
-    <section class="highlight">
+    <section class="section-card section-card--hero">
       <h2>{{store_name}}｜{{store_rating}} ★</h2>
       <p class="subtitle">最近 7 天評論：{{recent_reviews_count}} 筆｜1~3★ 負評：{{recent_lowstar_count}} 筆｜預估流失：NT${{potential_loss}}</p>
       <div class="metrics">
@@ -237,19 +272,19 @@
       </div>
     </section>
 
-    <section>
+    <section class="section-card section-card--cool">
       <h2>鄰近競品差距雷達</h2>
       <p class="subtitle">半徑 {{search_radius}} 公尺內的 5 家對手，即時評估星等、評論量與回覆率。</p>
       <ul class="list">
-        <li>{{competitor_1_name}} ｜ {{competitor_1_rating}} ★ ｜ 評論 {{competitor_1_reviews}} 筆｜近期回覆率 {{competitor_1_reply_rate}}</li>
-        <li>{{competitor_2_name}} ｜ {{competitor_2_rating}} ★ ｜ 評論 {{competitor_2_reviews}} 筆｜近期回覆率 {{competitor_2_reply_rate}}</li>
-        <li>{{competitor_3_name}} ｜ {{competitor_3_rating}} ★ ｜ 評論 {{competitor_3_reviews}} 筆｜近期回覆率 {{competitor_3_reply_rate}}</li>
-        <li>{{competitor_4_name}} ｜ {{competitor_4_rating}} ★ ｜ 評論 {{competitor_4_reviews}} 筆｜近期回覆率 {{competitor_4_reply_rate}}</li>
-        <li>{{competitor_5_name}} ｜ {{competitor_5_rating}} ★ ｜ 評論 {{competitor_5_reviews}} 筆｜近期回覆率 {{competitor_5_reply_rate}}</li>
+        <li>{{competitor_1_name}} ｜ {{competitor_1_rating}} ★ ｜ 評論 {{competitor_1_reviews}} 筆 ｜ 近期回覆率 {{competitor_1_reply_rate}}</li>
+        <li>{{competitor_2_name}} ｜ {{competitor_2_rating}} ★ ｜ 評論 {{competitor_2_reviews}} 筆 ｜ 近期回覆率 {{competitor_2_reply_rate}}</li>
+        <li>{{competitor_3_name}} ｜ {{competitor_3_rating}} ★ ｜ 評論 {{competitor_3_reviews}} 筆 ｜ 近期回覆率 {{competitor_3_reply_rate}}</li>
+        <li>{{competitor_4_name}} ｜ {{competitor_4_rating}} ★ ｜ 評論 {{competitor_4_reviews}} 筆 ｜ 近期回覆率 {{competitor_4_reply_rate}}</li>
+        <li>{{competitor_5_name}} ｜ {{competitor_5_rating}} ★ ｜ 評論 {{competitor_5_reviews}} 筆 ｜ 近期回覆率 {{competitor_5_reply_rate}}</li>
       </ul>
     </section>
 
-    <section>
+    <section class="section-card section-card--warm">
       <h2>立即行動：本週三件事</h2>
       <ul class="paragraph-list">
         <li><strong>{{action_1_title}}</strong>：{{action_1_body}}</li>
@@ -258,7 +293,7 @@
       </ul>
     </section>
 
-    <section>
+    <section class="section-card">
       <h2>AI 回覆草稿（已替你寫好的範本）</h2>
       <div class="insight">
         <strong>危機焦點 1｜{{ai_theme_1}}</strong><br />
@@ -271,7 +306,7 @@
       <p class="note" style="text-align:left; font-size:0.95rem;">以上內容可直接貼到 LINE 官方帳號或 Google 回覆框。若需第三版草稿或其他語氣，可於正式版開通後一鍵生成。</p>
     </section>
 
-    <section>
+    <section class="section-card">
       <h2>我們會如何守護你的店</h2>
       <ul class="paragraph-list">
         <li><strong>全面監控</strong>：24/7 追蹤所有評論、星等與競品動態，超出閾值立即 LINE 通知。</li>

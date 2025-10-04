@@ -117,12 +117,12 @@ function showToast(message, duration = 2600) {
 }
 
 function openAboutPage() {
-  const targetUrl = config.aboutUrl || 'about.html';
-  if (state.liffReady && window.liff?.openWindow) {
-    window.liff.openWindow({ url: targetUrl, external: false });
-  } else {
-    window.open(targetUrl, '_blank');
+  const fallbackUrl = 'about.html';
+  if (state.liffReady && config.aboutUrl && window.liff?.openWindow) {
+    window.liff.openWindow({ url: config.aboutUrl, external: false });
+    return;
   }
+  window.open(fallbackUrl, '_blank');
 }
 
 function setStage(nextStage) {
@@ -851,7 +851,7 @@ function attachEventListeners() {
     els.ctaPlan.href = planUrl;
   }
   if (els.aboutLink) {
-    els.aboutLink.href = config.aboutUrl || 'about.html';
+    els.aboutLink.href = 'about.html';
   }
 
   attachEventListeners();

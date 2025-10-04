@@ -247,7 +247,7 @@
         <span>脈動智匯｜星級引擎</span>
       </span>
       <h1>智慧口碑智能初檢｜樣本報表</h1>
-      <p>以下內容為星級引擎在 30 秒內生成的預覽：藉由整合 Google 最新評論、競品差距與 AI 危機分析，快速呈現出店家在網路口碑上的危機指標與建議。</p>
+      <p>以下內容為星級引擎的樣本報表：示範登入後可查看的 AI 分析、競品差距與行動建議，幫助你預覽正式版本的呈現方式。</p>
     </header>
 
     <section class="section-card section-card--hero">
@@ -255,19 +255,19 @@
       <p class="subtitle">最近 7 天評論：{{recent_reviews_count}} 筆｜1~3★ 負評：{{recent_lowstar_count}} 筆｜預估流失：NT${{potential_loss}}</p>
       <div class="metrics">
         <div class="metric">
-          <span class="metric-label">常見風險主題</span>
+          <span class="metric-label">優先改善焦點</span>
           <span class="metric-value">{{top_risk_theme}}</span>
-          <span class="metric-detail">多出 {{risk_gap_percent}}% 的負面聲量</span>
+          <span class="metric-detail">目前聲量較競品高出 {{risk_gap_percent}}%</span>
         </div>
         <div class="metric">
           <span class="metric-label">顧客等待時間</span>
           <span class="metric-value">{{avg_wait_minutes}} 分鐘</span>
-          <span class="metric-detail">相較競品高出 {{wait_gap_percent}}%</span>
+          <span class="metric-detail">相較競品約高出 {{wait_gap_percent}}%</span>
         </div>
         <div class="metric">
-          <span class="metric-label">當前危機等級</span>
+          <span class="metric-label">風險等級</span>
           <span class="metric-value">{{risk_level}}</span>
-          <span class="metric-detail">若未回應，預估 30 天將流失 NT${{projected_loss}}</span>
+          <span class="metric-detail">建議儘速處理，預估 30 天可能流失 NT${{projected_loss}}</span>
         </div>
       </div>
     </section>
@@ -296,11 +296,11 @@
     <section class="section-card">
       <h2>AI 回覆草稿（已替你寫好的範本）</h2>
       <div class="insight">
-        <strong>危機焦點 1｜{{ai_theme_1}}</strong><br />
+        <strong>AI 焦點 1｜{{ai_theme_1}}</strong><br />
         {{ai_response_1}}
       </div>
       <div class="insight">
-        <strong>危機焦點 2｜{{ai_theme_2}}</strong><br />
+        <strong>AI 焦點 2｜{{ai_theme_2}}</strong><br />
         {{ai_response_2}}
       </div>
       <p class="note" style="text-align:left; font-size:0.95rem;">以上內容可直接貼到 LINE 官方帳號或 Google 回覆框。若需第三版草稿或其他語氣，可於正式版開通後一鍵生成。</p>
@@ -319,7 +319,7 @@
       </div>
     </section>
 
-    <p class="note">完整報表可匯出 PDF / LINE Flex 卡片；資料來源含 DataForSEO、Google Places API、星級引擎 CRM 營運資料庫。</p>
+    <p class="note">完整報表可匯出 PDF / LINE Flex 卡片；資料來源含 DataForSEO、Google Places API、星級引擎 CRM 營運資料庫。登入後可查看專屬數據。</p>
   </main>
 </body>
 </html>

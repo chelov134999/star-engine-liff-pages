@@ -5,13 +5,11 @@ const endpoints = {
   lead: config.webhookUrl,
   quiz: config.quizUrl || config.webhookUrl,
   analysisStatus: config.analysisStatusUrl || `${config.webhookUrl}/status`,
-  weeklyDraft: config.weeklyDraftUrl || '',
 };
 
 const reportUrl = config.reportUrl || config.report_url || 'report.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
-const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html?v=20251006T0054';
-const sampleReportUrl = config.sampleReportUrl || 'sample-report.html?v=20251006T0054';
+const assistantUrl = config.trialUrl || config.trial_url || '';
 
 const ANALYSIS_COUNTDOWN_SECONDS = 60;
 const TIP_ROTATE_INTERVAL_MS = 9000;
@@ -37,8 +35,8 @@ const TRANSITION_TIPS = [
   '套用您選擇的語氣與優先要務…',
   '整理趨勢後，將自動載入專屬設定。',
 ];
-const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送通知。';
-const DATAFORSEO_TIMEOUT_NOTE = '已先交付 Google 資料，評論補齊後會再次通知你。';
+const DEFAULT_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會另行通知。';
+const DATAFORSEO_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會另行通知。';
 
 const logEvent = (...args) => {
   if (typeof window.logEvent === 'function') {
@@ -98,12 +96,10 @@ const els = {
   resultWarning: document.getElementById('result-warning'),
   resultWarningText: document.getElementById('result-warning-text'),
   ctaReport: document.getElementById('cta-report'),
-  ctaPlan: document.getElementById('cta-plan'),
-  ctaSecondary: document.getElementById('cta-secondary'),
+  ctaAssistant: document.getElementById('cta-assistant'),
   returnHome: document.getElementById('return-home'),
-  timeoutSample: document.getElementById('timeout-sample'),
-  timeoutWeekly: document.getElementById('timeout-weekly'),
   timeoutReport: document.getElementById('timeout-report'),
+  timeoutAssistant: document.getElementById('timeout-assistant'),
   timeoutNote: document.getElementById('timeout-note'),
   timeoutCountdown: document.getElementById('timeout-countdown'),
   timeoutBack: document.getElementById('timeout-back'),
@@ -156,8 +152,7 @@ const state = {
   psychology: null,
   reportToken: '',
   templateId: 'unknown',
-  planUrl: '',
-  sampleUrl: '',
+  assistantUrl: assistantUrl,
   reportPageUrl: '',
   timeoutContext: {},
   latestWarnings: [],
@@ -466,10 +461,20 @@ function updateTimeoutUI() {
   const flags = context.flags || {};
   const hasDataforseoIssue = Boolean(flags.dataforseo_missing) || warnings.includes('dataforseo_missing');
   els.timeoutNote.textContent = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
+
   if (els.timeoutReport) {
     const allowReport = Boolean(state.reportPageUrl);
-    els.timeoutReport.hidden = !hasDataforseoIssue || !allowReport;
+    els.timeoutReport.hidden = false;
     els.timeoutReport.disabled = !allowReport;
+  }
+
+  if (els.timeoutAssistant) {
+    const allowAssistant = Boolean(state.assistantUrl);
+    els.timeoutAssistant.hidden = false;
+    els.timeoutAssistant.disabled = !allowAssistant;
+    if (allowAssistant && 'href' in els.timeoutAssistant) {
+      els.timeoutAssistant.href = state.assistantUrl;
+    }
   }
 }
 
@@ -975,6 +980,26 @@ function handleStatusResponse(payload) {
   const isComplete = statusValue.toLowerCase() === 'complete' || lifecycleState === 'ready';
   const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
   const flags = payload.flags || (payload.report && payload.report.flags) || {};
+  const resolvedReportUrl = payload.report_url || payload.report?.report_url || '';
+  const resolvedAssistantUrl = payload.assistant_url
+    || payload.trial_url
+    || payload.links?.assistant
+    || payload.links?.assistant_url
+    || '';
+
+  if (resolvedReportUrl) {
+    state.reportPageUrl = resolvedReportUrl;
+    const extracted = extractTokenFromUrl(resolvedReportUrl);
+    if (extracted) {
+      state.reportToken = extracted;
+    }
+  }
+
+  if (resolvedAssistantUrl) {
+    state.assistantUrl = resolvedAssistantUrl;
+  } else if (!state.assistantUrl) {
+    state.assistantUrl = assistantUrl;
+  }
   const stageHints = {
     collecting: '正在定位您的門市與商圈…',
     processing: '正在抓取 DataForSEO 與附近競品…',
@@ -1039,7 +1064,7 @@ function handleStatusResponse(payload) {
   const enrichedContext = {
     warnings,
     flags,
-    report_url: payload.report_url || payload.report?.report_url || state.reportPageUrl,
+    report_url: resolvedReportUrl || state.reportPageUrl,
   };
 
   if (isComplete) {
@@ -1198,23 +1223,15 @@ function renderAnalysisReport(context = {}) {
     els.summaryTone.textContent = report.tone_label || els.summaryTone.textContent;
   }
 
-  const planParams = {
-    lead_id: state.leadId || '',
-    template_id: state.templateId || 'unknown',
-  };
-  state.planUrl = buildUrlWithParams(plansPageUrl, planParams);
-  state.sampleUrl = buildUrlWithParams(sampleReportUrl, {
-    lead_id: state.leadId || '',
-    template_id: state.templateId || 'unknown',
-  });
-
   if (!context.report_url) {
     const token = state.reportToken || report.token || '';
-    state.reportPageUrl = buildUrlWithParams(reportUrl, {
-      token,
-      lead_id: state.leadId || '',
-      ts: Date.now(),
-    });
+    if (reportUrl) {
+      state.reportPageUrl = buildUrlWithParams(reportUrl, {
+        token,
+        lead_id: state.leadId || '',
+        ts: Date.now(),
+      });
+    }
   }
 
   if (!state.reportPageUrl && reportUrl) {
@@ -1224,11 +1241,20 @@ function renderAnalysisReport(context = {}) {
     });
   }
 
-  if (els.ctaPlan) {
-    els.ctaPlan.href = state.planUrl;
+  if (!state.assistantUrl) {
+    state.assistantUrl = assistantUrl;
   }
-  if (els.ctaSecondary) {
-    els.ctaSecondary.disabled = !state.sampleUrl;
+
+  if (els.ctaReport) {
+    els.ctaReport.disabled = !state.reportPageUrl;
+  }
+
+  if (els.ctaAssistant) {
+    const hasAssistant = Boolean(state.assistantUrl);
+    els.ctaAssistant.disabled = !hasAssistant;
+    if (hasAssistant && 'href' in els.ctaAssistant) {
+      els.ctaAssistant.href = state.assistantUrl;
+    }
   }
 
   logEvent('report_preview_ready', {
@@ -1278,42 +1304,7 @@ function triggerTimeout(context = {}) {
   startTimeoutCountdown();
   updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
   updateProgressStatus(ANALYSIS_STATUS_LABELS.timeout || DEFAULT_STATUS_LABEL);
-  if (els.timeoutSample && state.sampleUrl) {
-    els.timeoutSample.href = state.sampleUrl;
-  }
   setStage('s5');
-}
-
-async function handleWeeklyDraft() {
-  if (!endpoints.weeklyDraft) {
-    showToast('尚未設定試算服務');
-    return;
-  }
-  if (!state.leadId) {
-    showToast('尚未取得 Lead 編號');
-    return;
-  }
-  try {
-    const result = await requestJSON(endpoints.weeklyDraft, {
-      method: 'POST',
-      body: JSON.stringify({
-        lead_id: state.leadId,
-        mode: 'trial',
-        tone: state.quiz.tone.length ? state.quiz.tone : ['direct_fix', 'soothing'],
-        goal: state.quiz.goal || 'instant_lowstar',
-      }),
-    });
-    if (result && result.ok === false) {
-      throw new Error(result.message || '推送失敗');
-    }
-    showToast('已推送試算三件事，請查看 LINE。');
-  } catch (error) {
-    logEvent('weekly_draft_failed', {
-      lead_id: state.leadId || '',
-      error: error?.message || String(error || ''),
-    });
-    showToast(`推送失敗：${error.message}`);
-  }
 }
 
 function resetFlow() {
@@ -1353,8 +1344,7 @@ function resetFlow() {
   state.psychology = null;
   state.reportToken = '';
   state.templateId = 'unknown';
-  state.planUrl = '';
-  state.sampleUrl = '';
+  state.assistantUrl = assistantUrl;
   state.reportPageUrl = '';
   state.timeoutContext = {};
   state.latestWarnings = [];
@@ -1386,23 +1376,12 @@ function resetFlow() {
 }
 
 function redirectToReport() {
-  let target = state.reportPageUrl;
-
-  if (!target && reportUrl) {
-    const token = state.reportToken || state.report?.token || '';
-    target = buildUrlWithParams(reportUrl, {
-      token,
-      lead_id: state.leadId || '',
-      ts: Date.now(),
-    });
-  }
+  const target = state.reportPageUrl;
 
   if (!target) {
     showToast('報表尚未準備完成，請稍後再試。', 2000);
     return;
   }
-
-  state.reportPageUrl = target;
 
   logEvent('cta_click', {
     action: 'report',
@@ -1411,22 +1390,21 @@ function redirectToReport() {
     source: 'preview',
   });
 
-  window.location.href = state.reportPageUrl;
+  window.location.href = target;
 }
 
-function handleSecondaryCta(event) {
-  event?.preventDefault?.();
-  if (!state.sampleUrl) {
-    showToast('樣本報表準備中');
+function openAssistant(source = 'preview') {
+  if (!state.assistantUrl) {
+    showToast('專業助理暫時無法連線，請稍後再試。');
     return;
   }
-  window.open(state.sampleUrl, '_blank');
   logEvent('cta_click', {
-    action: 'secondary',
+    action: 'assistant',
     lead_id: state.leadId,
     template_id: state.templateId,
-    source: 'preview',
+    source,
   });
+  window.open(state.assistantUrl, '_blank', 'noopener,noreferrer');
 }
 
 function attachEventListeners() {
@@ -1437,7 +1415,6 @@ function attachEventListeners() {
   els.summaryBack?.addEventListener('click', returnToQuizFromSummary);
   els.returnHome?.addEventListener('click', resetFlow);
   els.timeoutBack?.addEventListener('click', resetFlow);
-  els.timeoutWeekly?.addEventListener('click', handleWeeklyDraft);
   els.timeoutReport?.addEventListener('click', (event) => {
     event.preventDefault();
     logEvent('cta_click', {
@@ -1448,21 +1425,20 @@ function attachEventListeners() {
     });
     redirectToReport();
   });
+  els.timeoutAssistant?.addEventListener('click', (event) => {
+    event.preventDefault();
+    openAssistant('timeout');
+  });
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
   });
-  els.ctaPlan?.addEventListener('click', () => {
-    logEvent('cta_click', {
-      action: 'main',
-      lead_id: state.leadId,
-      template_id: state.templateId,
-      source: 'preview',
-    });
-  });
-  els.ctaSecondary?.addEventListener('click', handleSecondaryCta);
   els.ctaReport?.addEventListener('click', (event) => {
     event.preventDefault();
     redirectToReport();
+  });
+  els.ctaAssistant?.addEventListener('click', (event) => {
+    event.preventDefault();
+    openAssistant('preview');
   });
   els.aboutLink?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -1483,14 +1459,16 @@ function attachEventListeners() {
     return;
   }
 
-  if (els.timeoutSample && sampleReportUrl) {
-    els.timeoutSample.href = sampleReportUrl;
-  }
-  if (els.ctaPlan && plansPageUrl) {
-    els.ctaPlan.href = plansPageUrl;
-  }
   if (els.aboutLink) {
     els.aboutLink.href = 'about.html';
+  }
+
+  if (els.ctaAssistant && assistantUrl && 'href' in els.ctaAssistant) {
+    els.ctaAssistant.href = assistantUrl;
+  }
+
+  if (els.timeoutAssistant && assistantUrl && 'href' in els.timeoutAssistant) {
+    els.timeoutAssistant.href = assistantUrl;
   }
 
   attachEventListeners();

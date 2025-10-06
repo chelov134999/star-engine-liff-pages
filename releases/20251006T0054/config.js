@@ -9,6 +9,7 @@
     analysisStatusUrl: 'https://chelov134999.app.n8n.cloud/webhook/analysis-status',
     weeklyDraftUrl: 'https://chelov134999.app.n8n.cloud/webhook/weekly-draft',
     reportEndpoint: 'https://chelov134999.app.n8n.cloud/webhook/report-data',
+    assistantEntryUrl: 'https://chelov134999.app.n8n.cloud/webhook/assistant-entry',
     formUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/index.html?ts=20251006T0054',
     reportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/report.html?ts=20251006T0054',
     trialUrl: 'https://line.me/ti/p/@star-up',
@@ -28,6 +29,8 @@
     analysisStatusUrl: coalesce('analysisStatusUrl') || coalesce('analysis_status_url'),
     weeklyDraftUrl: coalesce('weeklyDraftUrl') || coalesce('weekly_draft_url'),
     reportEndpoint: coalesce('reportEndpoint'),
+    assistantEntryUrl: coalesce('assistantEntryUrl') || coalesce('assistant_entry_url')
+      || coalesce('assistantUrl') || coalesce('assistant_url'),
     reportUrl: coalesce('reportUrl'),
     formUrl: coalesce('formUrl') || coalesce('form_url'),
     aboutUrl: coalesce('aboutUrl') || coalesce('about_url'),

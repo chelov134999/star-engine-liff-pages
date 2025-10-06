@@ -2,7 +2,17 @@
   const params = new URLSearchParams(window.location.search);
   const config = window.STAR_ENGINE_CONFIG || {};
   const reportEndpoint = config.reportDataUrl || config.report_data_url || 'https://chelov134999.app.n8n.cloud/webhook/report-data';
-  const assistantUrlDefault = config.trialUrl || config.trial_url || '';
+  const assistantUrlDefault = config.assistantUrl
+    || config.assistant_url
+    || config.trialUrl
+    || config.trial_url
+    || '';
+  const assistantEntryUrlDefault = config.assistantEntryUrl
+    || config.assistant_entry_url
+    || config.assistantEntryURL
+    || config.assistantUrl
+    || config.assistant_url
+    || '';
   const lineFallbackUrl = config.lineFallbackUrl || 'https://line.me/R/ti/p/@star-up';
 
   const dom = {
@@ -15,7 +25,8 @@
     errorReturn: document.getElementById('error-return-line'),
     btnReturnLine: document.getElementById('btn-return-line'),
     ctaPrimary: document.getElementById('cta-primary'),
-    ctaAssistant: document.getElementById('cta-assistant'),
+    ctaSecondary: document.getElementById('cta-assistant'),
+    toast: document.getElementById('report-toast'),
     heroRating: document.getElementById('hero-rating'),
     heroRatingHint: document.getElementById('hero-rating-hint'),
     heroReviews: document.getElementById('hero-reviews'),
@@ -64,17 +75,92 @@
     retry: 0,
     maxRetry: 3,
     assistantUrl: assistantUrlDefault,
-    primaryAction: 'refresh',
+    assistantEntryUrl: assistantEntryUrlDefault,
+    primaryAction: 'assistant',
+    primaryDisabled: false,
+    primaryLoading: false,
+    primaryHref: '#',
+    toastTimer: null,
   };
   function setAnchorState(anchor, enabled, href = '#') {
     if (!anchor) return;
-    anchor.setAttribute('href', enabled ? href : '#');
+    if (enabled && href) {
+      anchor.setAttribute('href', href);
+    } else {
+      anchor.removeAttribute('href');
+    }
     anchor.classList.toggle('btn--disabled', !enabled);
     anchor.setAttribute('aria-disabled', enabled ? 'false' : 'true');
   }
 
-  if (dom.ctaAssistant) {
-    setAnchorState(dom.ctaAssistant, Boolean(state.assistantUrl), state.assistantUrl || '#');
+  function setPrimaryLoading(isLoading) {
+    state.primaryLoading = Boolean(isLoading);
+    if (!dom.ctaPrimary) return;
+    dom.ctaPrimary.classList.toggle('btn--loading', state.primaryLoading);
+    dom.ctaPrimary.setAttribute('aria-busy', state.primaryLoading ? 'true' : 'false');
+    updatePrimaryAction(state.primaryAction);
+  }
+
+  function showToast(message, duration = 800) {
+    if (!dom.toast) return;
+    const text = message == null ? '' : String(message);
+    if (state.toastTimer) {
+      window.clearTimeout(state.toastTimer);
+      state.toastTimer = null;
+    }
+    dom.toast.textContent = text;
+    dom.toast.hidden = false;
+    dom.toast.setAttribute('aria-hidden', 'false');
+    dom.toast.classList.add('toast--visible');
+    state.toastTimer = window.setTimeout(() => {
+      dom.toast.classList.remove('toast--visible');
+      dom.toast.setAttribute('aria-hidden', 'true');
+      dom.toast.hidden = true;
+      state.toastTimer = null;
+    }, duration);
+  }
+
+  function hasAssistantEntry() {
+    return Boolean(state.assistantEntryUrl || state.assistantUrl);
+  }
+
+  function refreshPrimaryAction(forceAction) {
+    if (forceAction) {
+      updatePrimaryAction(forceAction);
+      return;
+    }
+    if (hasAssistantEntry()) {
+      updatePrimaryAction('assistant', { disabled: false });
+    } else {
+      updatePrimaryAction('line', { disabled: true });
+    }
+  }
+
+  function resolveAssistantTarget(payload) {
+    if (!payload) return '';
+    if (typeof payload === 'string') {
+      return payload.trim();
+    }
+    if (typeof payload === 'object') {
+      const candidates = [
+        payload.deeplink,
+        payload.redirect_url,
+        payload.redirectUrl,
+        payload.assistant_url,
+        payload.assistantUrl,
+        payload.url,
+      ];
+      for (const candidate of candidates) {
+        if (typeof candidate === 'string' && candidate.trim()) {
+          return candidate.trim();
+        }
+      }
+    }
+    return '';
+  }
+
+  if (dom.ctaSecondary) {
+    setAnchorState(dom.ctaSecondary, true, lineFallbackUrl);
   }
 
   function setSummaryBlock(container, labelEl, textEl, { label, text }) {
@@ -115,25 +201,53 @@
     return `NT$${number.toLocaleString('zh-Hant-TW')}`;
   }
 
-  function updatePrimaryAction(action, { disabled = false } = {}) {
+  function updatePrimaryAction(action, { disabled } = {}) {
     state.primaryAction = action;
+    if (typeof disabled === 'boolean') {
+      state.primaryDisabled = disabled;
+    }
     if (!dom.ctaPrimary) return;
-    let label = '查看完整報表';
-    let targetHref = state.reportPageUrl || '#';
 
-    if (action === 'line') {
-      label = '回到 LINE';
-      targetHref = lineFallbackUrl;
-    } else if (action === 'refresh') {
-      label = '重新整理';
-      targetHref = '#';
-    } else if (action === 'report') {
-      targetHref = state.reportPageUrl || '#';
-      disabled = disabled || !state.reportPageUrl;
+    let label = 'AI 守護專家';
+    let href = '#';
+
+    switch (action) {
+      case 'line':
+        label = '回到 LINE';
+        href = lineFallbackUrl;
+        break;
+      case 'refresh':
+        label = '重新整理';
+        href = '#';
+        break;
+      case 'report':
+        label = '查看完整報表';
+        href = state.reportPageUrl || '#';
+        if (typeof disabled === 'undefined') {
+          state.primaryDisabled = !state.reportPageUrl;
+        }
+        break;
+      case 'assistant':
+      default:
+        label = 'AI 守護專家';
+        href = '#';
+        if (typeof disabled === 'undefined') {
+          state.primaryDisabled = !hasAssistantEntry();
+        }
+        break;
     }
 
+    state.primaryHref = href || '#';
+    const isDisabled = state.primaryLoading || state.primaryDisabled;
     dom.ctaPrimary.textContent = label;
-    setAnchorState(dom.ctaPrimary, !disabled, targetHref || '#');
+    dom.ctaPrimary.classList.toggle('btn--disabled', isDisabled);
+    dom.ctaPrimary.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
+    dom.ctaPrimary.setAttribute('aria-busy', state.primaryLoading ? 'true' : 'false');
+    if (isDisabled || !href) {
+      dom.ctaPrimary.removeAttribute('href');
+    } else {
+      dom.ctaPrimary.setAttribute('href', state.primaryHref);
+    }
   }
 
   function toggleEmptyState(element, hasContent) {
@@ -141,17 +255,89 @@
     element.hidden = hasContent;
   }
 
-  function openAssistant(source = 'report') {
-    if (!state.assistantUrl) {
+  async function launchAssistant(source = 'report') {
+    if (state.primaryLoading) return;
+
+    const entryUrl = state.assistantEntryUrl;
+    const fallbackUrl = state.assistantUrl;
+
+    if (!entryUrl && !fallbackUrl) {
+      showToast('守護專家暫時無法連線，請稍後再試。');
+      refreshPrimaryAction('line');
       return;
     }
+
     logEvent('cta_click', {
-      action: 'assistant',
+      action: 'assistant_entry',
       lead_id: state.leadId,
       template_id: state.templateId,
       source,
     });
-    window.open(state.assistantUrl, '_blank', 'noopener,noreferrer');
+
+    if (!entryUrl && fallbackUrl) {
+      window.location.href = fallbackUrl;
+      return;
+    }
+
+    setPrimaryLoading(true);
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const payload = {
+        lead_id: state.leadId || '',
+        report_token: state.token || '',
+        report_page_url: window.location.href,
+      };
+      const response = await fetch(entryUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payload),
+      });
+      const text = await response.text();
+      if (!response.ok) {
+        const error = new Error(text || response.statusText || 'assistant_entry_failed');
+        error.status = response.status;
+        throw error;
+      }
+
+      let target = '';
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          target = resolveAssistantTarget(parsed);
+          if (!target && typeof parsed === 'string') {
+            target = resolveAssistantTarget(parsed);
+          }
+        } catch (parseError) {
+          target = resolveAssistantTarget(text);
+        }
+      }
+
+      if (!target && fallbackUrl) {
+        target = fallbackUrl;
+      }
+
+      if (!target) {
+        throw new Error('missing_assistant_redirect');
+      }
+
+      logEvent('assistant_entry_resolved', {
+        lead_id: state.leadId,
+        template_id: state.templateId,
+        target_type: target.startsWith('line://') ? 'deeplink' : 'url',
+      });
+      window.location.href = target;
+    } catch (error) {
+      console.error('[report] assistant entry failed', error);
+      logEvent('assistant_entry_failed', {
+        lead_id: state.leadId,
+        template_id: state.templateId,
+        error: error?.message || String(error),
+      });
+      showToast('守護專家暫時無法連線，請稍後再試。');
+    } finally {
+      setPrimaryLoading(false);
+      refreshPrimaryAction();
+    }
   }
 
   function setView({ skeleton = false, loading = false, content = false, error = false }) {
@@ -325,16 +511,26 @@
       : `看看我能為 ${storeLabel} 挽回多少營收。`;
 
     const assistantFromPayload = payload.assistant_url
+      || payload.assistantUrl
       || payload.trial_url
       || payload.links?.assistant
       || payload.links?.assistant_url
       || '';
+    const assistantEntryFromPayload = payload.assistant_entry_url
+      || payload.assistantEntryUrl
+      || payload.links?.assistant_entry
+      || payload.links?.assistant_entry_url
+      || '';
 
     state.templateId = psychology.template_id || payload.template_id || 'unknown';
     state.leadId = payload.lead_id || state.leadId;
+    if (assistantEntryFromPayload) {
+      state.assistantEntryUrl = assistantEntryFromPayload;
+    }
     if (assistantFromPayload) {
       state.assistantUrl = assistantFromPayload;
     }
+    refreshPrimaryAction();
 
     if (dom.cognosEyebrow) {
       dom.cognosEyebrow.textContent = `Hi ${nickname}，我是 Cognos`;
@@ -495,8 +691,10 @@
               lead_id: state.leadId,
               template_id: state.templateId,
             });
+            showToast('複製成功');
           } catch (error) {
             console.warn('[report] copy failed', error);
+            showToast('複製失敗，請稍後再試。');
           }
         },
       })
@@ -618,18 +816,14 @@
       base.searchParams.set('token', payload.report_token);
       state.reportPageUrl = base.toString();
     }
-    updatePrimaryAction('report', { disabled: !state.reportPageUrl });
-
-    if (dom.ctaAssistant) {
-      setAnchorState(dom.ctaAssistant, Boolean(state.assistantUrl), state.assistantUrl || '#');
-    }
+    refreshPrimaryAction();
   }
 
   function handleSuccess(payload) {
     renderReport(payload);
     setView({ content: true });
     state.retry = 0;
-    updatePrimaryAction('report', { disabled: !state.reportPageUrl });
+    refreshPrimaryAction();
     if (dom.indicator) {
       dom.indicator.textContent = '分析完成';
     }
@@ -648,7 +842,7 @@
 
   function handlePending(payload) {
     setView({ loading: true });
-    updatePrimaryAction('line');
+    updatePrimaryAction('line', { disabled: false });
     if (dom.indicator) {
       dom.indicator.textContent = 'AI 整理中';
     }
@@ -682,7 +876,7 @@
 
   function handleFailure(error) {
     setView({ error: true });
-    updatePrimaryAction('refresh');
+    updatePrimaryAction('line', { disabled: false });
     if (dom.indicator) {
       dom.indicator.textContent = '需要協助';
     }
@@ -702,7 +896,7 @@
 
   async function startFetch() {
     try {
-      updatePrimaryAction('line');
+      updatePrimaryAction('line', { disabled: false });
       if (!state.retry) {
         setView({ skeleton: true });
       }
@@ -749,6 +943,12 @@
         return;
       }
 
+      if (state.primaryAction === 'assistant') {
+        event.preventDefault();
+        launchAssistant('report');
+        return;
+      }
+
       if (state.primaryAction === 'refresh') {
         event.preventDefault();
         logEvent('cta_click', {
@@ -776,11 +976,11 @@
     });
   }
 
-  if (dom.ctaAssistant) {
-    dom.ctaAssistant.addEventListener('click', (event) => {
+  if (dom.ctaSecondary) {
+    dom.ctaSecondary.addEventListener('click', (event) => {
       event.preventDefault();
-      if (dom.ctaAssistant.classList.contains('btn--disabled')) return;
-      openAssistant('report');
+      if (dom.ctaSecondary.classList.contains('btn--disabled')) return;
+      closeToLine();
     });
   }
 

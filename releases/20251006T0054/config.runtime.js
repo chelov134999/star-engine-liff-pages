@@ -7,6 +7,7 @@ window.__STAR_ENGINE_CONFIG__ = {
   "analysisStatusUrl": "https://chelov134999.app.n8n.cloud/webhook/analysis-status",
   "weeklyDraftUrl": "https://chelov134999.app.n8n.cloud/webhook/weekly-draft",
   "reportEndpoint": "https://chelov134999.app.n8n.cloud/webhook/report-data",
+  "assistantEntryUrl": "https://chelov134999.app.n8n.cloud/webhook/assistant-entry",
   "reportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/report.html?ts=20251006T0054",
   "trialUrl": "https://line.me/ti/p/@star-up",
   "plansPageUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/plans.html?ts=20251006T0054",

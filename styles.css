@@ -1004,6 +1004,79 @@ body:not(.page--info) {
   color: rgba(120, 53, 15, 0.72);
 }
 
+.report-hero__panel {
+  display: grid;
+  gap: 16px;
+  padding: clamp(18px, 3.6vw, 24px);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 249, 240, 0.92) 100%);
+  border-radius: clamp(18px, 3.4vw, 24px);
+  border: 1px solid rgba(247, 144, 9, 0.18);
+  box-shadow: 0 18px 36px -28px rgba(120, 64, 0, 0.25);
+}
+
+.report-hero__kpis {
+  display: grid;
+  gap: clamp(12px, 2.6vw, 18px);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.report-hero__kpi {
+  display: grid;
+  gap: 6px;
+  padding: clamp(14px, 3vw, 20px);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(247, 144, 9, 0.2);
+  box-shadow: 0 18px 32px -28px rgba(120, 64, 0, 0.24);
+}
+
+.report-hero__kpi-label {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(147, 64, 0, 0.68);
+}
+
+.report-hero__kpi-value {
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+  font-weight: 700;
+  color: #7c2d12;
+}
+
+.report-hero__kpi-hint {
+  font-size: 0.88rem;
+  color: rgba(120, 53, 15, 0.7);
+}
+
+.report-hero__note {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(120, 53, 15, 0.72);
+}
+
+.report-hero__insight {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(29, 78, 216, 0.08);
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  color: rgba(29, 78, 216, 0.78);
+}
+
+.report-hero__insight-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-hero__insight-text {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(29, 78, 216, 0.86);
+}
+
 .report-hero__cta {
   display: flex;
   flex-wrap: wrap;
@@ -1089,6 +1162,29 @@ body:not(.page--info) {
   margin: 0;
   font-size: 1.35rem;
   color: var(--text);
+}
+
+.report-summary {
+  display: grid;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(29, 78, 216, 0.08);
+  border: 1px solid rgba(29, 78, 216, 0.18);
+  color: rgba(29, 78, 216, 0.78);
+}
+
+.report-summary__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.report-summary__text {
+  margin: 0;
+  font-size: 0.96rem;
+  color: rgba(15, 23, 42, 0.78);
 }
 
 .report-metrics {

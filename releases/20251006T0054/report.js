@@ -16,6 +16,15 @@
     btnReturnLine: document.getElementById('btn-return-line'),
     ctaPrimary: document.getElementById('cta-primary'),
     ctaAssistant: document.getElementById('cta-assistant'),
+    heroRating: document.getElementById('hero-rating'),
+    heroRatingHint: document.getElementById('hero-rating-hint'),
+    heroReviews: document.getElementById('hero-reviews'),
+    heroReviewsHint: document.getElementById('hero-reviews-hint'),
+    heroGap: document.getElementById('hero-gap'),
+    heroGapHint: document.getElementById('hero-gap-hint'),
+    heroNote: document.getElementById('hero-note'),
+    heroInsight: document.getElementById('hero-insight'),
+    heroInsightText: document.getElementById('hero-insight-text'),
     indicator: document.getElementById('report-indicator'),
     trust: document.getElementById('report-trust'),
     cognosEyebrow: document.getElementById('cognos-eyebrow'),
@@ -34,6 +43,18 @@
     actionsEmpty: document.getElementById('report-actions-empty'),
     drafts: document.getElementById('report-drafts'),
     draftsEmpty: document.getElementById('report-drafts-empty'),
+    summaryMetrics: document.getElementById('summary-metrics'),
+    summaryMetricsLabel: document.getElementById('summary-metrics-label'),
+    summaryMetricsText: document.getElementById('summary-metrics-text'),
+    summaryCompetitors: document.getElementById('summary-competitors'),
+    summaryCompetitorsLabel: document.getElementById('summary-competitors-label'),
+    summaryCompetitorsText: document.getElementById('summary-competitors-text'),
+    summaryActions: document.getElementById('summary-actions'),
+    summaryActionsLabel: document.getElementById('summary-actions-label'),
+    summaryActionsText: document.getElementById('summary-actions-text'),
+    summaryDrafts: document.getElementById('summary-drafts'),
+    summaryDraftsLabel: document.getElementById('summary-drafts-label'),
+    summaryDraftsText: document.getElementById('summary-drafts-text'),
   };
 
   const state = {
@@ -56,6 +77,27 @@
     setAnchorState(dom.ctaAssistant, Boolean(state.assistantUrl), state.assistantUrl || '#');
   }
 
+  function setSummaryBlock(container, labelEl, textEl, { label, text }) {
+    if (!container || !labelEl || !textEl) return;
+    if (!text) {
+      container.hidden = true;
+      textEl.textContent = '';
+      return;
+    }
+    if (label) {
+      labelEl.textContent = label;
+    }
+    textEl.textContent = text;
+    container.hidden = false;
+  }
+
+  function truncateText(value, max = 80) {
+    if (!value) return '';
+    const pure = String(value).trim();
+    if (!pure) return '';
+    return pure.length > max ? `${pure.slice(0, max)}…` : pure;
+  }
+
   function toNumber(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number : null;
@@ -76,9 +118,21 @@
   function updatePrimaryAction(action, { disabled = false } = {}) {
     state.primaryAction = action;
     if (!dom.ctaPrimary) return;
-    const label = action === 'line' ? '回到 LINE' : '重新整理';
+    let label = '查看完整報表';
+    let targetHref = state.reportPageUrl || '#';
+
+    if (action === 'line') {
+      label = '回到 LINE';
+      targetHref = lineFallbackUrl;
+    } else if (action === 'refresh') {
+      label = '重新整理';
+      targetHref = '#';
+    } else if (action === 'report') {
+      targetHref = state.reportPageUrl || '#';
+      disabled = disabled || !state.reportPageUrl;
+    }
+
     dom.ctaPrimary.textContent = label;
-    const targetHref = disabled ? '#' : (action === 'line' ? lineFallbackUrl : '#');
     setAnchorState(dom.ctaPrimary, !disabled, targetHref || '#');
   }
 
@@ -205,13 +259,29 @@
       dom.cognosEyebrow.textContent = `Hi ${nickname}，我是 Cognos`;
     }
     if (dom.cognosTitle) {
-      dom.cognosTitle.textContent = `我正在守護 ${storeName}`;
+      dom.cognosTitle.textContent = `${storeName} 初檢摘要`;
     }
     if (dom.cognosSubtitle) {
-      const parts = [`我已定位 ${storeName}，正在蒐集 ${locationText}`];
-      if (ratingText) parts.push(`目前評分 ${ratingText}`);
-      if (reviewHighlight) parts.push(reviewHighlight);
-      dom.cognosSubtitle.textContent = `${parts.join('，')}，稍後把行動方案送達。`;
+      dom.cognosSubtitle.textContent = reviewHighlight
+        ? `最新評論：${reviewHighlight}`
+        : `我正持續整理 ${locationText}，完成後即時通知你。`;
+    }
+
+    if (dom.heroRating) {
+      dom.heroRating.textContent = ratingText || '—';
+    }
+    if (dom.heroRatingHint) {
+      dom.heroRatingHint.textContent = ratingText ? '最新星等已同步' : '同步中';
+    }
+    if (dom.heroReviews) {
+      dom.heroReviews.textContent = reviewsText ? `${reviewsText} 則` : '—';
+    }
+    if (dom.heroReviewsHint) {
+      dom.heroReviewsHint.textContent = reviewsText ? '評論總數即時更新' : '評論整理中';
+    }
+    if (dom.heroNote) {
+      const noteCity = city ? `${city} 門市` : '你的門市';
+      dom.heroNote.textContent = `AI 已完成 ${noteCity} 的初檢，重點如下；完整報表詳見下方。`;
     }
 
     if (dom.alertLoss) {
@@ -250,6 +320,41 @@
       : [];
     toggleEmptyState(dom.competitorsEmpty, competitorsRendered && competitorsRendered.length > 0);
 
+    const ratingNumber = toNumber(ratingNow);
+    const topCompetitor = competitorsRendered[0];
+    const competitorRating = toNumber(topCompetitor?.rating);
+    let gapValue = '—';
+    let gapHint = '競品比較載入中';
+    let gapDescription = '';
+
+    if (ratingNumber != null && competitorRating != null) {
+      const diff = ratingNumber - competitorRating;
+      const diffAbs = Math.abs(diff);
+      const diffLabel = diffAbs ? diffAbs.toFixed(1) : '0';
+      if (diffAbs < 0.05) {
+        gapValue = '與主要競品持平';
+        gapHint = `${topCompetitor?.name || '競品'} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
+        gapDescription = `與 ${topCompetitor?.name || '主要競品'} 持平`;
+      } else if (diff > 0) {
+        gapValue = `領先 ${diffLabel} ★`;
+        gapHint = `${topCompetitor?.name || '競品'} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
+        gapDescription = `領先 ${topCompetitor?.name || '競品'} ${diffLabel} ★`;
+      } else {
+        gapValue = `落後 ${diffLabel} ★`;
+        gapHint = `${topCompetitor?.name || '競品'} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
+        gapDescription = `落後 ${topCompetitor?.name || '競品'} ${diffLabel} ★`;
+      }
+    } else if (topCompetitor) {
+      gapHint = `${topCompetitor.name} 資料整理中`;
+    }
+
+    if (dom.heroGap) {
+      dom.heroGap.textContent = gapValue;
+    }
+    if (dom.heroGapHint) {
+      dom.heroGapHint.textContent = gapHint;
+    }
+
     const actionsRendered = renderActions && dom.actions
       ? renderActions(dom.actions, actionsSource, { emptyMessage: '' })
       : [];
@@ -273,6 +378,86 @@
       : [];
     toggleEmptyState(dom.draftsEmpty, draftsRendered && draftsRendered.length > 0);
 
+    const firstMetric = metricsRendered[0];
+    const firstAction = actionsRendered[0];
+    const firstDraft = draftsRendered[0];
+
+    const metricsSummary = latestReview
+      ? { label: '最新評論摘要', text: truncateText(latestReview, 96) }
+      : firstMetric
+        ? {
+            label: firstMetric.label || '關鍵指標',
+            text: `目前為 ${firstMetric.currency ? formatCurrency(firstMetric.value) : (formatNumber(firstMetric.value) || firstMetric.value || '—')}`,
+          }
+        : null;
+
+    const competitorSummary = topCompetitor
+      ? {
+          label: '競品第一名',
+          text: truncateText(
+            `${topCompetitor.name || '競品'}${topCompetitor.rating != null ? ` ｜ ${Number(topCompetitor.rating).toFixed ? Number(topCompetitor.rating).toFixed(1) : topCompetitor.rating} ★` : ''}${topCompetitor.reviews != null ? ` ｜ ${formatNumber(topCompetitor.reviews)} 則` : ''}`,
+            96,
+          ),
+        }
+      : null;
+
+    const actionsSummary = firstAction
+      ? {
+          label: '本週優先事項',
+          text: truncateText(firstAction.text, 96),
+        }
+      : null;
+
+    const draftSummary = firstDraft
+      ? {
+          label: firstDraft.tone ? `首選語氣：${firstDraft.tone}` : '首選草稿',
+          text: truncateText(firstDraft.text, 96),
+        }
+      : null;
+
+    setSummaryBlock(dom.summaryMetrics, dom.summaryMetricsLabel, dom.summaryMetricsText, metricsSummary || { text: '' });
+    setSummaryBlock(dom.summaryCompetitors, dom.summaryCompetitorsLabel, dom.summaryCompetitorsText, competitorSummary || { text: '' });
+    setSummaryBlock(dom.summaryActions, dom.summaryActionsLabel, dom.summaryActionsText, actionsSummary || { text: '' });
+    setSummaryBlock(dom.summaryDrafts, dom.summaryDraftsLabel, dom.summaryDraftsText, draftSummary || { text: '' });
+
+    if (dom.cognosSubtitle) {
+      if (competitorSummary && competitorSummary.text) {
+        dom.cognosSubtitle.textContent = `${competitorSummary.text}${gapDescription ? `（${gapDescription}）` : ''}`;
+      } else if (metricsSummary && metricsSummary.text) {
+        dom.cognosSubtitle.textContent = metricsSummary.text;
+      } else {
+        dom.cognosSubtitle.textContent = '我正持續整理評論與競品差距，完成後立即通知你。';
+      }
+    }
+
+    const insightText = gapDescription
+      ? `${gapDescription}。${firstAction ? `建議優先處理：${truncateText(firstAction.text, 60)}` : '建議持續關注評論更新。'}`
+      : (metricsSummary?.text || actionsSummary?.text || draftSummary?.text || '我會持續監控評論與競品狀態。');
+
+    if (dom.heroInsight && dom.heroInsightText) {
+      if (insightText) {
+        dom.heroInsight.hidden = false;
+        dom.heroInsightText.textContent = insightText;
+      } else {
+        dom.heroInsight.hidden = true;
+        dom.heroInsightText.textContent = '';
+      }
+    }
+
+    const resolvedReportUrl = payload.report_url
+      || payload.links?.report
+      || report.report_url
+      || '';
+    if (resolvedReportUrl) {
+      state.reportPageUrl = resolvedReportUrl;
+    }
+    if (!state.reportPageUrl && payload.report_token) {
+      const base = new URL(window.location.href);
+      base.searchParams.set('token', payload.report_token);
+      state.reportPageUrl = base.toString();
+    }
+    updatePrimaryAction('report', { disabled: !state.reportPageUrl });
+
     if (dom.ctaAssistant) {
       setAnchorState(dom.ctaAssistant, Boolean(state.assistantUrl), state.assistantUrl || '#');
     }
@@ -282,12 +467,9 @@
     renderReport(payload);
     setView({ content: true });
     state.retry = 0;
-    updatePrimaryAction('refresh');
+    updatePrimaryAction('report', { disabled: !state.reportPageUrl });
     if (dom.indicator) {
       dom.indicator.textContent = '分析完成';
-    }
-    if (dom.trust && dom.trust.textContent.trim() === '') {
-      dom.trust.textContent = '我已保存你的偏好設定，報表更新會即時通知。';
     }
     if (dom.skeleton) {
       dom.skeleton.innerHTML = '';
@@ -393,20 +575,42 @@
 
   if (dom.ctaPrimary) {
     dom.ctaPrimary.addEventListener('click', (event) => {
-      event.preventDefault();
-      if (dom.ctaPrimary.classList.contains('btn--disabled')) return;
+      const isDisabled = dom.ctaPrimary.classList.contains('btn--disabled');
+      if (isDisabled) {
+        event.preventDefault();
+        return;
+      }
+
       if (state.primaryAction === 'line') {
+        event.preventDefault();
         closeToLine();
         return;
       }
-      logEvent('cta_click', {
-        action: 'refresh',
-        lead_id: state.leadId,
-        template_id: state.templateId,
-        source: 'report',
-      });
-      state.retry = 0;
-      startFetch();
+
+      if (state.primaryAction === 'refresh') {
+        event.preventDefault();
+        logEvent('cta_click', {
+          action: 'refresh',
+          lead_id: state.leadId,
+          template_id: state.templateId,
+          source: 'report',
+        });
+        state.retry = 0;
+        startFetch();
+        return;
+      }
+
+      if (state.primaryAction === 'report') {
+        logEvent('cta_click', {
+          action: 'open_report',
+          lead_id: state.leadId,
+          template_id: state.templateId,
+          source: 'report',
+        });
+        return;
+      }
+
+      event.preventDefault();
     });
   }
 

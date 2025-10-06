@@ -213,35 +213,88 @@
   }
 
   function renderReport(payload) {
-    const { renderMetrics, renderCompetitors, renderActions, renderDrafts } = window.ReportUtils || {};
+    const {
+      renderMetrics,
+      renderCompetitors,
+      renderActions,
+      renderDrafts,
+      pickMetric,
+    } = window.ReportUtils || {};
     const report = payload.report || {};
     const preferences = payload.preferences || {};
     const psychology = payload.psychology || {};
+
+    const resolveText = (...values) => {
+      for (const value of values) {
+        if (value == null) continue;
+        const text = String(value).trim();
+        if (text) return text;
+      }
+      return '';
+    };
+
+    const formatRatingValue = (value) => {
+      if (value == null) return '';
+      const number = Number(value);
+      if (!Number.isFinite(number)) return '';
+      const rounded = Math.round(number * 10) / 10;
+      return Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1);
+    };
+
+    const normalizePercentValue = (value) => {
+      if (value == null) return null;
+      const number = Number(value);
+      if (!Number.isFinite(number)) return null;
+      if (Math.abs(number) <= 1) {
+        return number * 100;
+      }
+      return number;
+    };
+
+    const percentLabel = (value) => {
+      if (value == null) return '';
+      const abs = Math.abs(value);
+      if (abs === 0) return '0%';
+      if (abs >= 10) return `${Math.round(abs)}%`;
+      return `${abs.toFixed(1)}%`;
+    };
 
     const metricsSource = report.metrics || report.kpi;
     const competitorsSource = report.competitors || report.competitors_agent;
     const actionsSource = report.weekly_actions;
     const draftsSource = report.reply_drafts;
-    const nickname = report.owner_name || preferences.nickname || payload.nickname || '店長';
-    const storeName = report.store_name || preferences.store_name || '你的門市';
-    const city = report.city || preferences.city || payload.city || '';
-    const goalLabel = report.goal_label || '—';
-    const toneLabel = report.tone_label || '—';
-    const ratingNow = report.rating_now || report.rating || report.score;
-    const reviewsTotal = report.reviews_total || report.reviews || report.review_count;
-    const latestReview = report.latest_review_summary || report.review_highlight || '';
+
+    const nickname = resolveText(report.owner_name, preferences.nickname, payload.nickname, payload.owner_name) || '店長';
+    const storeNameResolved = resolveText(report.store_name, preferences.store_name, payload.store_name);
+    const storeName = storeNameResolved || '你的門市';
+    const storeLabel = storeNameResolved || storeName;
+    const city = resolveText(report.city, preferences.city, payload.city);
+    const locationDisplay = city ? `${city}・${storeLabel}` : storeLabel;
+
+    const goalLabelRaw = resolveText(report.goal_label, preferences.goal_label, payload.goal_label);
+    const toneLabelRaw = resolveText(report.tone_label, preferences.tone_label, payload.tone_label);
+    const goalLabel = goalLabelRaw || '—';
+    const toneLabel = toneLabelRaw || '—';
+    const preferenceSummaryParts = [];
+    if (goalLabelRaw) preferenceSummaryParts.push(`目標鎖定「${goalLabel}」`);
+    if (toneLabelRaw) preferenceSummaryParts.push(`語氣採用「${toneLabel}」`);
+
+    const storeRating = toNumber(report.store_rating ?? report.rating_now ?? report.rating ?? report.score);
+    const ratingDisplay = storeRating != null ? `${formatRatingValue(storeRating)} ★` : '';
+    const reviewsTotal = toNumber(report.store_review_count ?? report.reviews_total ?? report.reviews ?? report.review_count);
+    const reviewsText = reviewsTotal != null ? formatNumber(reviewsTotal) : '';
+    const latestReview = resolveText(report.latest_review_summary, report.review_highlight, report.review_summary);
+
     const lossEstimate = report.estimated_loss || report.projected_loss || psychology.loss_estimate || psychology.loss_amount;
     const gainEstimate = report.estimated_gain || report.projected_gain || psychology.gain_estimate || psychology.gain_amount;
 
-    const locationText = city ? `${city} 的競品與評論` : '附近的競品與評論';
-    const ratingText = ratingNow != null ? `${Number(ratingNow).toFixed ? Number(ratingNow).toFixed(1) : ratingNow} ★` : '';
-    const reviewsText = formatNumber(reviewsTotal);
     const reviewHighlight = latestReview || (reviewsText ? `已同步 ${reviewsText} 則評論` : '');
-
-    const lossMessage = lossEstimate ? `若不處理，預估流失 ${formatCurrency(lossEstimate)}。` : 'Google 資料已就緒，正在估算可能的流失金額。';
+    const lossMessage = lossEstimate
+      ? `若不處理，預估流失 ${formatCurrency(lossEstimate)}。`
+      : `AI 正在估算 ${storeLabel} 可能的流失風險。`;
     const gainMessage = gainEstimate
       ? `把握本週機會，可望挽回 ${formatCurrency(gainEstimate)}。`
-      : `看看我能為 ${storeName} 挽回多少營收。`;
+      : `看看我能為 ${storeLabel} 挽回多少營收。`;
 
     const assistantFromPayload = payload.assistant_url
       || payload.trial_url
@@ -259,29 +312,37 @@
       dom.cognosEyebrow.textContent = `Hi ${nickname}，我是 Cognos`;
     }
     if (dom.cognosTitle) {
-      dom.cognosTitle.textContent = `${storeName} 初檢摘要`;
+      dom.cognosTitle.textContent = `${storeLabel} 關鍵摘要`;
     }
+    const locationText = city ? `${city} 的競品與評論` : '附近的競品與評論';
     if (dom.cognosSubtitle) {
       dom.cognosSubtitle.textContent = reviewHighlight
         ? `最新評論：${reviewHighlight}`
-        : `我正持續整理 ${locationText}，完成後即時通知你。`;
+        : `我正持續整理 ${locationText}，完成後立刻通知你。`;
     }
 
     if (dom.heroRating) {
-      dom.heroRating.textContent = ratingText || '—';
+      dom.heroRating.textContent = ratingDisplay || '—';
     }
     if (dom.heroRatingHint) {
-      dom.heroRatingHint.textContent = ratingText ? '最新星等已同步' : '同步中';
+      dom.heroRatingHint.textContent = ratingDisplay
+        ? `${storeLabel} 最新 Google 星等`
+        : `${storeLabel} 星等同步中`;
     }
     if (dom.heroReviews) {
       dom.heroReviews.textContent = reviewsText ? `${reviewsText} 則` : '—';
     }
     if (dom.heroReviewsHint) {
-      dom.heroReviewsHint.textContent = reviewsText ? '評論總數即時更新' : '評論整理中';
+      dom.heroReviewsHint.textContent = reviewsText
+        ? `${storeLabel} 評論總數即時更新`
+        : `${storeLabel} 評論整理中`;
     }
     if (dom.heroNote) {
-      const noteCity = city ? `${city} 門市` : '你的門市';
-      dom.heroNote.textContent = `AI 已完成 ${noteCity} 的初檢，重點如下；完整報表詳見下方。`;
+      const heroLines = [`30 秒初檢已完成，${locationDisplay} 的關鍵摘要如下。`];
+      if (preferenceSummaryParts.length) {
+        heroLines.push(`${preferenceSummaryParts.join('，')}。`);
+      }
+      dom.heroNote.textContent = heroLines.join(' ');
     }
 
     if (dom.alertLoss) {
@@ -298,16 +359,9 @@
     }
 
     if (dom.trust) {
-      const trustParts = [];
-      if (goalLabel && goalLabel !== '—') {
-        trustParts.push(`目標鎖定「${goalLabel}」`);
-      }
-      if (toneLabel && toneLabel !== '—') {
-        trustParts.push(`語氣採用「${toneLabel}」`);
-      }
-      dom.trust.textContent = trustParts.length
-        ? `${trustParts.join('，')}，後續推播會同步更新。`
-        : '我已保存你的偏好設定，報表更新會即時通知。';
+      dom.trust.textContent = preferenceSummaryParts.length
+        ? `${preferenceSummaryParts.join('，')}，後續推播會依此設定。`
+        : `${storeLabel} 的偏好設定已保存，報表更新會即時通知。`;
     }
 
     const metricsRendered = renderMetrics && dom.metrics
@@ -320,32 +374,75 @@
       : [];
     toggleEmptyState(dom.competitorsEmpty, competitorsRendered && competitorsRendered.length > 0);
 
-    const ratingNumber = toNumber(ratingNow);
+    const riskGapMetric = pickMetric
+      ? pickMetric(report.metrics, ['risk_gap_percent', 'risk_gap_percentage', 'risk_gap'])
+        || pickMetric(report.metrics?.overview, ['risk_gap_percent', 'risk_gap_percentage', 'risk_gap'])
+        || pickMetric(report.kpi, ['risk_gap_percent', 'risk_gap_percentage', 'risk_gap'])
+      : null;
+    let riskGapPercent = riskGapMetric ? normalizePercentValue(riskGapMetric.value) : null;
+    if (riskGapPercent == null && typeof report.metrics === 'object' && !Array.isArray(report.metrics)) {
+      riskGapPercent = normalizePercentValue(
+        report.metrics.risk_gap_percent
+        ?? report.metrics.risk_gap_percentage
+        ?? report.metrics.risk_gap,
+      );
+    }
+    const riskGapTarget = resolveText(
+      riskGapMetric?.target,
+      riskGapMetric?.raw?.target,
+      riskGapMetric?.raw?.name,
+      report.metrics?.risk_gap_target,
+      report.metrics?.top_competitor_name,
+    );
+    const riskGapHint = resolveText(
+      riskGapMetric?.hint,
+      riskGapMetric?.raw?.note,
+      riskGapMetric?.raw?.description,
+      report.metrics?.risk_gap_hint,
+      report.metrics?.risk_gap_description,
+    );
+
+    const ratingNumber = storeRating;
     const topCompetitor = competitorsRendered[0];
     const competitorRating = toNumber(topCompetitor?.rating);
     let gapValue = '—';
-    let gapHint = '競品比較載入中';
+    let gapHint = riskGapHint || `${riskGapTarget || topCompetitor?.name || '競品'} 資料整理中`;
     let gapDescription = '';
 
-    if (ratingNumber != null && competitorRating != null) {
+    if (riskGapPercent != null) {
+      const label = percentLabel(riskGapPercent);
+      const competitorName = riskGapTarget || topCompetitor?.name || '主要競品';
+      if (Math.abs(riskGapPercent) < 0.5) {
+        gapValue = '與競品持平';
+        gapHint = `${competitorName} 差距小於 1%`;
+        gapDescription = `與 ${competitorName} 幾乎持平`;
+      } else if (riskGapPercent > 0) {
+        gapValue = `落後 ${label}`;
+        gapHint = riskGapHint || `${competitorName} 暫時領先`;
+        gapDescription = `目前落後 ${competitorName} ${label}`;
+      } else {
+        gapValue = `領先 ${label}`;
+        gapHint = riskGapHint || `${competitorName} 差距正在擴大`;
+        gapDescription = `領先 ${competitorName} ${label}`;
+      }
+    } else if (ratingNumber != null && competitorRating != null) {
       const diff = ratingNumber - competitorRating;
       const diffAbs = Math.abs(diff);
-      const diffLabel = diffAbs ? diffAbs.toFixed(1) : '0';
+      const diffLabel = diffAbs ? diffAbs.toFixed(1).replace(/\.0$/, '') : '0';
+      const competitorName = topCompetitor?.name || '競品';
       if (diffAbs < 0.05) {
-        gapValue = '與主要競品持平';
-        gapHint = `${topCompetitor?.name || '競品'} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
-        gapDescription = `與 ${topCompetitor?.name || '主要競品'} 持平`;
+        gapValue = '與競品持平';
+        gapHint = `${competitorName} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
+        gapDescription = `與 ${competitorName} 持平`;
       } else if (diff > 0) {
         gapValue = `領先 ${diffLabel} ★`;
-        gapHint = `${topCompetitor?.name || '競品'} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
-        gapDescription = `領先 ${topCompetitor?.name || '競品'} ${diffLabel} ★`;
+        gapHint = `${competitorName} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
+        gapDescription = `領先 ${competitorName} ${diffLabel} ★`;
       } else {
         gapValue = `落後 ${diffLabel} ★`;
-        gapHint = `${topCompetitor?.name || '競品'} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
-        gapDescription = `落後 ${topCompetitor?.name || '競品'} ${diffLabel} ★`;
+        gapHint = `${competitorName} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
+        gapDescription = `落後 ${competitorName} ${diffLabel} ★`;
       }
-    } else if (topCompetitor) {
-      gapHint = `${topCompetitor.name} 資料整理中`;
     }
 
     if (dom.heroGap) {
@@ -387,7 +484,11 @@
       : firstMetric
         ? {
             label: firstMetric.label || '關鍵指標',
-            text: `目前為 ${firstMetric.currency ? formatCurrency(firstMetric.value) : (formatNumber(firstMetric.value) || firstMetric.value || '—')}`,
+            text: `目前為 ${
+              firstMetric.currency
+                ? formatCurrency(firstMetric.value)
+                : (formatNumber(firstMetric.value) || firstMetric.value || '—')
+            }`,
           }
         : null;
 
@@ -395,7 +496,15 @@
       ? {
           label: '競品第一名',
           text: truncateText(
-            `${topCompetitor.name || '競品'}${topCompetitor.rating != null ? ` ｜ ${Number(topCompetitor.rating).toFixed ? Number(topCompetitor.rating).toFixed(1) : topCompetitor.rating} ★` : ''}${topCompetitor.reviews != null ? ` ｜ ${formatNumber(topCompetitor.reviews)} 則` : ''}`,
+            `${topCompetitor.name || '競品'}${
+              topCompetitor.rating != null
+                ? ` ｜ ${Number(topCompetitor.rating).toFixed ? Number(topCompetitor.rating).toFixed(1) : topCompetitor.rating} ★`
+                : ''
+            }${
+              topCompetitor.reviews != null ? ` ｜ ${formatNumber(topCompetitor.reviews)} 則` : ''
+            }${
+              gapDescription ? ` ｜ ${gapDescription}` : ''
+            }`,
             96,
           ),
         }
@@ -415,24 +524,49 @@
         }
       : null;
 
-    setSummaryBlock(dom.summaryMetrics, dom.summaryMetricsLabel, dom.summaryMetricsText, metricsSummary || { text: '' });
-    setSummaryBlock(dom.summaryCompetitors, dom.summaryCompetitorsLabel, dom.summaryCompetitorsText, competitorSummary || { text: '' });
-    setSummaryBlock(dom.summaryActions, dom.summaryActionsLabel, dom.summaryActionsText, actionsSummary || { text: '' });
-    setSummaryBlock(dom.summaryDrafts, dom.summaryDraftsLabel, dom.summaryDraftsText, draftSummary || { text: '' });
+    const summaryFallbacks = {
+      metrics: {
+        label: '同步提醒',
+        text: `${storeLabel} 最新評論整理中，很快送上亮點。`,
+      },
+      competitors: {
+        label: '競品同步',
+        text: `${city || '附近'} 競品差距分析中，完成後會第一時間通知你。`,
+      },
+      actions: {
+        label: '行動建議',
+        text: 'AI 正彙整本週優先事項，很快就緒。',
+      },
+      drafts: {
+        label: '草稿準備中',
+        text: 'AI 正為你撰寫回覆草稿，完成後自動推送。',
+      },
+    };
+
+    setSummaryBlock(dom.summaryMetrics, dom.summaryMetricsLabel, dom.summaryMetricsText, metricsSummary || summaryFallbacks.metrics);
+    setSummaryBlock(dom.summaryCompetitors, dom.summaryCompetitorsLabel, dom.summaryCompetitorsText, competitorSummary || summaryFallbacks.competitors);
+    setSummaryBlock(dom.summaryActions, dom.summaryActionsLabel, dom.summaryActionsText, actionsSummary || summaryFallbacks.actions);
+    setSummaryBlock(dom.summaryDrafts, dom.summaryDraftsLabel, dom.summaryDraftsText, draftSummary || summaryFallbacks.drafts);
 
     if (dom.cognosSubtitle) {
       if (competitorSummary && competitorSummary.text) {
-        dom.cognosSubtitle.textContent = `${competitorSummary.text}${gapDescription ? `（${gapDescription}）` : ''}`;
+        dom.cognosSubtitle.textContent = competitorSummary.text;
       } else if (metricsSummary && metricsSummary.text) {
         dom.cognosSubtitle.textContent = metricsSummary.text;
       } else {
-        dom.cognosSubtitle.textContent = '我正持續整理評論與競品差距，完成後立即通知你。';
+        const preferenceFallback = preferenceSummaryParts.length
+          ? `${preferenceSummaryParts.join('，')}，我會依此更新提醒。`
+          : `我正持續整理 ${locationText}，完成後立即通知你。`;
+        dom.cognosSubtitle.textContent = preferenceFallback;
       }
     }
 
+    const preferenceReminder = preferenceSummaryParts.length
+      ? `${preferenceSummaryParts.join('，')}，我會依此協助。`
+      : '';
     const insightText = gapDescription
       ? `${gapDescription}。${firstAction ? `建議優先處理：${truncateText(firstAction.text, 60)}` : '建議持續關注評論更新。'}`
-      : (metricsSummary?.text || actionsSummary?.text || draftSummary?.text || '我會持續監控評論與競品狀態。');
+      : (metricsSummary?.text || actionsSummary?.text || draftSummary?.text || preferenceReminder || '我會持續監控評論與競品狀態。');
 
     if (dom.heroInsight && dom.heroInsightText) {
       if (insightText) {

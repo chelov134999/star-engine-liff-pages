@@ -1930,9 +1930,32 @@ body.page--info {
   }
 }
 
+@media (max-width: 720px) {
+  body.page--info {
+    padding: 24px 16px 40px;
+  }
+
+  .info-shell {
+    padding: clamp(20px, 6vw, 28px);
+  }
+
+  .report-hero {
+    padding: clamp(20px, 6vw, 28px);
+  }
+
+  .report-hero__panel {
+    padding: clamp(16px, 5vw, 22px);
+  }
+
+  .report-hero__kpis {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: clamp(12px, 4vw, 18px);
+  }
+}
+
 @media (max-width: 640px) {
   .info-shell {
-    padding: clamp(24px, 5vw, 36px);
+    padding: clamp(18px, 5vw, 28px);
   }
 
   .info-cta .btn {
@@ -1952,11 +1975,11 @@ body.page--info {
 
 @media (max-width: 480px) {
   body.page--info {
-    padding: 24px 20px 40px;
+    padding: 20px 14px 36px;
   }
 
   .info-shell {
-    padding: 24px;
+    padding: 20px;
     border-radius: 24px;
   }
 

@@ -1335,6 +1335,15 @@ function redirectToReport() {
     source: 'preview',
   });
 
+  try {
+    if (window.liff?.openWindow) {
+      window.liff.openWindow({ url: state.reportPageUrl, external: true });
+      return;
+    }
+  } catch (error) {
+    console.warn('[liff] openWindow failed, fallback to location.href', error);
+  }
+
   window.location.href = state.reportPageUrl;
 }
 

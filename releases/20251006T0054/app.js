@@ -1541,16 +1541,28 @@ function redirectToReport() {
     source: 'preview',
   });
 
+  let externalAttempted = false;
+
   try {
     if (window.liff?.openWindow) {
       window.liff.openWindow({ url: target, external: true });
-      return;
+      externalAttempted = true;
     }
   } catch (error) {
     console.warn('[liff] openWindow failed, fallback to location.href', error);
+    externalAttempted = false;
   }
 
-  window.location.href = target;
+  if (!externalAttempted) {
+    window.location.href = target;
+    return;
+  }
+
+  window.setTimeout(() => {
+    if (document.visibilityState === 'visible') {
+      window.location.href = target;
+    }
+  }, 600);
 }
 
 function openAssistant(source = 'preview') {

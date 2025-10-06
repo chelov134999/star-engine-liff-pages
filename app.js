@@ -1335,16 +1335,29 @@ function redirectToReport() {
     source: 'preview',
   });
 
+  const targetUrl = state.reportPageUrl;
+  let externalAttempted = false;
+
   try {
     if (window.liff?.openWindow) {
-      window.liff.openWindow({ url: state.reportPageUrl, external: true });
-      return;
+      window.liff.openWindow({ url: targetUrl, external: true });
+      externalAttempted = true;
     }
   } catch (error) {
     console.warn('[liff] openWindow failed, fallback to location.href', error);
+    externalAttempted = false;
   }
 
-  window.location.href = state.reportPageUrl;
+  if (!externalAttempted) {
+    window.location.href = targetUrl;
+    return;
+  }
+
+  window.setTimeout(() => {
+    if (document.visibilityState === 'visible') {
+      window.location.href = targetUrl;
+    }
+  }, 600);
 }
 
 function handleSecondaryCta(event) {

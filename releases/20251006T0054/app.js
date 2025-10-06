@@ -11,7 +11,7 @@ const reportUrl = config.reportUrl || config.report_url || 'report.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
 const assistantUrl = config.trialUrl || config.trial_url || '';
 
-const ANALYSIS_COUNTDOWN_SECONDS = 60;
+const ANALYSIS_COUNTDOWN_SECONDS = 20;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
   'AI 正在整理你的評論與競品差距…',
@@ -28,6 +28,8 @@ const ANALYSIS_STATUS_LABELS = {
   timeout: '排程推送中',
   failed: '分析失敗',
 };
+const POST_COUNTDOWN_MESSAGE = 'AI 正在整理資料，通常會在 1 分鐘內完成。';
+const ANALYSIS_TIMEOUT_THRESHOLD_MS = 90 * 1000;
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
   '同步定位商圈與鄰近競品資料…',
@@ -50,7 +52,6 @@ const PROGRESS_TICKS = [
   { percent: 60, label: '正在比對競品差距… 進度 60%', eta: '附近競品完成定位' },
   { percent: 75, label: '生成專屬草稿… 進度 75%', eta: '我正撰寫回覆草稿與建議' }
 ];
-const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
 const POLL_INTERVAL_MS = 5000;
 const MAX_TONE_SELECTION = 2;
@@ -87,7 +88,9 @@ const els = {
   progressLabelS3: document.getElementById('progress-label-s3'),
   progressEtaS3: document.getElementById('progress-eta-s3'),
   progressCountdown: document.getElementById('progress-countdown'),
+  progressTimer: document.getElementById('progress-timer'),
   progressCountdownNumber: document.getElementById('progress-countdown-number'),
+  progressWaiting: document.getElementById('progress-waiting'),
   progressTip: document.getElementById('progress-tip'),
   progressStatusLabel: document.getElementById('progress-status-label'),
   resultRadarList: document.getElementById('result-radar-list'),
@@ -101,7 +104,8 @@ const els = {
   timeoutReport: document.getElementById('timeout-report'),
   timeoutAssistant: document.getElementById('timeout-assistant'),
   timeoutNote: document.getElementById('timeout-note'),
-  timeoutCountdown: document.getElementById('timeout-countdown'),
+  timeoutStatusLabel: document.getElementById('timeout-status-label'),
+  timeoutSpinner: document.getElementById('timeout-spinner'),
   timeoutBack: document.getElementById('timeout-back'),
   copyActions: document.getElementById('copy-actions'),
   toast: document.getElementById('toast'),
@@ -139,8 +143,10 @@ const state = {
     tipIndex: 0,
     pendingLogged: false,
     completionLogged: false,
-    timeoutCountdownId: null,
-    timeoutStartedAt: 0,
+    postCountdownActive: false,
+    postCountdownStartedAt: 0,
+    currentStatusKey: 'collecting',
+    currentStatusLabel: DEFAULT_STATUS_LABEL,
   },
   transition: {
     countdownId: null,
@@ -307,10 +313,12 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
     els.progressLabelS3.textContent = label;
   }
 
-  let etaLabel = '預估完成時間 60 秒內';
-  if (showAlmostDone) {
+  let etaLabel = state.progress.postCountdownActive
+    ? 'AI 正在整理資料…'
+    : '預估完成時間 1 分鐘內';
+  if (showAlmostDone && !state.progress.postCountdownActive) {
     etaLabel = '快完成… 正在合併專屬草稿';
-  } else if (etaSeconds != null) {
+  } else if (!state.progress.postCountdownActive && etaSeconds != null) {
     etaLabel = `預估完成 ${Math.max(0, Math.round(etaSeconds))} 秒`;
   }
   if (els.progressEtaS2) {
@@ -334,9 +342,13 @@ function stopAnalysisCountdown() {
   }
   state.progress.countdownRemaining = 0;
   state.progress.tipIndex = 0;
+  state.progress.postCountdownActive = false;
+  state.progress.postCountdownStartedAt = 0;
   if (els.progressCountdown) {
     els.progressCountdown.hidden = true;
   }
+  showProgressWaiting(false);
+  showProgressTimer(true);
   if (els.progressCountdownNumber) {
     els.progressCountdownNumber.textContent = ANALYSIS_COUNTDOWN_SECONDS;
   }
@@ -352,14 +364,55 @@ function setProgressTip(text) {
 }
 
 function updateProgressStatus(label = DEFAULT_STATUS_LABEL) {
-  if (!els.progressStatusLabel) return;
-  els.progressStatusLabel.textContent = label;
+  state.progress.currentStatusLabel = label;
+  if (els.progressStatusLabel) {
+    els.progressStatusLabel.textContent = label;
+  }
+  if (els.timeoutStatusLabel) {
+    els.timeoutStatusLabel.textContent = label;
+  }
 }
 
 function updateCountdownNumber() {
   if (!els.progressCountdownNumber) return;
   const value = Math.max(0, Math.round(state.progress.countdownRemaining));
   els.progressCountdownNumber.textContent = value;
+}
+
+function showProgressTimer(show) {
+  if (els.progressTimer) {
+    els.progressTimer.hidden = !show;
+  }
+  if (show && els.progressCountdownNumber) {
+    els.progressCountdownNumber.textContent = Math.max(0, Math.round(state.progress.countdownRemaining || ANALYSIS_COUNTDOWN_SECONDS));
+  }
+}
+
+function showProgressWaiting(show) {
+  if (els.progressWaiting) {
+    els.progressWaiting.hidden = !show;
+  }
+}
+
+function enterPostCountdownWait() {
+  if (state.progress.postCountdownActive) return;
+  state.progress.postCountdownActive = true;
+  state.progress.postCountdownStartedAt = Date.now();
+  state.progress.countdownRemaining = 0;
+  if (state.progress.countdownTimerId) {
+    clearInterval(state.progress.countdownTimerId);
+    state.progress.countdownTimerId = null;
+  }
+  if (state.progress.tipTimerId) {
+    clearInterval(state.progress.tipTimerId);
+    state.progress.tipTimerId = null;
+  }
+  showProgressTimer(false);
+  showProgressWaiting(true);
+  if (els.progressCountdownNumber) {
+    els.progressCountdownNumber.textContent = '—';
+  }
+  setProgressTip(POST_COUNTDOWN_MESSAGE);
 }
 
 function rotateAnalysisTip() {
@@ -373,17 +426,18 @@ function startAnalysisCountdown() {
   stopAnalysisCountdown();
   state.progress.countdownRemaining = ANALYSIS_COUNTDOWN_SECONDS;
   state.progress.tipIndex = 0;
+  state.progress.postCountdownActive = false;
+  state.progress.postCountdownStartedAt = 0;
   els.progressCountdown.hidden = false;
+  showProgressTimer(true);
+  showProgressWaiting(false);
   updateProgressStatus(DEFAULT_STATUS_LABEL);
   updateCountdownNumber();
   setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
   state.progress.countdownTimerId = setInterval(() => {
     state.progress.countdownRemaining -= 1;
     if (state.progress.countdownRemaining <= 0) {
-      stopAnalysisCountdown();
-      if (!state.progress.timeoutFired && state.stage !== 's4') {
-        triggerTimeout({ reason: 'countdown_expired' });
-      }
+      enterPostCountdownWait();
       return;
     }
     updateCountdownNumber();
@@ -406,61 +460,32 @@ function mergeContextArray(prev = [], next = []) {
   return Array.from(set);
 }
 
-function startTimeoutCountdown(durationSeconds = 60) {
-  if (!els.timeoutCountdown) return;
-  stopTimeoutCountdown();
-  state.progress.timeoutStartedAt = Date.now();
-  let remaining = Math.max(0, Math.floor(durationSeconds));
-
-  const updateLabel = () => {
-    if (!els.timeoutCountdown) return;
-    els.timeoutCountdown.textContent = remaining > 0
-      ? `已排程推送，預估 ${remaining} 秒內完成 LINE 通知。`
-      : '已排程推送，請留意稍後的 LINE 通知。';
-    els.timeoutCountdown.hidden = false;
-  };
-
-  updateLabel();
-
-  if (remaining === 0) {
-    state.progress.timeoutCountdownId = null;
-    return;
-  }
-
-  state.progress.timeoutCountdownId = setInterval(() => {
-    remaining -= 1;
-    if (remaining <= 0) {
-      remaining = 0;
-      updateLabel();
-      if (state.progress.timeoutCountdownId) {
-        clearInterval(state.progress.timeoutCountdownId);
-        state.progress.timeoutCountdownId = null;
-      }
-      return;
-    }
-    updateLabel();
-  }, 1000);
-}
-
-function stopTimeoutCountdown() {
-  if (state.progress.timeoutCountdownId) {
-    clearInterval(state.progress.timeoutCountdownId);
-    state.progress.timeoutCountdownId = null;
-  }
-  state.progress.timeoutStartedAt = 0;
-  if (els.timeoutCountdown) {
-    els.timeoutCountdown.textContent = '';
-    els.timeoutCountdown.hidden = true;
-  }
-}
-
 function updateTimeoutUI() {
-  if (!els.timeoutNote) return;
   const context = state.timeoutContext || {};
   const warnings = Array.isArray(context.warnings) ? context.warnings : [];
   const flags = context.flags || {};
   const hasDataforseoIssue = Boolean(flags.dataforseo_missing) || warnings.includes('dataforseo_missing');
-  els.timeoutNote.textContent = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
+  const statusLabel = context.status_label || ANALYSIS_STATUS_LABELS[context.status_key] || DEFAULT_STATUS_LABEL;
+
+  if (els.timeoutStatusLabel) {
+    els.timeoutStatusLabel.textContent = statusLabel;
+  }
+
+  let noteText = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
+  if (context.reason === 'analysis_timeout') {
+    noteText = 'AI 正在收尾，資料量較大，稍後會自動送達完整報表。';
+  }
+  if (typeof context.note === 'string' && context.note.trim()) {
+    noteText = context.note.trim();
+  }
+
+  if (els.timeoutNote) {
+    els.timeoutNote.textContent = noteText;
+  }
+
+  if (els.timeoutSpinner) {
+    els.timeoutSpinner.dataset.phase = context.status_key || '';
+  }
 
   if (els.timeoutReport) {
     const allowReport = Boolean(state.reportPageUrl);
@@ -559,7 +584,6 @@ function stopProgressTimers() {
   state.transition.started = false;
   stopAnalysisCountdown();
   stopTransitionTips();
-  stopTimeoutCountdown();
 }
 
 async function initLiff() {
@@ -920,7 +944,6 @@ function startPolling() {
     state.progress.pendingLogged = true;
   }
   stopAnalysisCountdown();
-  stopTimeoutCountdown();
   startAnalysisCountdown();
   state.timeoutContext = {};
   updateTimeoutUI();
@@ -937,14 +960,6 @@ function startPolling() {
   poll();
   state.progress.pollId = setInterval(poll, POLL_INTERVAL_MS);
 
-  if (state.progress.timerId) {
-    clearTimeout(state.progress.timerId);
-  }
-  state.progress.timerId = setTimeout(() => {
-    if (state.stage !== 's4' && !state.progress.timeoutFired) {
-      triggerTimeout();
-    }
-  }, PROGRESS_TIMEOUT_MS);
 }
 
 function handleAnalysisCompleted(context = {}) {
@@ -1010,7 +1025,9 @@ function handleStatusResponse(payload) {
   };
 
   const statusKey = isComplete ? 'ready' : (lifecycleState || stage);
-  updateProgressStatus(ANALYSIS_STATUS_LABELS[statusKey] || DEFAULT_STATUS_LABEL);
+  state.progress.currentStatusKey = statusKey;
+  const statusLabel = ANALYSIS_STATUS_LABELS[statusKey] || DEFAULT_STATUS_LABEL;
+  updateProgressStatus(statusLabel);
 
   if (stage === 'collecting' && state.stage === 's1') {
     stopTransitionTips();
@@ -1065,7 +1082,18 @@ function handleStatusResponse(payload) {
     warnings,
     flags,
     report_url: resolvedReportUrl || state.reportPageUrl,
+    status_key: statusKey,
+    status_label: statusLabel,
+    stage,
   };
+
+  if (!state.progress.timeoutFired) {
+    const elapsed = state.progress.startAt ? Date.now() - state.progress.startAt : 0;
+    if ((stage === 'analyzing' || stage === 'processing') && elapsed >= ANALYSIS_TIMEOUT_THRESHOLD_MS) {
+      triggerTimeout({ ...enrichedContext, reason: 'analysis_timeout' });
+      return;
+    }
+  }
 
   if (isComplete) {
     updateProgressUI(100, 0, stageHints.ready);
@@ -1274,12 +1302,17 @@ function triggerTimeout(context = {}) {
     ...(previousContext.flags || {}),
     ...(context.flags || {}),
   };
+  const statusKey = context.status_key || state.progress.currentStatusKey || 'timeout';
+  const statusLabel = context.status_label || ANALYSIS_STATUS_LABELS[statusKey] || DEFAULT_STATUS_LABEL;
   state.timeoutContext = {
     ...previousContext,
     ...context,
     flags: mergedFlags,
     warnings: mergedWarnings,
+    status_key: statusKey,
+    status_label: statusLabel,
   };
+  state.progress.currentStatusKey = statusKey;
 
   if (context.report_url) {
     state.reportPageUrl = context.report_url;
@@ -1301,9 +1334,7 @@ function triggerTimeout(context = {}) {
     state.progress.timerId = null;
   }
   stopAnalysisCountdown();
-  startTimeoutCountdown();
-  updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
-  updateProgressStatus(ANALYSIS_STATUS_LABELS.timeout || DEFAULT_STATUS_LABEL);
+  updateProgressStatus(statusLabel);
   setStage('s5');
 }
 
@@ -1331,8 +1362,10 @@ function resetFlow() {
     tipIndex: 0,
     pendingLogged: false,
     completionLogged: false,
-    timeoutCountdownId: null,
-    timeoutStartedAt: 0,
+    postCountdownActive: false,
+    postCountdownStartedAt: 0,
+    currentStatusKey: 'collecting',
+    currentStatusLabel: DEFAULT_STATUS_LABEL,
   };
   state.transition = {
     countdownId: null,

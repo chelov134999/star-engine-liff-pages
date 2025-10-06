@@ -177,9 +177,12 @@
             </div>
           </div>
           <div class="analysis-card__content">
-            <div class="analysis-card__timer">
-              <span class="analysis-card__seconds" id="progress-countdown-number">60</span>
+            <div class="analysis-card__timer" id="progress-timer">
+              <span class="analysis-card__seconds" id="progress-countdown-number">20</span>
               <span class="analysis-card__unit">秒</span>
+            </div>
+            <div class="analysis-card__waiting" id="progress-waiting" hidden>
+              <span class="analysis-card__spinner" aria-hidden="true"></span>
             </div>
             <p id="progress-tip" class="analysis-card__tip">AI 正在整理你的評論與競品差距…</p>
           </div>
@@ -280,12 +283,20 @@
           <p class="muted">完成後我會第一時間發到 LINE。您剛才的客製化設定已儲存，報告會套用您的語氣與關注競品。</p>
         </header>
 
-        <p class="timeout-note" id="timeout-note">Google 資料已就緒，評論補齊後會另行通知。</p>
+        <div class="timeout-card" id="timeout-card">
+          <div class="timeout-card__row">
+            <span class="timeout-card__spinner" id="timeout-spinner" aria-hidden="true"></span>
+            <div class="timeout-card__body">
+              <span class="timeout-card__eyebrow">AI 正在收尾</span>
+              <h3 class="timeout-card__status" id="timeout-status-label">排程推送中</h3>
+              <p class="timeout-card__note" id="timeout-note">Google 資料已就緒，評論補齊後會另行通知。</p>
+            </div>
+          </div>
+        </div>
         <div class="timeout-actions">
           <button id="timeout-report" type="button" class="btn btn--primary">查看完整報表</button>
           <button id="timeout-assistant" type="button" class="btn btn--outline">AI 專業助理</button>
         </div>
-        <p id="timeout-countdown" class="timeout-countdown" hidden></p>
         <button id="timeout-back" type="button" class="btn btn--ghost">返回主畫面</button>
       </div>
   </section>

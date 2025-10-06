@@ -503,11 +503,12 @@ body:not(.page--info) {
   margin-top: 12px;
   padding: clamp(22px, 4.6vw, 28px) clamp(24px, 5vw, 32px);
   border-radius: 26px;
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 45%, #3b82f6 100%);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--text);
   display: grid;
   gap: clamp(16px, 3vw, 22px);
-  box-shadow: 0 28px 52px -32px rgba(17, 38, 94, 0.45);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: var(--shadow-card);
 }
 
 .analysis-card[hidden] {
@@ -524,7 +525,8 @@ body:not(.page--info) {
   width: 46px;
   height: 46px;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.18);
+  background: rgba(29, 78, 216, 0.12);
+  color: var(--primary);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -539,15 +541,17 @@ body:not(.page--info) {
 }
 
 .analysis-card__title {
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 600;
+  color: rgba(37, 99, 235, 0.78);
 }
 
 .analysis-card__status {
-  font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.95rem;
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .analysis-card__content {
@@ -564,23 +568,50 @@ body:not(.page--info) {
 }
 
 .analysis-card__seconds {
-  font-size: clamp(2.8rem, 7vw, 3.6rem);
+  font-size: clamp(2.4rem, 6.5vw, 3.2rem);
   font-weight: 700;
   line-height: 1;
+  color: var(--primary);
 }
 
 .analysis-card__unit {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   margin-bottom: 6px;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.analysis-card__waiting {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analysis-card__waiting[hidden] {
+  display: none;
+}
+
+.analysis-card__spinner {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 3px solid rgba(37, 99, 235, 0.18);
+  border-top-color: var(--primary);
+  animation: rotateSpinner 0.8s linear infinite;
 }
 
 .analysis-card__tip {
   flex: 1 1 220px;
   margin: 0;
-  font-size: 1rem;
-  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.98rem;
+  color: rgba(15, 23, 42, 0.7);
+}
+
+@keyframes rotateSpinner {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .summary-card {
@@ -739,27 +770,59 @@ body:not(.page--info) {
   border: 1px solid var(--stroke);
 }
 
+.timeout-card {
+  margin-bottom: 18px;
+  padding: clamp(20px, 4.5vw, 28px);
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow-card);
+}
+
+.timeout-card__row {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 4vw, 22px);
+}
+
+.timeout-card__spinner {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid rgba(37, 99, 235, 0.16);
+  border-top-color: var(--primary);
+  animation: rotateSpinner 0.8s linear infinite;
+}
+
+.timeout-card__body {
+  display: grid;
+  gap: 6px;
+}
+
+.timeout-card__eyebrow {
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.52);
+}
+
+.timeout-card__status {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.timeout-card__note {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(15, 23, 42, 0.65);
+}
+
 .timeout-actions {
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  margin-bottom: 18px;
-}
-
-.timeout-note {
-  margin: 0 0 14px;
-  padding: 14px 16px;
-  border-radius: 18px;
-  background: rgba(37, 99, 235, 0.08);
-  border: 1px solid rgba(37, 99, 235, 0.12);
-  color: rgba(15, 23, 42, 0.78);
-  font-size: 0.95rem;
-}
-
-.timeout-countdown {
-  margin: 0 0 10px;
-  font-size: 0.92rem;
-  color: rgba(15, 23, 42, 0.62);
+  margin-top: 20px;
 }
 
 

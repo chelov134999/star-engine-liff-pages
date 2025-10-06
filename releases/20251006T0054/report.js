@@ -16,6 +16,8 @@
     btnReturnLine: document.getElementById('btn-return-line'),
     ctaPrimary: document.getElementById('cta-primary'),
     ctaAssistant: document.getElementById('cta-assistant'),
+    indicator: document.getElementById('report-indicator'),
+    trust: document.getElementById('report-trust'),
     cognosEyebrow: document.getElementById('cognos-eyebrow'),
     cognosTitle: document.getElementById('cognos-title'),
     cognosSubtitle: document.getElementById('cognos-subtitle'),
@@ -43,9 +45,15 @@
     assistantUrl: assistantUrlDefault,
     primaryAction: 'refresh',
   };
+  function setAnchorState(anchor, enabled, href = '#') {
+    if (!anchor) return;
+    anchor.setAttribute('href', enabled ? href : '#');
+    anchor.classList.toggle('btn--disabled', !enabled);
+    anchor.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+  }
 
-  if (dom.ctaAssistant && !state.assistantUrl) {
-    dom.ctaAssistant.disabled = true;
+  if (dom.ctaAssistant) {
+    setAnchorState(dom.ctaAssistant, Boolean(state.assistantUrl), state.assistantUrl || '#');
   }
 
   function toNumber(value) {
@@ -70,7 +78,8 @@
     if (!dom.ctaPrimary) return;
     const label = action === 'line' ? '回到 LINE' : '重新整理';
     dom.ctaPrimary.textContent = label;
-    dom.ctaPrimary.disabled = disabled;
+    const targetHref = disabled ? '#' : (action === 'line' ? lineFallbackUrl : '#');
+    setAnchorState(dom.ctaPrimary, !disabled, targetHref || '#');
   }
 
   function toggleEmptyState(element, hasContent) {
@@ -218,6 +227,19 @@
       dom.prefs.hidden = false;
     }
 
+    if (dom.trust) {
+      const trustParts = [];
+      if (goalLabel && goalLabel !== '—') {
+        trustParts.push(`目標鎖定「${goalLabel}」`);
+      }
+      if (toneLabel && toneLabel !== '—') {
+        trustParts.push(`語氣採用「${toneLabel}」`);
+      }
+      dom.trust.textContent = trustParts.length
+        ? `${trustParts.join('，')}，後續推播會同步更新。`
+        : '我已保存你的偏好設定，報表更新會即時通知。';
+    }
+
     const metricsRendered = renderMetrics && dom.metrics
       ? renderMetrics(dom.metrics, metricsSource, { emptyMessage: '' })
       : [];
@@ -252,8 +274,7 @@
     toggleEmptyState(dom.draftsEmpty, draftsRendered && draftsRendered.length > 0);
 
     if (dom.ctaAssistant) {
-      const allowAssistant = Boolean(state.assistantUrl);
-      dom.ctaAssistant.disabled = !allowAssistant;
+      setAnchorState(dom.ctaAssistant, Boolean(state.assistantUrl), state.assistantUrl || '#');
     }
   }
 
@@ -262,9 +283,17 @@
     setView({ content: true });
     state.retry = 0;
     updatePrimaryAction('refresh');
+    if (dom.indicator) {
+      dom.indicator.textContent = '分析完成';
+    }
+    if (dom.trust && dom.trust.textContent.trim() === '') {
+      dom.trust.textContent = '我已保存你的偏好設定，報表更新會即時通知。';
+    }
     if (dom.skeleton) {
       dom.skeleton.innerHTML = '';
       dom.skeleton.hidden = true;
+      dom.skeleton.remove();
+      dom.skeleton = null;
     }
     logEvent('report_load', {
       status: 'complete',
@@ -276,6 +305,12 @@
   function handlePending(payload) {
     setView({ loading: true });
     updatePrimaryAction('line');
+    if (dom.indicator) {
+      dom.indicator.textContent = 'AI 整理中';
+    }
+    if (dom.trust) {
+      dom.trust.textContent = '資料較多，我會完成後立刻通知你。';
+    }
     logEvent('report_load', {
       status: 'pending',
       lead_id: state.leadId,
@@ -304,8 +339,14 @@
   function handleFailure(error) {
     setView({ error: true });
     updatePrimaryAction('refresh');
+    if (dom.indicator) {
+      dom.indicator.textContent = '需要協助';
+    }
+    if (dom.trust) {
+      dom.trust.textContent = '我正在重新整理資料，稍後會提醒你再次查看。';
+    }
     if (dom.errorMessage) {
-      dom.errorMessage.textContent = error?.message || '無法載入報表，請稍後再試。';
+      dom.errorMessage.textContent = error?.message || '暫時載入不到報表，我會稍後提醒你再試一次。';
     }
     logEvent('report_load', {
       status: 'failed',
@@ -351,8 +392,9 @@
   }
 
   if (dom.ctaPrimary) {
-    dom.ctaPrimary.addEventListener('click', () => {
-      if (dom.ctaPrimary.disabled) return;
+    dom.ctaPrimary.addEventListener('click', (event) => {
+      event.preventDefault();
+      if (dom.ctaPrimary.classList.contains('btn--disabled')) return;
       if (state.primaryAction === 'line') {
         closeToLine();
         return;
@@ -371,7 +413,7 @@
   if (dom.ctaAssistant) {
     dom.ctaAssistant.addEventListener('click', (event) => {
       event.preventDefault();
-      if (dom.ctaAssistant.disabled) return;
+      if (dom.ctaAssistant.classList.contains('btn--disabled')) return;
       openAssistant('report');
     });
   }

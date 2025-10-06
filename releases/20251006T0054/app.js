@@ -14,21 +14,21 @@ const assistantUrl = config.trialUrl || config.trial_url || '';
 const ANALYSIS_COUNTDOWN_SECONDS = 20;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
-  'AI 正在整理你的評論與競品差距…',
-  '等候時可以想好想追蹤的競品，我會一併分析。',
-  '選擇語氣後，我會提供貼近門市風格的草稿。'
+  '我先幫你比對最近的評論走勢與關鍵字。',
+  '同時整理同商圈的競品星等與評論量。',
+  '接著套用語氣偏好，準備專屬回覆草稿。'
 ];
-const DEFAULT_STATUS_LABEL = 'AI 調校中';
+const DEFAULT_STATUS_LABEL = '定位商圈中';
 const ANALYSIS_STATUS_LABELS = {
   collecting: '定位商圈中',
-  processing: '抓取評論與競品',
-  analyzing: '生成專屬草稿',
+  processing: '整理評論與競品',
+  analyzing: '彙整行動與草稿',
   ready: '分析完成',
   scheduled: '排程推送中',
   timeout: '排程推送中',
-  failed: '分析失敗',
+  failed: '分析遇到狀況',
 };
-const POST_COUNTDOWN_MESSAGE = 'AI 正在整理資料，通常會在 1 分鐘內完成。';
+const POST_COUNTDOWN_MESSAGE = 'AI 正在整理資料，隨時向你回報進度。';
 const ANALYSIS_TIMEOUT_THRESHOLD_MS = 90 * 1000;
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
@@ -46,11 +46,28 @@ const logEvent = (...args) => {
   }
 };
 
+function toFiniteNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function formatNumber(value) {
+  const number = toFiniteNumber(value);
+  if (number == null) return '';
+  return number.toLocaleString('zh-Hant-TW');
+}
+
+function formatDecimal(value, digits = 1) {
+  const number = toFiniteNumber(value);
+  if (number == null) return '';
+  return number.toFixed(digits);
+}
+
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
-  { percent: 45, label: '資料收集中… 進度 45%', eta: '最近 7 天評論載入中' },
-  { percent: 60, label: '正在比對競品差距… 進度 60%', eta: '附近競品完成定位' },
-  { percent: 75, label: '生成專屬草稿… 進度 75%', eta: '我正撰寫回覆草稿與建議' }
+  { percent: 45, label: '定位門市與評論… 進度 45%', eta: '近 7 天評論同步中' },
+  { percent: 60, label: '檢視競品差距… 進度 60%', eta: '同商圈競品定位完成' },
+  { percent: 75, label: '組裝專屬草稿… 進度 75%', eta: '撰寫本週優先行動' }
 ];
 const TRANSITION_DURATION_MS = 3000;
 const POLL_INTERVAL_MS = 5000;
@@ -98,6 +115,12 @@ const els = {
   resultDraftsList: document.getElementById('result-drafts-list'),
   resultWarning: document.getElementById('result-warning'),
   resultWarningText: document.getElementById('result-warning-text'),
+  resultKpiRating: document.getElementById('result-kpi-rating'),
+  resultKpiRatingHint: document.getElementById('result-kpi-rating-hint'),
+  resultKpiReviews: document.getElementById('result-kpi-reviews'),
+  resultKpiReviewsHint: document.getElementById('result-kpi-reviews-hint'),
+  resultKpiGap: document.getElementById('result-kpi-gap'),
+  resultKpiGapHint: document.getElementById('result-kpi-gap-hint'),
   ctaReport: document.getElementById('cta-report'),
   ctaAssistant: document.getElementById('cta-assistant'),
   returnHome: document.getElementById('return-home'),
@@ -295,9 +318,9 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
     : 0;
   const showAlmostDone = safePercent >= 90 && elapsedSinceNinety >= NINETY_HINT_DELAY_MS;
 
-  let label = stageLabel || `資料收集中… 進度 ${safePercent}%`;
+  let label = stageLabel || `整合資料中… 進度 ${safePercent}%`;
   if (showAlmostDone) {
-    label = '快完成… 智能體正在整理結果';
+    label = '快完成了，我在整理報告重點';
   }
 
   if (els.progressBarS2) {
@@ -314,10 +337,10 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   }
 
   let etaLabel = state.progress.postCountdownActive
-    ? 'AI 正在整理資料…'
-    : '預估完成時間 1 分鐘內';
+    ? 'AI 正在整理資料，請稍候'
+    : '預估 1 分鐘內完成';
   if (showAlmostDone && !state.progress.postCountdownActive) {
-    etaLabel = '快完成… 正在合併專屬草稿';
+    etaLabel = '快完成了，正在合併專屬草稿';
   } else if (!state.progress.postCountdownActive && etaSeconds != null) {
     etaLabel = `預估完成 ${Math.max(0, Math.round(etaSeconds))} 秒`;
   }
@@ -363,6 +386,13 @@ function setProgressTip(text) {
   els.progressTip.textContent = text;
 }
 
+function syncPostCountdownTip() {
+  if (!state.progress.postCountdownActive) return;
+  const statusLabel = state.progress.currentStatusLabel || DEFAULT_STATUS_LABEL;
+  const statusText = statusLabel ? `AI 正在整理資料｜${statusLabel}` : 'AI 正在整理資料';
+  setProgressTip(statusText);
+}
+
 function updateProgressStatus(label = DEFAULT_STATUS_LABEL) {
   state.progress.currentStatusLabel = label;
   if (els.progressStatusLabel) {
@@ -371,6 +401,7 @@ function updateProgressStatus(label = DEFAULT_STATUS_LABEL) {
   if (els.timeoutStatusLabel) {
     els.timeoutStatusLabel.textContent = label;
   }
+  syncPostCountdownTip();
 }
 
 function updateCountdownNumber() {
@@ -413,6 +444,7 @@ function enterPostCountdownWait() {
     els.progressCountdownNumber.textContent = '—';
   }
   setProgressTip(POST_COUNTDOWN_MESSAGE);
+  syncPostCountdownTip();
 }
 
 function rotateAnalysisTip() {
@@ -490,16 +522,17 @@ function updateTimeoutUI() {
   if (els.timeoutReport) {
     const allowReport = Boolean(state.reportPageUrl);
     els.timeoutReport.hidden = false;
-    els.timeoutReport.disabled = !allowReport;
+    els.timeoutReport.setAttribute('href', allowReport ? state.reportPageUrl : '#');
+    els.timeoutReport.classList.toggle('btn--disabled', !allowReport);
+    els.timeoutReport.setAttribute('aria-disabled', allowReport ? 'false' : 'true');
   }
 
   if (els.timeoutAssistant) {
     const allowAssistant = Boolean(state.assistantUrl);
     els.timeoutAssistant.hidden = false;
-    els.timeoutAssistant.disabled = !allowAssistant;
-    if (allowAssistant && 'href' in els.timeoutAssistant) {
-      els.timeoutAssistant.href = state.assistantUrl;
-    }
+    els.timeoutAssistant.setAttribute('href', allowAssistant ? state.assistantUrl : '#');
+    els.timeoutAssistant.classList.toggle('btn--disabled', !allowAssistant);
+    els.timeoutAssistant.setAttribute('aria-disabled', allowAssistant ? 'false' : 'true');
   }
 }
 
@@ -516,8 +549,8 @@ function resetProgressUI() {
     els.progressBarS3.style.width = '0%';
   }
 
-  const baseLabel = '資料收集中… 進度 0%';
-  const baseEta = '正在準備最新評論與競品資料';
+  const baseLabel = '定位你的門市… 進度 0%';
+  const baseEta = '我正在準備評論與競品資料';
 
   if (els.progressLabelS2) {
     els.progressLabelS2.textContent = baseLabel;
@@ -1016,11 +1049,11 @@ function handleStatusResponse(payload) {
     state.assistantUrl = assistantUrl;
   }
   const stageHints = {
-    collecting: '正在定位您的門市與商圈…',
-    processing: '正在抓取 DataForSEO 與附近競品…',
-    analyzing: '正在生成差距雷達與回覆草稿…',
-    scheduled: '資料量較大，已排程推送完成結果',
-    timeout: '資料量較大，已排程推送完成結果',
+    collecting: '正在定位你的門市與商圈…',
+    processing: '整理評論與競品趨勢…',
+    analyzing: '彙整行動建議與草稿…',
+    scheduled: '我已排程完成後立即通知',
+    timeout: '我已排程完成後立即通知',
     ready: '分析完成！正在回傳結果…',
   };
 
@@ -1087,12 +1120,10 @@ function handleStatusResponse(payload) {
     stage,
   };
 
-  if (!state.progress.timeoutFired) {
-    const elapsed = state.progress.startAt ? Date.now() - state.progress.startAt : 0;
-    if ((stage === 'analyzing' || stage === 'processing') && elapsed >= ANALYSIS_TIMEOUT_THRESHOLD_MS) {
-      triggerTimeout({ ...enrichedContext, reason: 'analysis_timeout' });
-      return;
-    }
+  const elapsed = state.progress.startAt ? Date.now() - state.progress.startAt : 0;
+  if ((stage === 'analyzing' || stage === 'processing') && elapsed >= ANALYSIS_TIMEOUT_THRESHOLD_MS && !state.progress.postCountdownActive) {
+    enterPostCountdownWait();
+    syncPostCountdownTip();
   }
 
   if (isComplete) {
@@ -1107,8 +1138,7 @@ function handleStatusResponse(payload) {
   } else if (stage === 'scheduled' || stage === 'timeout') {
     triggerTimeout(enrichedContext);
   } else if (stage === 'failed' || statusValue.toLowerCase() === 'failed') {
-    showToast('分析失敗，請稍後再試或聯絡支援。');
-    triggerTimeout(enrichedContext);
+    handleAnalysisFailed(enrichedContext, payload.status?.message);
   }
 }
 
@@ -1154,6 +1184,61 @@ function renderAnalysisReport(context = {}) {
   const competitors = competitorsPreferred.length ? competitorsPreferred : competitorFallback;
   const weeklyActions = report.weekly_actions || [];
   const replyDrafts = report.reply_drafts || [];
+
+  const ratingNow = report.rating_now ?? report.rating ?? report.score ?? null;
+  const reviewsTotal = report.reviews_total ?? report.reviews ?? report.review_count ?? null;
+  const ratingValue = ratingNow != null ? `${formatDecimal(ratingNow, 1)} ★` : '—';
+  const ratingHint = ratingNow != null ? '最新星等已同步' : '同步中';
+  const reviewsValue = reviewsTotal != null ? `${formatNumber(reviewsTotal)} 則` : '—';
+  const reviewsHint = reviewsTotal != null ? '評論總量即時更新' : '整理評論細節';
+  let competitorGapValue = report.gap_summary || report.competitor_gap || report.gap_text || report.competitor_gap_label || '';
+  let competitorGapHint = report.gap_hint || report.gap_detail || '';
+
+  if (!competitorGapValue && ratingNow != null && competitors.length) {
+    const primaryCompetitor = competitors[0];
+    const competitorRating = toFiniteNumber(primaryCompetitor?.rating ?? primaryCompetitor?.score);
+    const ratingNumber = toFiniteNumber(ratingNow);
+    if (ratingNumber != null && competitorRating != null) {
+      const diff = ratingNumber - competitorRating;
+      const absoluteDiff = Math.abs(diff);
+      if (absoluteDiff < 0.05) {
+        competitorGapValue = '與主要競品持平';
+      } else if (diff > 0) {
+        competitorGapValue = `領先 ${formatDecimal(absoluteDiff, 1)} ★`;
+      } else {
+        competitorGapValue = `落後 ${formatDecimal(absoluteDiff, 1)} ★`;
+      }
+      if (primaryCompetitor?.name) {
+        competitorGapHint = `主要競品：${primaryCompetitor.name}`;
+      }
+    }
+  }
+
+  if (!competitorGapValue) {
+    competitorGapValue = '—';
+  }
+  if (!competitorGapHint) {
+    competitorGapHint = '競品比較載入中';
+  }
+
+  if (els.resultKpiRating) {
+    els.resultKpiRating.textContent = ratingValue;
+  }
+  if (els.resultKpiRatingHint) {
+    els.resultKpiRatingHint.textContent = ratingHint;
+  }
+  if (els.resultKpiReviews) {
+    els.resultKpiReviews.textContent = reviewsValue;
+  }
+  if (els.resultKpiReviewsHint) {
+    els.resultKpiReviewsHint.textContent = reviewsHint;
+  }
+  if (els.resultKpiGap) {
+    els.resultKpiGap.textContent = competitorGapValue;
+  }
+  if (els.resultKpiGapHint) {
+    els.resultKpiGapHint.textContent = competitorGapHint;
+  }
 
   let renderedActions = weeklyActions;
 
@@ -1274,14 +1359,27 @@ function renderAnalysisReport(context = {}) {
   }
 
   if (els.ctaReport) {
-    els.ctaReport.disabled = !state.reportPageUrl;
+    if (state.reportPageUrl) {
+      els.ctaReport.setAttribute('href', state.reportPageUrl);
+      els.ctaReport.classList.remove('btn--disabled');
+      els.ctaReport.setAttribute('aria-disabled', 'false');
+    } else {
+      els.ctaReport.setAttribute('href', '#');
+      els.ctaReport.classList.add('btn--disabled');
+      els.ctaReport.setAttribute('aria-disabled', 'true');
+    }
   }
 
   if (els.ctaAssistant) {
     const hasAssistant = Boolean(state.assistantUrl);
-    els.ctaAssistant.disabled = !hasAssistant;
-    if (hasAssistant && 'href' in els.ctaAssistant) {
-      els.ctaAssistant.href = state.assistantUrl;
+    if (hasAssistant) {
+      els.ctaAssistant.setAttribute('href', state.assistantUrl);
+      els.ctaAssistant.classList.remove('btn--disabled');
+      els.ctaAssistant.setAttribute('aria-disabled', 'false');
+    } else {
+      els.ctaAssistant.setAttribute('href', '#');
+      els.ctaAssistant.classList.add('btn--disabled');
+      els.ctaAssistant.setAttribute('aria-disabled', 'true');
     }
   }
 
@@ -1323,6 +1421,16 @@ function triggerTimeout(context = {}) {
   }
 
   updateTimeoutUI();
+  updateProgressStatus(statusLabel);
+
+  const stageKey = (context.stage || context.status_key || '').toLowerCase();
+  const shouldShowTimeoutStage = stageKey === 'scheduled' || stageKey === 'timeout';
+
+  if (!shouldShowTimeoutStage) {
+    enterPostCountdownWait();
+    syncPostCountdownTip();
+    return;
+  }
 
   if (wasTimedOut) {
     return;
@@ -1334,8 +1442,18 @@ function triggerTimeout(context = {}) {
     state.progress.timerId = null;
   }
   stopAnalysisCountdown();
-  updateProgressStatus(statusLabel);
   setStage('s5');
+}
+
+function handleAnalysisFailed(context = {}, message = '') {
+  const fallback = '分析過程遇到狀況，已替你通知專業顧問協助處理。';
+  const note = (typeof message === 'string' && message.trim()) ? message.trim() : fallback;
+  state.progress.timeoutFired = false;
+  state.timeoutContext = { ...state.timeoutContext, ...context };
+  enterPostCountdownWait();
+  updateProgressStatus(ANALYSIS_STATUS_LABELS.failed || DEFAULT_STATUS_LABEL);
+  setProgressTip(`AI 正在整理資料｜分析遇到狀況；${note}`);
+  showToast(note, 2800);
 }
 
 function resetFlow() {
@@ -1450,6 +1568,10 @@ function attachEventListeners() {
   els.timeoutBack?.addEventListener('click', resetFlow);
   els.timeoutReport?.addEventListener('click', (event) => {
     event.preventDefault();
+    if (els.timeoutReport.classList.contains('btn--disabled')) {
+      showToast('報表仍在整理，我會完成後再通知你。');
+      return;
+    }
     logEvent('cta_click', {
       action: 'timeout_report',
       lead_id: state.leadId,
@@ -1460,6 +1582,10 @@ function attachEventListeners() {
   });
   els.timeoutAssistant?.addEventListener('click', (event) => {
     event.preventDefault();
+    if (els.timeoutAssistant.classList.contains('btn--disabled')) {
+      showToast('顧問稍後聯繫你，請先稍候。');
+      return;
+    }
     openAssistant('timeout');
   });
   els.copyActions?.addEventListener('click', (event) => {
@@ -1467,10 +1593,18 @@ function attachEventListeners() {
   });
   els.ctaReport?.addEventListener('click', (event) => {
     event.preventDefault();
+    if (els.ctaReport.classList.contains('btn--disabled')) {
+      showToast('報表尚在生成，完成後會自動開啟。', 2400);
+      return;
+    }
     redirectToReport();
   });
   els.ctaAssistant?.addEventListener('click', (event) => {
     event.preventDefault();
+    if (els.ctaAssistant.classList.contains('btn--disabled')) {
+      showToast('AI 專業助理暫時離線，稍後再試。');
+      return;
+    }
     openAssistant('preview');
   });
   els.aboutLink?.addEventListener('click', (event) => {

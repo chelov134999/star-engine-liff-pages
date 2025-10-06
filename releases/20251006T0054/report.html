@@ -12,9 +12,12 @@
 <body class="page--info page--report">
   <main class="info-shell report-shell" id="report-app">
     <section class="report-hero" aria-live="polite">
-      <div class="brand-line">
-        <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
-        <span class="brand-line__text">星級引擎｜脈動智匯</span>
+      <div class="report-hero__meta">
+        <div class="brand-line">
+          <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <span class="report-hero__indicator" id="report-indicator">AI 守護中</span>
       </div>
 
       <article class="report-hero-card" id="cognos-card">
@@ -32,14 +35,16 @@
         </div>
       </article>
 
-      <div class="report-alerts" id="report-alerts">
+      <div class="report-hero__alerts" id="report-alerts">
         <div class="report-alert report-alert--loss" id="alert-loss">若不處理，預估流失金額尚待計算。</div>
         <div class="report-alert report-alert--gain" id="alert-gain">看看我能為你挽回多少營收。</div>
       </div>
 
-      <div class="report-cta" id="report-cta">
-        <button id="cta-primary" type="button" class="btn btn--primary">重新整理</button>
-        <button id="cta-assistant" type="button" class="btn btn--outline">AI 專業助理</button>
+      <p class="report-hero__trust" id="report-trust">我已保存你的語氣設定與偏好，報表更新會即時通知。</p>
+
+      <div class="report-hero__cta" id="report-cta">
+        <a id="cta-primary" class="btn btn--primary" href="#">重新整理</a>
+        <a id="cta-assistant" class="btn btn--outline" href="#" target="_blank" rel="noopener">AI 專業助理</a>
       </div>
     </section>
 
@@ -73,7 +78,7 @@
           <h2>關鍵指標</h2>
         </header>
         <div id="report-metrics" class="report-metrics" role="list"></div>
-        <p id="report-metrics-empty" class="report-empty" hidden>尚未產生有效 KPI，Google 評論同步完成後會立即回填。</p>
+        <p id="report-metrics-empty" class="report-empty" hidden>KPI 生成中，完成後會即時補上。</p>
       </section>
 
       <section class="report-section">
@@ -81,7 +86,7 @@
           <h2>競品雷達</h2>
         </header>
         <ul id="report-competitors" class="report-competitors"></ul>
-        <p id="report-competitors-empty" class="report-empty" hidden>競品資料整理中，稍後會推送最新差距。</p>
+        <p id="report-competitors-empty" class="report-empty" hidden>競品資料同步中，很快就會更新最新差距。</p>
       </section>
 
       <section class="report-section">
@@ -89,7 +94,7 @@
           <h2>本週三件事</h2>
         </header>
         <ul id="report-actions" class="report-actions"></ul>
-        <p id="report-actions-empty" class="report-empty" hidden>暫無行動清單，建議先關注評論差距並持續追蹤。</p>
+        <p id="report-actions-empty" class="report-empty" hidden>行動清單整理中，完成後會推送給你。</p>
       </section>
 
       <section class="report-section">
@@ -97,7 +102,7 @@
           <h2>AI 回覆草稿</h2>
         </header>
         <div id="report-drafts" class="report-drafts"></div>
-        <p id="report-drafts-empty" class="report-empty" hidden>評論回覆草稿將在評論補齊後自動產生。</p>
+        <p id="report-drafts-empty" class="report-empty" hidden>評論草稿準備中，評論補齊後會自動送上。</p>
       </section>
     </section>
   </main>

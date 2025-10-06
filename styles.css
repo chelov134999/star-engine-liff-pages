@@ -883,10 +883,10 @@ body:not(.page--info) {
   display: grid;
   gap: clamp(20px, 4vw, 28px);
   padding: clamp(26px, 5vw, 34px);
-  background: linear-gradient(135deg, rgba(255, 247, 236, 0.95) 0%, rgba(255, 255, 255, 0.98) 65%);
+  background: #ffffff;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(247, 144, 9, 0.18);
-  box-shadow: 0 28px 60px -40px rgba(120, 64, 0, 0.25);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  box-shadow: 0 16px 42px -36px rgba(15, 23, 42, 0.12);
 }
 
 .report-hero__meta {
@@ -900,8 +900,8 @@ body:not(.page--info) {
 .report-hero__indicator {
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(247, 144, 9, 0.16);
-  color: rgba(147, 64, 0, 0.82);
+  background: rgba(37, 99, 235, 0.12);
+  color: rgba(37, 99, 235, 0.88);
   font-size: 0.85rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -912,11 +912,11 @@ body:not(.page--info) {
   grid-template-columns: auto 1fr;
   gap: clamp(18px, 4vw, 26px);
   align-items: center;
-  background: linear-gradient(135deg, #ffffff 0%, #fff7eb 100%);
+  background: #f8fafc;
   border-radius: clamp(20px, 4vw, 28px);
-  border: 1px solid rgba(247, 144, 9, 0.2);
+  border: 1px solid rgba(15, 23, 42, 0.07);
   padding: clamp(22px, 5vw, 30px);
-  box-shadow: 0 32px 68px -42px rgba(120, 64, 0, 0.24);
+  box-shadow: 0 16px 36px -32px rgba(15, 23, 42, 0.18);
 }
 
 .report-hero-card__media {
@@ -927,8 +927,8 @@ body:not(.page--info) {
   width: clamp(64px, 12vw, 80px);
   height: clamp(64px, 12vw, 80px);
   border-radius: 50%;
-  border: 2px solid rgba(247, 144, 9, 0.28);
-  box-shadow: 0 18px 36px -28px rgba(247, 144, 9, 0.4);
+  border: 2px solid rgba(37, 99, 235, 0.25);
+  box-shadow: 0 12px 24px -20px rgba(37, 99, 235, 0.4);
 }
 
 .report-hero-card__body {
@@ -987,15 +987,15 @@ body:not(.page--info) {
 }
 
 .report-alert--loss {
-  background: rgba(248, 113, 113, 0.14);
+  background: rgba(248, 113, 113, 0.1);
   color: #b91c1c;
-  border-left: 4px solid rgba(248, 113, 113, 0.6);
+  border-left: 3px solid rgba(248, 113, 113, 0.38);
 }
 
 .report-alert--gain {
-  background: rgba(59, 130, 246, 0.14);
+  background: rgba(37, 99, 235, 0.1);
   color: #1d4ed8;
-  border-left: 4px solid rgba(59, 130, 246, 0.55);
+  border-left: 3px solid rgba(37, 99, 235, 0.38);
 }
 
 .report-hero__trust {
@@ -1008,10 +1008,10 @@ body:not(.page--info) {
   display: grid;
   gap: 16px;
   padding: clamp(18px, 3.6vw, 24px);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 249, 240, 0.92) 100%);
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
   border-radius: clamp(18px, 3.4vw, 24px);
-  border: 1px solid rgba(247, 144, 9, 0.18);
-  box-shadow: 0 18px 36px -28px rgba(120, 64, 0, 0.25);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
 }
 
 .report-hero__kpis {
@@ -1026,32 +1026,32 @@ body:not(.page--info) {
   padding: clamp(14px, 3vw, 20px);
   background: #ffffff;
   border-radius: 16px;
-  border: 1px solid rgba(247, 144, 9, 0.2);
-  box-shadow: 0 18px 32px -28px rgba(120, 64, 0, 0.24);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 24px -24px rgba(15, 23, 42, 0.16);
 }
 
 .report-hero__kpi-label {
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(147, 64, 0, 0.68);
+  color: rgba(37, 99, 235, 0.72);
 }
 
 .report-hero__kpi-value {
   font-size: clamp(1.6rem, 3.6vw, 2.2rem);
   font-weight: 700;
-  color: #7c2d12;
+  color: #0f172a;
 }
 
 .report-hero__kpi-hint {
   font-size: 0.88rem;
-  color: rgba(120, 53, 15, 0.7);
+  color: rgba(15, 23, 42, 0.62);
 }
 
 .report-hero__note {
   margin: 0;
   font-size: 0.95rem;
-  color: rgba(120, 53, 15, 0.72);
+  color: rgba(15, 23, 42, 0.68);
 }
 
 .report-hero__insight {
@@ -1059,9 +1059,9 @@ body:not(.page--info) {
   gap: 6px;
   padding: 14px 16px;
   border-radius: 18px;
-  background: rgba(29, 78, 216, 0.08);
-  border: 1px solid rgba(29, 78, 216, 0.18);
-  color: rgba(29, 78, 216, 0.78);
+  background: rgba(37, 99, 235, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  color: rgba(15, 23, 42, 0.78);
 }
 
 .report-hero__insight-label {
@@ -1074,7 +1074,7 @@ body:not(.page--info) {
 .report-hero__insight-text {
   margin: 0;
   font-size: 0.95rem;
-  color: rgba(29, 78, 216, 0.86);
+  color: rgba(15, 23, 42, 0.78);
 }
 
 .report-hero__cta {

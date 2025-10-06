@@ -262,6 +262,10 @@
     setView({ content: true });
     state.retry = 0;
     updatePrimaryAction('refresh');
+    if (dom.skeleton) {
+      dom.skeleton.innerHTML = '';
+      dom.skeleton.hidden = true;
+    }
     logEvent('report_load', {
       status: 'complete',
       lead_id: state.leadId,
@@ -282,7 +286,7 @@
     if (state.retry >= state.maxRetry) {
       setView({ error: true });
       if (dom.errorMessage) {
-        dom.errorMessage.textContent = '分析仍在進行中，請稍後從 LINE 再次開啟報表。';
+        dom.errorMessage.textContent = '報表仍在生成，稍後會透過 LINE 通知你最新版本。';
       }
       logEvent('report_load', {
         status: 'timeout',
@@ -322,7 +326,8 @@
       if (payload.status && typeof payload.status === 'object') {
         const stateValue = payload.status.state || payload.status;
         if (stateValue === 'failed') {
-          throw new Error(payload.status.message || '生成報表失敗');
+          const message = payload.status.message || '生成報表失敗，請稍後再試。';
+          throw new Error(message);
         }
       }
 
@@ -334,7 +339,7 @@
 
       const validation = validatePayload(payload);
       if (!validation.ok) {
-        throw new Error(validation.message);
+        throw new Error(validation.message || '報表內容缺失，請稍後再試。');
       }
 
       handleSuccess(payload);

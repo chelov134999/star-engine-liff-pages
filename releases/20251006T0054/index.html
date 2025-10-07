@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20251006T0054" />
+  <link rel="stylesheet" href="styles.css?v=20251005c" />
 </head>
 <body>
   <main class="page" id="app">
@@ -18,11 +18,17 @@
           <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
-        <header class="stage-panel__header stage-panel__header--minimal">
+        <header class="stage-panel__header stage-panel__header--hero">
           <span class="stage-tag stage-tag--soft">申請 AI 入場券</span>
+          <h1 class="stage-hero__title">AI 搜尋時代，不申請入場券就等著被忽略</h1>
+          <p class="stage-hero__subtitle">30 秒申請 AI 入場券，免費預審可見度</p>
         </header>
 
         <form id="lead-form" class="stage-form" autocomplete="off">
+          <div class="form-intro">
+            <h2 class="form-intro__title">開啟你的 AI 入場券預審</h2>
+            <p class="form-intro__description">這些資料會生成 AI 可讀草稿，請一次填好。</p>
+          </div>
           <div class="form-grid">
             <label class="form-field">
               <span class="form-label">城市</span>
@@ -42,10 +48,10 @@
             </label>
           </div>
 
-          <button id="submit-btn" type="submit" class="btn btn--primary">送出入場券申請</button>
+          <button id="cta-start" type="submit" class="btn btn--primary">申請 AI 入場券</button>
         </form>
 
-        <p class="form-note">填完四格後立即送出入場券申請。</p>
+        <p class="form-note">請準備好城市、路段、門牌、店名一次填齊。</p>
       </div>
     </section>
 
@@ -149,8 +155,8 @@
           <div id="progress-bar" class="progress-dock__fill" style="width: 0%;"></div>
         </div>
         <div class="progress-dock__meta">
-          <span id="progress-label">蒐集 AI 入場券資料… 進度 0%</span>
-          <span id="progress-eta" class="muted">正在建立門市資料與評論基準</span>
+          <span id="progress-label">Schema 完整度 · 進度 0%</span>
+          <span id="progress-eta" class="muted">正在建立結構化資料欄位</span>
         </div>
       </div>
     </section>
@@ -163,30 +169,10 @@
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
-          <h2>設定完成，我會依照你的偏好打磨報告。</h2>
-          <p class="muted">我正在整合評論、競品與語氣偏好，完成後第一時間通知你。</p>
+          <h2>設定已完成，我會依照您的偏好產生報告。</h2>
+          <p class="muted">稍後您將收到：差距雷達、本週三件事，以及依語氣調整的三版回覆草稿。</p>
           <p class="muted muted--context" id="summary-context" hidden>我已鎖定您的門市與城市資料，正在同步競品與評論。</p>
         </header>
-
-        <div class="analysis-card" id="progress-countdown" hidden>
-          <div class="analysis-card__badge">
-            <div class="analysis-card__icon" aria-hidden="true">AI</div>
-            <div class="analysis-card__labels">
-              <span class="analysis-card__title">Cognos 顧問待命中</span>
-              <span class="analysis-card__status" id="progress-status-label">定位商圈中</span>
-            </div>
-          </div>
-          <div class="analysis-card__content">
-            <div class="analysis-card__timer" id="progress-timer">
-              <span class="analysis-card__seconds" id="progress-countdown-number">20</span>
-              <span class="analysis-card__unit">秒</span>
-            </div>
-            <div class="analysis-card__waiting" id="progress-waiting" hidden>
-              <span class="analysis-card__spinner" aria-hidden="true"></span>
-            </div>
-            <p id="progress-tip" class="analysis-card__tip">陪你等候：我正把資料排進工作列</p>
-          </div>
-        </div>
 
         <div class="summary-card">
           <dl class="summary-list">
@@ -215,88 +201,61 @@
           <div id="progress-bar-s3" class="progress-dock__fill" style="width: 0%;"></div>
         </div>
         <div class="progress-dock__meta">
-          <span id="progress-label-s3">AI 可見度分析中… 進度 0%</span>
-          <span id="progress-eta-s3" class="muted">完成後我會即時通知你</span>
+          <span id="progress-label-s3">Schema 完整度 · 進度 0%</span>
+          <span id="progress-eta-s3" class="muted">正在建立結構化資料欄位</span>
         </div>
+      </div>
+      <div class="progress-countdown" id="progress-countdown" hidden>
+        <div class="progress-countdown__timer">
+          <span id="progress-countdown-number">60</span>
+          <small>秒</small>
+        </div>
+        <p id="progress-tip" class="progress-countdown__tip">AI 正在整理你的評論與競品差距…</p>
       </div>
     </section>
 
     <!-- S4｜分析完成 -->
     <section id="stage-s4" class="stage" data-stage="s4" hidden>
       <div class="stage-panel stage-panel--result">
-        <section class="result-hero">
-          <div class="brand-line brand-line--compact">
-            <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
-            <span class="brand-line__text">星級引擎｜脈動智匯</span>
-          </div>
-          <div class="result-hero__card">
-            <div class="result-hero__copy">
-              <h2>入場券初審完成！先看這份即時摘要</h2>
-              <p class="muted">Cognos 已整合評論趨勢與可見度分數，以下三個指標幫你掌握入場券評估。</p>
-            </div>
-            <div class="result-hero__kpis">
-              <article class="result-kpi">
-                <span class="result-kpi__label">Google 星等</span>
-                <strong class="result-kpi__value" id="result-kpi-rating">—</strong>
-                <span class="result-kpi__hint" id="result-kpi-rating-hint">同步中</span>
-              </article>
-              <article class="result-kpi">
-                <span class="result-kpi__label">評論數</span>
-                <strong class="result-kpi__value" id="result-kpi-reviews">—</strong>
-                <span class="result-kpi__hint" id="result-kpi-reviews-hint">整理評論細節</span>
-              </article>
-              <article class="result-kpi">
-                <span class="result-kpi__label">競品差距</span>
-                <strong class="result-kpi__value" id="result-kpi-gap">—</strong>
-                <span class="result-kpi__hint" id="result-kpi-gap-hint">競品比較載入中</span>
-              </article>
-            </div>
-          </div>
-          <p class="result-hero__trust">AI 已保存你的語氣設定，正式入場券會沿用同樣的調性。</p>
-          <div class="result-warning" id="result-warning" hidden>
-            <strong>提醒：</strong>
-            <span id="result-warning-text"></span>
-          </div>
-        </section>
-
-        <div class="result-body result-grid">
-          <article class="result-module result-card result-card--radar" id="result-radar">
-            <header class="result-module__header">
-              <h3>競品雷達</h3>
-              <p class="muted">星等、評論量與距離差距即時更新</p>
-            </header>
+        <div class="brand-line brand-line--compact">
+          <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
+          <span class="brand-line__text">星級引擎｜脈動智匯</span>
+        </div>
+        <header class="stage-panel__header stage-panel__header--compact">
+          <h2>入場券初審完成！這是你的 AI 預覽</h2>
+          <p class="muted">差距雷達、本週三件事與回覆草稿都已套用你的設定，點擊即可生成正式入場券。</p>
+        </header>
+        <div class="result-warning" id="result-warning" hidden>
+          <strong>提醒：</strong>
+          <span id="result-warning-text"></span>
+        </div>
+        <div class="result-grid">
+          <article class="result-card result-card--radar" id="result-radar">
+            <h3>差距雷達</h3>
+            <p class="muted">星等、評論量與距離差距即時更新</p>
             <ul id="result-radar-list" class="result-list"></ul>
           </article>
 
-          <article class="result-module result-card result-card--actions" id="result-actions">
-            <header class="result-module__header">
-              <h3>本週三件事</h3>
-              <p class="muted">直接複製即可交派團隊執行</p>
-            </header>
+          <article class="result-card result-card--actions" id="result-actions">
+            <h3>本週三件事</h3>
+            <p class="muted">直接複製即可交派團隊執行</p>
             <ul id="result-actions-list" class="result-list"></ul>
             <button id="copy-actions" type="button" class="btn btn--ghost">複製三件事</button>
           </article>
 
-          <article class="result-module result-card result-card--drafts" id="result-drafts">
-            <header class="result-module__header">
-              <h3>三版回覆草稿</h3>
-              <p class="muted">已套用你的語氣偏好，可一鍵複製</p>
-            </header>
+          <article class="result-card result-card--drafts" id="result-drafts">
+            <h3>三版回覆草稿</h3>
+            <p class="muted">已套用您的語氣偏好，可一鍵複製</p>
             <div id="result-drafts-list" class="drafts"></div>
           </article>
         </div>
 
-        <div class="result-cta">
-          <div class="result-cta__copy">
-            <h3>需要更完整的細節？</h3>
-            <p class="muted">完整報表與 AI 專業助理已準備好，隨時為你待命。</p>
-          </div>
-          <div class="result-cta__actions">
-            <a id="cta-report" class="btn btn--primary result-actions__btn" href="#">查看入場券預覽</a>
-            <a id="cta-assistant" class="btn btn--outline result-actions__btn" href="#" target="_blank" rel="noopener">生成正式入場券</a>
-          </div>
+        <div class="result-actions">
+          <a id="cta-plan" class="btn btn--gradient" href="plans.html" target="_blank" rel="noopener">開啟 AI 守護方案</a>
+          <button id="cta-secondary" type="button" class="btn btn--outline">生成正式入場券</button>
+          <button id="cta-report" type="button" class="btn btn--ghost">查看入場券預覽</button>
+          <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
         </div>
-        <button id="return-home" type="button" class="btn btn--ghost result-return">返回主畫面</button>
       </div>
     </section>
 
@@ -309,40 +268,33 @@
         </div>
         <header class="stage-panel__header">
           <span class="stage-tag stage-tag--warning">S5 · 已排程完成後推送</span>
-          <h2>資料量稍大，我會幫你盯住進度</h2>
-          <p class="muted">我已把任務排入佇列，完成後會立刻發送完整報表與提醒，同時保留你的語氣設定。</p>
+          <h2>資料較多，已自動排程</h2>
+          <p class="muted">完成後我會第一時間發到 LINE。您剛才的客製化設定已儲存，報告會套用您的語氣與關注競品。</p>
         </header>
 
-        <div class="timeout-card" id="timeout-card">
-          <div class="timeout-card__row">
-            <span class="timeout-card__spinner" id="timeout-spinner" aria-hidden="true"></span>
-            <div class="timeout-card__body">
-              <span class="timeout-card__eyebrow">Cognos 正在收尾</span>
-              <h3 class="timeout-card__status" id="timeout-status-label">排程推送中</h3>
-              <p class="timeout-card__note" id="timeout-note">Google 資料已就緒，評論補齊後會另行通知。</p>
-              <div class="timeout-card__actions">
-                <a id="timeout-report" class="btn btn--primary" href="#">查看完整報表</a>
-                <a id="timeout-assistant" class="btn btn--outline" href="#" target="_blank" rel="noopener">AI 專業助理</a>
-              </div>
-            </div>
-          </div>
+        <p class="timeout-note" id="timeout-note">資料較多，我會在完成後發送通知。</p>
+        <div class="timeout-actions">
+          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?v=20251005c" target="_blank" rel="noopener">查看樣本報表</a>
+          <button id="timeout-weekly" type="button" class="btn btn--outline">先拿本週三件事（試算版）</button>
+          <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
         </div>
-        <button id="timeout-back" type="button" class="btn btn--ghost timeout-back">返回主畫面</button>
+        <p id="timeout-countdown" class="timeout-countdown" hidden></p>
+        <button id="timeout-back" type="button" class="btn btn--ghost">返回主畫面</button>
       </div>
   </section>
 </main>
 
   <footer class="footer-link">
-    <a href="about.html?v=20251006T0054" id="about-link">關於我們</a>
+    <a href="about.html?v=20251005c" id="about-link">關於我們</a>
   </footer>
 
   <div class="toast" id="toast" hidden></div>
 
   <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
-  <script src="config.runtime.js?v=20251006T0054"></script>
-  <script src="config.js?v=20251006T0054"></script>
-  <script src="report-utils.js?v=20251006T0054"></script>
-  <script src="analytics.js?v=20251006T0054"></script>
-  <script src="app.js?v=20251006T0054"></script>
+  <script src="config.runtime.js?v=20251005c"></script>
+  <script src="config.js?v=20251005c"></script>
+  <script src="report-utils.js?v=20251005c"></script>
+  <script src="analytics.js?v=20251005c"></script>
+  <script src="app.js?v=20251005c"></script>
 </body>
 </html>

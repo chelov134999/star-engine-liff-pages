@@ -5,40 +5,29 @@ const endpoints = {
   lead: config.webhookUrl,
   quiz: config.quizUrl || config.webhookUrl,
   analysisStatus: config.analysisStatusUrl || `${config.webhookUrl}/status`,
+  weeklyDraft: config.weeklyDraftUrl || '',
 };
 
 const reportUrl = config.reportUrl || config.report_url || 'report.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
-const assistantUrl = config.trialUrl || config.trial_url || '';
+const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
+const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
-const ANALYSIS_COUNTDOWN_SECONDS = 20;
+const ANALYSIS_COUNTDOWN_SECONDS = 60;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
-  '我正在蒐集入場券需要的門市資料與評論樣本。',
-  '同時分析商圈與競品差距，建立可見度模型。',
-  '接著套用語氣偏好，準備正式入場券草稿。'
+  '正在建立結構化資料欄位，補齊 AI 可讀資訊。',
+  '同步抓取 Google 評論與商圈競品樣本。',
+  '彙整可見度模型並準備正式入場券草稿。'
 ];
-const DEFAULT_STATUS_LABEL = '蒐集入場券資料';
-const ANALYSIS_STATUS_LABELS = {
-  collecting: '蒐集入場券資料',
-  processing: 'AI 可見度分析',
-  analyzing: '彙整守護方案',
-  ready: '入場券預覽完成',
-  scheduled: '排程推送中',
-  timeout: '排程推送中',
-  failed: '分析遇到狀況',
-};
-const POST_COUNTDOWN_MESSAGE = 'AI 正在整理入場券資料，隨時向你回報進度。';
-const ANALYSIS_TIMEOUT_THRESHOLD_MS = 90 * 1000;
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
-  '同步定位商圈與鄰近競品資料…',
-  '抓取最新 Google Maps 評論與風險指標…',
-  '套用您選擇的語氣與優先要務…',
-  '整理趨勢後，將自動載入專屬設定。',
+  '正在建立結構化資料…',
+  '抓取 Google 評論…',
+  '彙整可見度模型…',
 ];
-const DEFAULT_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會另行通知。';
-const DATAFORSEO_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會另行通知。';
+const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送正式入場券通知。';
+const DATAFORSEO_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會再次通知你。';
 
 const logEvent = (...args) => {
   if (typeof window.logEvent === 'function') {
@@ -46,29 +35,13 @@ const logEvent = (...args) => {
   }
 };
 
-function toFiniteNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function formatNumber(value) {
-  const number = toFiniteNumber(value);
-  if (number == null) return '';
-  return number.toLocaleString('zh-Hant-TW');
-}
-
-function formatDecimal(value, digits = 1) {
-  const number = toFiniteNumber(value);
-  if (number == null) return '';
-  return number.toFixed(digits);
-}
-
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
-  { percent: 45, label: '蒐集 AI 入場券資料… 進度 45%', eta: '近 7 天評論與商圈資料載入中' },
-  { percent: 60, label: 'AI 可見度分析… 進度 60%', eta: '完成競品比對與模型建置' },
-  { percent: 75, label: '套用語氣偏好… 進度 75%', eta: '撰寫本週行動與草稿' }
+  { percent: 35, label: 'Schema 完整度', description: '建立結構化資料欄位' },
+  { percent: 65, label: 'AI 可見度模型', description: '比對商圈與曝光差距' },
+  { percent: 85, label: '評論健康度', description: '整理評論分佈與風險指標' },
 ];
+const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
 const POLL_INTERVAL_MS = 5000;
 const MAX_TONE_SELECTION = 2;
@@ -85,7 +58,7 @@ const els = {
     s5: document.getElementById('stage-s5'),
   },
   leadForm: document.getElementById('lead-form'),
-  submitBtn: document.getElementById('submit-btn'),
+  submitBtn: document.getElementById('cta-start'),
   quizForm: document.getElementById('quiz-form'),
   quizSubmit: document.getElementById('quiz-submit'),
   quizSkip: document.getElementById('quiz-skip'),
@@ -105,30 +78,22 @@ const els = {
   progressLabelS3: document.getElementById('progress-label-s3'),
   progressEtaS3: document.getElementById('progress-eta-s3'),
   progressCountdown: document.getElementById('progress-countdown'),
-  progressTimer: document.getElementById('progress-timer'),
   progressCountdownNumber: document.getElementById('progress-countdown-number'),
-  progressWaiting: document.getElementById('progress-waiting'),
   progressTip: document.getElementById('progress-tip'),
-  progressStatusLabel: document.getElementById('progress-status-label'),
   resultRadarList: document.getElementById('result-radar-list'),
   resultActionsList: document.getElementById('result-actions-list'),
   resultDraftsList: document.getElementById('result-drafts-list'),
   resultWarning: document.getElementById('result-warning'),
   resultWarningText: document.getElementById('result-warning-text'),
-  resultKpiRating: document.getElementById('result-kpi-rating'),
-  resultKpiRatingHint: document.getElementById('result-kpi-rating-hint'),
-  resultKpiReviews: document.getElementById('result-kpi-reviews'),
-  resultKpiReviewsHint: document.getElementById('result-kpi-reviews-hint'),
-  resultKpiGap: document.getElementById('result-kpi-gap'),
-  resultKpiGapHint: document.getElementById('result-kpi-gap-hint'),
   ctaReport: document.getElementById('cta-report'),
-  ctaAssistant: document.getElementById('cta-assistant'),
+  ctaPlan: document.getElementById('cta-plan'),
+  ctaSecondary: document.getElementById('cta-secondary'),
   returnHome: document.getElementById('return-home'),
+  timeoutSample: document.getElementById('timeout-sample'),
+  timeoutWeekly: document.getElementById('timeout-weekly'),
   timeoutReport: document.getElementById('timeout-report'),
-  timeoutAssistant: document.getElementById('timeout-assistant'),
   timeoutNote: document.getElementById('timeout-note'),
-  timeoutStatusLabel: document.getElementById('timeout-status-label'),
-  timeoutSpinner: document.getElementById('timeout-spinner'),
+  timeoutCountdown: document.getElementById('timeout-countdown'),
   timeoutBack: document.getElementById('timeout-back'),
   copyActions: document.getElementById('copy-actions'),
   toast: document.getElementById('toast'),
@@ -166,10 +131,8 @@ const state = {
     tipIndex: 0,
     pendingLogged: false,
     completionLogged: false,
-    postCountdownActive: false,
-    postCountdownStartedAt: 0,
-    currentStatusKey: 'collecting',
-    currentStatusLabel: DEFAULT_STATUS_LABEL,
+    timeoutCountdownId: null,
+    timeoutStartedAt: 0,
   },
   transition: {
     countdownId: null,
@@ -181,7 +144,8 @@ const state = {
   psychology: null,
   reportToken: '',
   templateId: 'unknown',
-  assistantUrl: assistantUrl,
+  planUrl: '',
+  sampleUrl: '',
   reportPageUrl: '',
   timeoutContext: {},
   latestWarnings: [],
@@ -254,17 +218,6 @@ function buildUrlWithParams(baseUrl, params = {}) {
   }
 }
 
-function extractTokenFromUrl(value) {
-  if (!value) return '';
-  try {
-    const url = new URL(value, window.location.origin);
-    return url.searchParams.get('token') || '';
-  } catch (error) {
-    console.warn('[url] token parse failed', error);
-    return '';
-  }
-}
-
 function generateLeadId() {
   const now = new Date();
   const pad = (value) => String(value).padStart(2, '0');
@@ -318,9 +271,48 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
     : 0;
   const showAlmostDone = safePercent >= 90 && elapsedSinceNinety >= NINETY_HINT_DELAY_MS;
 
-  let label = stageLabel || `蒐集 AI 入場券資料… 進度 ${safePercent}%`;
+  const resolveTick = () => {
+    if (!Array.isArray(PROGRESS_TICKS) || !PROGRESS_TICKS.length) {
+      return { label: 'Schema 完整度', description: '正在建立結構化資料欄位' };
+    }
+    let candidate = PROGRESS_TICKS[0];
+    for (const tick of PROGRESS_TICKS) {
+      if (typeof tick.percent === 'number' && safePercent >= tick.percent) {
+        candidate = tick;
+      }
+    }
+    return candidate || { label: 'Schema 完整度', description: '正在建立結構化資料欄位' };
+  };
+
+  const tick = resolveTick();
+  let label = `${tick.label || 'Schema 完整度'} · 進度 ${safePercent}%`;
+  let description = tick.description || '正在建立結構化資料欄位';
+  let customDescription = false;
+
+  if (stageLabel && typeof stageLabel === 'object') {
+    if (stageLabel.label) {
+      label = `${stageLabel.label} · 進度 ${safePercent}%`;
+    }
+    if (stageLabel.description) {
+      description = stageLabel.description;
+      customDescription = true;
+    }
+  } else if (typeof stageLabel === 'string' && stageLabel.trim()) {
+    description = stageLabel.trim();
+    customDescription = true;
+  }
+
   if (showAlmostDone) {
-    label = '快完成了，正在整理入場券重點';
+    label = '彙整完成 · 進度 90%';
+    description = '守護專家正在整理結果';
+    customDescription = true;
+  }
+
+  if (!customDescription && etaSeconds != null) {
+    const eta = Math.max(0, Math.round(etaSeconds));
+    if (eta > 0) {
+      description = `${description} · 約 ${eta} 秒完成`;
+    }
   }
 
   if (els.progressBarS2) {
@@ -335,20 +327,11 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   if (els.progressLabelS3) {
     els.progressLabelS3.textContent = label;
   }
-
-  let etaLabel = state.progress.postCountdownActive
-    ? 'AI 正在整理入場券資料，請稍候'
-    : '預估 1 分鐘內完成入場券';
-  if (showAlmostDone && !state.progress.postCountdownActive) {
-    etaLabel = '快完成了，正在合併入場券草稿';
-  } else if (!state.progress.postCountdownActive && etaSeconds != null) {
-    etaLabel = `預估完成 ${Math.max(0, Math.round(etaSeconds))} 秒`;
-  }
   if (els.progressEtaS2) {
-    els.progressEtaS2.textContent = etaLabel;
+    els.progressEtaS2.textContent = description;
   }
   if (els.progressEtaS3) {
-    els.progressEtaS3.textContent = etaLabel;
+    els.progressEtaS3.textContent = description;
   }
 
   state.progress.percent = safePercent;
@@ -365,20 +348,9 @@ function stopAnalysisCountdown() {
   }
   state.progress.countdownRemaining = 0;
   state.progress.tipIndex = 0;
-  state.progress.postCountdownActive = false;
-  state.progress.postCountdownStartedAt = 0;
   if (els.progressCountdown) {
     els.progressCountdown.hidden = true;
   }
-  showProgressWaiting(false);
-  showProgressTimer(true);
-  if (els.progressCountdownNumber) {
-    els.progressCountdownNumber.textContent = ANALYSIS_COUNTDOWN_SECONDS;
-  }
-  if (els.progressTip) {
-    els.progressTip.textContent = ANALYSIS_TIPS[0] || 'AI 正在建立入場券預覽…';
-  }
-  updateProgressStatus(DEFAULT_STATUS_LABEL);
 }
 
 function setProgressTip(text) {
@@ -386,65 +358,10 @@ function setProgressTip(text) {
   els.progressTip.textContent = text;
 }
 
-function syncPostCountdownTip() {
-  if (!state.progress.postCountdownActive) return;
-  const statusLabel = state.progress.currentStatusLabel || DEFAULT_STATUS_LABEL;
-  const statusText = statusLabel ? `AI 正在整理入場券資料｜${statusLabel}` : 'AI 正在整理入場券資料';
-  setProgressTip(statusText);
-}
-
-function updateProgressStatus(label = DEFAULT_STATUS_LABEL) {
-  state.progress.currentStatusLabel = label;
-  if (els.progressStatusLabel) {
-    els.progressStatusLabel.textContent = label;
-  }
-  if (els.timeoutStatusLabel) {
-    els.timeoutStatusLabel.textContent = label;
-  }
-  syncPostCountdownTip();
-}
-
 function updateCountdownNumber() {
   if (!els.progressCountdownNumber) return;
   const value = Math.max(0, Math.round(state.progress.countdownRemaining));
   els.progressCountdownNumber.textContent = value;
-}
-
-function showProgressTimer(show) {
-  if (els.progressTimer) {
-    els.progressTimer.hidden = !show;
-  }
-  if (show && els.progressCountdownNumber) {
-    els.progressCountdownNumber.textContent = Math.max(0, Math.round(state.progress.countdownRemaining || ANALYSIS_COUNTDOWN_SECONDS));
-  }
-}
-
-function showProgressWaiting(show) {
-  if (els.progressWaiting) {
-    els.progressWaiting.hidden = !show;
-  }
-}
-
-function enterPostCountdownWait() {
-  if (state.progress.postCountdownActive) return;
-  state.progress.postCountdownActive = true;
-  state.progress.postCountdownStartedAt = Date.now();
-  state.progress.countdownRemaining = 0;
-  if (state.progress.countdownTimerId) {
-    clearInterval(state.progress.countdownTimerId);
-    state.progress.countdownTimerId = null;
-  }
-  if (state.progress.tipTimerId) {
-    clearInterval(state.progress.tipTimerId);
-    state.progress.tipTimerId = null;
-  }
-  showProgressTimer(false);
-  showProgressWaiting(true);
-  if (els.progressCountdownNumber) {
-    els.progressCountdownNumber.textContent = '—';
-  }
-  setProgressTip(POST_COUNTDOWN_MESSAGE);
-  syncPostCountdownTip();
 }
 
 function rotateAnalysisTip() {
@@ -458,18 +375,16 @@ function startAnalysisCountdown() {
   stopAnalysisCountdown();
   state.progress.countdownRemaining = ANALYSIS_COUNTDOWN_SECONDS;
   state.progress.tipIndex = 0;
-  state.progress.postCountdownActive = false;
-  state.progress.postCountdownStartedAt = 0;
   els.progressCountdown.hidden = false;
-  showProgressTimer(true);
-  showProgressWaiting(false);
-  updateProgressStatus(DEFAULT_STATUS_LABEL);
   updateCountdownNumber();
-  setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在建立入場券預覽…');
+  setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
   state.progress.countdownTimerId = setInterval(() => {
     state.progress.countdownRemaining -= 1;
     if (state.progress.countdownRemaining <= 0) {
-      enterPostCountdownWait();
+      stopAnalysisCountdown();
+      if (!state.progress.timeoutFired && state.stage !== 's4') {
+        triggerTimeout({ reason: 'countdown_expired' });
+      }
       return;
     }
     updateCountdownNumber();
@@ -492,47 +407,63 @@ function mergeContextArray(prev = [], next = []) {
   return Array.from(set);
 }
 
+function startTimeoutCountdown(durationSeconds = 60) {
+  if (!els.timeoutCountdown) return;
+  stopTimeoutCountdown();
+  state.progress.timeoutStartedAt = Date.now();
+  let remaining = Math.max(0, Math.floor(durationSeconds));
+
+  const updateLabel = () => {
+    if (!els.timeoutCountdown) return;
+    els.timeoutCountdown.textContent = remaining > 0
+      ? `已排程推送，預估 ${remaining} 秒內完成 LINE 通知。`
+      : '已排程推送，請留意稍後的 LINE 通知。';
+    els.timeoutCountdown.hidden = false;
+  };
+
+  updateLabel();
+
+  if (remaining === 0) {
+    state.progress.timeoutCountdownId = null;
+    return;
+  }
+
+  state.progress.timeoutCountdownId = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      remaining = 0;
+      updateLabel();
+      if (state.progress.timeoutCountdownId) {
+        clearInterval(state.progress.timeoutCountdownId);
+        state.progress.timeoutCountdownId = null;
+      }
+      return;
+    }
+    updateLabel();
+  }, 1000);
+}
+
+function stopTimeoutCountdown() {
+  if (state.progress.timeoutCountdownId) {
+    clearInterval(state.progress.timeoutCountdownId);
+    state.progress.timeoutCountdownId = null;
+  }
+  state.progress.timeoutStartedAt = 0;
+  if (els.timeoutCountdown) {
+    els.timeoutCountdown.textContent = '';
+    els.timeoutCountdown.hidden = true;
+  }
+}
+
 function updateTimeoutUI() {
+  if (!els.timeoutNote) return;
   const context = state.timeoutContext || {};
   const warnings = Array.isArray(context.warnings) ? context.warnings : [];
   const flags = context.flags || {};
   const hasDataforseoIssue = Boolean(flags.dataforseo_missing) || warnings.includes('dataforseo_missing');
-  const statusLabel = context.status_label || ANALYSIS_STATUS_LABELS[context.status_key] || DEFAULT_STATUS_LABEL;
-
-  if (els.timeoutStatusLabel) {
-    els.timeoutStatusLabel.textContent = statusLabel;
-  }
-
-  let noteText = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
-  if (context.reason === 'analysis_timeout') {
-    noteText = 'AI 正在收尾，資料量較大，稍後會自動送達正式入場券預覽。';
-  }
-  if (typeof context.note === 'string' && context.note.trim()) {
-    noteText = context.note.trim();
-  }
-
-  if (els.timeoutNote) {
-    els.timeoutNote.textContent = noteText;
-  }
-
-  if (els.timeoutSpinner) {
-    els.timeoutSpinner.dataset.phase = context.status_key || '';
-  }
-
+  els.timeoutNote.textContent = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
   if (els.timeoutReport) {
-    const allowReport = Boolean(state.reportPageUrl);
-    els.timeoutReport.hidden = false;
-    els.timeoutReport.setAttribute('href', allowReport ? state.reportPageUrl : '#');
-    els.timeoutReport.classList.toggle('btn--disabled', !allowReport);
-    els.timeoutReport.setAttribute('aria-disabled', allowReport ? 'false' : 'true');
-  }
-
-  if (els.timeoutAssistant) {
-    const allowAssistant = Boolean(state.assistantUrl);
-    els.timeoutAssistant.hidden = false;
-    els.timeoutAssistant.setAttribute('href', allowAssistant ? state.assistantUrl : '#');
-    els.timeoutAssistant.classList.toggle('btn--disabled', !allowAssistant);
-    els.timeoutAssistant.setAttribute('aria-disabled', allowAssistant ? 'false' : 'true');
+    els.timeoutReport.hidden = !hasDataforseoIssue;
   }
 }
 
@@ -549,8 +480,8 @@ function resetProgressUI() {
     els.progressBarS3.style.width = '0%';
   }
 
-  const baseLabel = '蒐集 AI 入場券資料… 進度 0%';
-  const baseEta = '我正在準備評論與競品資料';
+  const baseLabel = 'Schema 完整度 · 進度 0%';
+  const baseEta = '正在建立結構化資料欄位';
 
   if (els.progressLabelS2) {
     els.progressLabelS2.textContent = baseLabel;
@@ -617,6 +548,7 @@ function stopProgressTimers() {
   state.transition.started = false;
   stopAnalysisCountdown();
   stopTransitionTips();
+  stopTimeoutCountdown();
 }
 
 async function initLiff() {
@@ -689,7 +621,7 @@ async function handleLeadSubmit(event) {
   }
 
   els.submitBtn.disabled = true;
-  els.submitBtn.textContent = '申請中…';
+  els.submitBtn.textContent = '啟動中…';
 
   try {
     const leadId = generateLeadId();
@@ -772,7 +704,7 @@ async function handleLeadSubmit(event) {
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
     setStage('s0');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '送出入場券申請';
+    els.submitBtn.textContent = '申請 AI 入場券';
   }
 }
 
@@ -817,7 +749,7 @@ function startTransitionToQuiz() {
     stopTransitionTips();
     setStage('s2');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '送出入場券申請';
+    els.submitBtn.textContent = '申請 AI 入場券';
     resetProgressUI();
     state.transition.started = false;
   }, TRANSITION_DURATION_MS);
@@ -977,6 +909,7 @@ function startPolling() {
     state.progress.pendingLogged = true;
   }
   stopAnalysisCountdown();
+  stopTimeoutCountdown();
   startAnalysisCountdown();
   state.timeoutContext = {};
   updateTimeoutUI();
@@ -993,6 +926,14 @@ function startPolling() {
   poll();
   state.progress.pollId = setInterval(poll, POLL_INTERVAL_MS);
 
+  if (state.progress.timerId) {
+    clearTimeout(state.progress.timerId);
+  }
+  state.progress.timerId = setTimeout(() => {
+    if (state.stage !== 's4' && !state.progress.timeoutFired) {
+      triggerTimeout();
+    }
+  }, PROGRESS_TIMEOUT_MS);
 }
 
 function handleAnalysisCompleted(context = {}) {
@@ -1028,39 +969,14 @@ function handleStatusResponse(payload) {
   const isComplete = statusValue.toLowerCase() === 'complete' || lifecycleState === 'ready';
   const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
   const flags = payload.flags || (payload.report && payload.report.flags) || {};
-  const resolvedReportUrl = payload.report_url || payload.report?.report_url || '';
-  const resolvedAssistantUrl = payload.assistant_url
-    || payload.trial_url
-    || payload.links?.assistant
-    || payload.links?.assistant_url
-    || '';
-
-  if (resolvedReportUrl) {
-    state.reportPageUrl = resolvedReportUrl;
-    const extracted = extractTokenFromUrl(resolvedReportUrl);
-    if (extracted) {
-      state.reportToken = extracted;
-    }
-  }
-
-  if (resolvedAssistantUrl) {
-    state.assistantUrl = resolvedAssistantUrl;
-  } else if (!state.assistantUrl) {
-    state.assistantUrl = assistantUrl;
-  }
   const stageHints = {
-    collecting: '正在定位你的門市與商圈…',
-    processing: '整理評論與競品趨勢…',
-    analyzing: '彙整行動建議與草稿…',
-    scheduled: '我已排程完成後立即通知',
-    timeout: '我已排程完成後立即通知',
-    ready: '分析完成！正在回傳結果…',
+    collecting: { description: '正在建立結構化資料欄位' },
+    processing: { description: '正在比對商圈與 AI 可見度模型' },
+    analyzing: { description: '正在整理評論健康度與草稿' },
+    scheduled: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後自動推播' },
+    timeout: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後自動推播' },
+    ready: { label: 'AI 入場券預審完成', description: '正在回傳結果，稍待即可查看' },
   };
-
-  const statusKey = isComplete ? 'ready' : (lifecycleState || stage);
-  state.progress.currentStatusKey = statusKey;
-  const statusLabel = ANALYSIS_STATUS_LABELS[statusKey] || DEFAULT_STATUS_LABEL;
-  updateProgressStatus(statusLabel);
 
   if (stage === 'collecting' && state.stage === 's1') {
     stopTransitionTips();
@@ -1069,8 +985,16 @@ function handleStatusResponse(payload) {
 
   if (typeof percent === 'number') {
     const mergedPercent = Math.max(state.progress.frontPercent, percent);
-    updateProgressUI(mergedPercent, etaSeconds, stageHints[stage]);
+    updateProgressUI(mergedPercent, etaSeconds, stageHints[stage] || null);
     state.progress.frontPercent = Math.max(state.progress.frontPercent, mergedPercent);
+  }
+
+  const isPending = lifecycleState === 'pending' || statusValue === 'pending';
+  if (isPending) {
+    updateProgressUI(state.progress.percent, etaSeconds, {
+      label: 'AI 入場券預審排隊中',
+      description: '資料量較大，完成後自動推播',
+    });
   }
 
   if (payload.report) {
@@ -1111,34 +1035,20 @@ function handleStatusResponse(payload) {
     animateFrontProgress(85, 2000);
   }
 
-  const enrichedContext = {
-    warnings,
-    flags,
-    report_url: resolvedReportUrl || state.reportPageUrl,
-    status_key: statusKey,
-    status_label: statusLabel,
-    stage,
-  };
-
-  const elapsed = state.progress.startAt ? Date.now() - state.progress.startAt : 0;
-  if ((stage === 'analyzing' || stage === 'processing') && elapsed >= ANALYSIS_TIMEOUT_THRESHOLD_MS && !state.progress.postCountdownActive) {
-    enterPostCountdownWait();
-    syncPostCountdownTip();
-  }
-
   if (isComplete) {
     updateProgressUI(100, 0, stageHints.ready);
-    handleAnalysisCompleted(enrichedContext);
+    handleAnalysisCompleted({ warnings, flags });
     return;
   }
 
   if (stage === 'ready') {
     updateProgressUI(100, 0, stageHints.ready);
-    handleAnalysisCompleted(enrichedContext);
+    handleAnalysisCompleted({ warnings, flags });
   } else if (stage === 'scheduled' || stage === 'timeout') {
-    triggerTimeout(enrichedContext);
+    triggerTimeout({ warnings, flags });
   } else if (stage === 'failed' || statusValue.toLowerCase() === 'failed') {
-    handleAnalysisFailed(enrichedContext, payload.status?.message);
+    showToast('分析失敗，請稍後再試或聯絡支援。');
+    triggerTimeout({ warnings, flags });
   }
 }
 
@@ -1154,13 +1064,6 @@ function renderAnalysisReport(context = {}) {
   const flags = context.flags || report.flags || {};
 
   state.latestWarnings = warnings || [];
-  if (context.report_url) {
-    state.reportPageUrl = context.report_url;
-    const extractedToken = extractTokenFromUrl(context.report_url);
-    if (extractedToken) {
-      state.reportToken = extractedToken;
-    }
-  }
   state.timeoutContext = {};
   updateTimeoutUI();
   stopAnalysisCountdown();
@@ -1184,61 +1087,6 @@ function renderAnalysisReport(context = {}) {
   const competitors = competitorsPreferred.length ? competitorsPreferred : competitorFallback;
   const weeklyActions = report.weekly_actions || [];
   const replyDrafts = report.reply_drafts || [];
-
-  const ratingNow = report.rating_now ?? report.rating ?? report.score ?? null;
-  const reviewsTotal = report.reviews_total ?? report.reviews ?? report.review_count ?? null;
-  const ratingValue = ratingNow != null ? `${formatDecimal(ratingNow, 1)} ★` : '—';
-  const ratingHint = ratingNow != null ? '最新星等已同步' : '同步中';
-  const reviewsValue = reviewsTotal != null ? `${formatNumber(reviewsTotal)} 則` : '—';
-  const reviewsHint = reviewsTotal != null ? '評論總量即時更新' : '整理評論細節';
-  let competitorGapValue = report.gap_summary || report.competitor_gap || report.gap_text || report.competitor_gap_label || '';
-  let competitorGapHint = report.gap_hint || report.gap_detail || '';
-
-  if (!competitorGapValue && ratingNow != null && competitors.length) {
-    const primaryCompetitor = competitors[0];
-    const competitorRating = toFiniteNumber(primaryCompetitor?.rating ?? primaryCompetitor?.score);
-    const ratingNumber = toFiniteNumber(ratingNow);
-    if (ratingNumber != null && competitorRating != null) {
-      const diff = ratingNumber - competitorRating;
-      const absoluteDiff = Math.abs(diff);
-      if (absoluteDiff < 0.05) {
-        competitorGapValue = '與主要競品持平';
-      } else if (diff > 0) {
-        competitorGapValue = `領先 ${formatDecimal(absoluteDiff, 1)} ★`;
-      } else {
-        competitorGapValue = `落後 ${formatDecimal(absoluteDiff, 1)} ★`;
-      }
-      if (primaryCompetitor?.name) {
-        competitorGapHint = `主要競品：${primaryCompetitor.name}`;
-      }
-    }
-  }
-
-  if (!competitorGapValue) {
-    competitorGapValue = '—';
-  }
-  if (!competitorGapHint) {
-    competitorGapHint = '競品比較載入中';
-  }
-
-  if (els.resultKpiRating) {
-    els.resultKpiRating.textContent = ratingValue;
-  }
-  if (els.resultKpiRatingHint) {
-    els.resultKpiRatingHint.textContent = ratingHint;
-  }
-  if (els.resultKpiReviews) {
-    els.resultKpiReviews.textContent = reviewsValue;
-  }
-  if (els.resultKpiReviewsHint) {
-    els.resultKpiReviewsHint.textContent = reviewsHint;
-  }
-  if (els.resultKpiGap) {
-    els.resultKpiGap.textContent = competitorGapValue;
-  }
-  if (els.resultKpiGapHint) {
-    els.resultKpiGapHint.textContent = competitorGapHint;
-  }
 
   let renderedActions = weeklyActions;
 
@@ -1336,51 +1184,26 @@ function renderAnalysisReport(context = {}) {
     els.summaryTone.textContent = report.tone_label || els.summaryTone.textContent;
   }
 
-  if (!context.report_url) {
-    const token = state.reportToken || report.token || '';
-    if (reportUrl) {
-      state.reportPageUrl = buildUrlWithParams(reportUrl, {
-        token,
-        lead_id: state.leadId || '',
-        ts: Date.now(),
-      });
-    }
-  }
+  const planParams = {
+    lead_id: state.leadId || '',
+    template_id: state.templateId || 'unknown',
+  };
+  state.planUrl = buildUrlWithParams(plansPageUrl, planParams);
+  state.sampleUrl = buildUrlWithParams(sampleReportUrl, {
+    lead_id: state.leadId || '',
+    template_id: state.templateId || 'unknown',
+  });
+  state.reportPageUrl = buildUrlWithParams(reportUrl, {
+    token: state.reportToken || report.token || '',
+    lead_id: state.leadId || '',
+    ts: Date.now(),
+  });
 
-  if (!state.reportPageUrl && reportUrl) {
-    state.reportPageUrl = buildUrlWithParams(reportUrl, {
-      lead_id: state.leadId || '',
-      ts: Date.now(),
-    });
+  if (els.ctaPlan) {
+    els.ctaPlan.href = state.planUrl;
   }
-
-  if (!state.assistantUrl) {
-    state.assistantUrl = assistantUrl;
-  }
-
-  if (els.ctaReport) {
-    if (state.reportPageUrl) {
-      els.ctaReport.setAttribute('href', state.reportPageUrl);
-      els.ctaReport.classList.remove('btn--disabled');
-      els.ctaReport.setAttribute('aria-disabled', 'false');
-    } else {
-      els.ctaReport.setAttribute('href', '#');
-      els.ctaReport.classList.add('btn--disabled');
-      els.ctaReport.setAttribute('aria-disabled', 'true');
-    }
-  }
-
-  if (els.ctaAssistant) {
-    const hasAssistant = Boolean(state.assistantUrl);
-    if (hasAssistant) {
-      els.ctaAssistant.setAttribute('href', state.assistantUrl);
-      els.ctaAssistant.classList.remove('btn--disabled');
-      els.ctaAssistant.setAttribute('aria-disabled', 'false');
-    } else {
-      els.ctaAssistant.setAttribute('href', '#');
-      els.ctaAssistant.classList.add('btn--disabled');
-      els.ctaAssistant.setAttribute('aria-disabled', 'true');
-    }
+  if (els.ctaSecondary) {
+    els.ctaSecondary.disabled = !state.sampleUrl;
   }
 
   logEvent('report_preview_ready', {
@@ -1388,7 +1211,6 @@ function renderAnalysisReport(context = {}) {
     template_id: state.templateId,
   });
 
-  updateProgressStatus(ANALYSIS_STATUS_LABELS.ready || DEFAULT_STATUS_LABEL);
   setStage('s4');
 }
 
@@ -1400,37 +1222,13 @@ function triggerTimeout(context = {}) {
     ...(previousContext.flags || {}),
     ...(context.flags || {}),
   };
-  const statusKey = context.status_key || state.progress.currentStatusKey || 'timeout';
-  const statusLabel = context.status_label || ANALYSIS_STATUS_LABELS[statusKey] || DEFAULT_STATUS_LABEL;
   state.timeoutContext = {
     ...previousContext,
     ...context,
     flags: mergedFlags,
     warnings: mergedWarnings,
-    status_key: statusKey,
-    status_label: statusLabel,
   };
-  state.progress.currentStatusKey = statusKey;
-
-  if (context.report_url) {
-    state.reportPageUrl = context.report_url;
-    const extractedToken = extractTokenFromUrl(context.report_url);
-    if (extractedToken) {
-      state.reportToken = extractedToken;
-    }
-  }
-
   updateTimeoutUI();
-  updateProgressStatus(statusLabel);
-
-  const stageKey = (context.stage || context.status_key || '').toLowerCase();
-  const shouldShowTimeoutStage = stageKey === 'scheduled' || stageKey === 'timeout';
-
-  if (!shouldShowTimeoutStage) {
-    enterPostCountdownWait();
-    syncPostCountdownTip();
-    return;
-  }
 
   if (wasTimedOut) {
     return;
@@ -1442,18 +1240,44 @@ function triggerTimeout(context = {}) {
     state.progress.timerId = null;
   }
   stopAnalysisCountdown();
+  startTimeoutCountdown();
+  updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
+  if (els.timeoutSample && state.sampleUrl) {
+    els.timeoutSample.href = state.sampleUrl;
+  }
   setStage('s5');
 }
 
-function handleAnalysisFailed(context = {}, message = '') {
-  const fallback = '分析過程遇到狀況，已替你通知專業顧問協助處理。';
-  const note = (typeof message === 'string' && message.trim()) ? message.trim() : fallback;
-  state.progress.timeoutFired = false;
-  state.timeoutContext = { ...state.timeoutContext, ...context };
-  enterPostCountdownWait();
-  updateProgressStatus(ANALYSIS_STATUS_LABELS.failed || DEFAULT_STATUS_LABEL);
-  setProgressTip(`AI 正在整理入場券資料｜分析遇到狀況；${note}`);
-  showToast(note, 2800);
+async function handleWeeklyDraft() {
+  if (!endpoints.weeklyDraft) {
+    showToast('尚未設定試算服務');
+    return;
+  }
+  if (!state.leadId) {
+    showToast('尚未取得 Lead 編號');
+    return;
+  }
+  try {
+    const result = await requestJSON(endpoints.weeklyDraft, {
+      method: 'POST',
+      body: JSON.stringify({
+        lead_id: state.leadId,
+        mode: 'trial',
+        tone: state.quiz.tone.length ? state.quiz.tone : ['direct_fix', 'soothing'],
+        goal: state.quiz.goal || 'instant_lowstar',
+      }),
+    });
+    if (result && result.ok === false) {
+      throw new Error(result.message || '推送失敗');
+    }
+    showToast('已推送試算三件事，請查看 LINE。');
+  } catch (error) {
+    logEvent('weekly_draft_failed', {
+      lead_id: state.leadId || '',
+      error: error?.message || String(error || ''),
+    });
+    showToast(`推送失敗：${error.message}`);
+  }
 }
 
 function resetFlow() {
@@ -1480,10 +1304,8 @@ function resetFlow() {
     tipIndex: 0,
     pendingLogged: false,
     completionLogged: false,
-    postCountdownActive: false,
-    postCountdownStartedAt: 0,
-    currentStatusKey: 'collecting',
-    currentStatusLabel: DEFAULT_STATUS_LABEL,
+    timeoutCountdownId: null,
+    timeoutStartedAt: 0,
   };
   state.transition = {
     countdownId: null,
@@ -1495,7 +1317,8 @@ function resetFlow() {
   state.psychology = null;
   state.reportToken = '';
   state.templateId = 'unknown';
-  state.assistantUrl = assistantUrl;
+  state.planUrl = '';
+  state.sampleUrl = '';
   state.reportPageUrl = '';
   state.timeoutContext = {};
   state.latestWarnings = [];
@@ -1506,7 +1329,7 @@ function resetFlow() {
   }
   if (els.submitBtn) {
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '送出入場券申請';
+    els.submitBtn.textContent = '申請 AI 入場券';
   }
   if (els.quizForm) {
     els.quizForm.reset();
@@ -1527,12 +1350,22 @@ function resetFlow() {
 }
 
 function redirectToReport() {
-  const target = state.reportPageUrl;
+  if (!reportUrl) {
+    showToast('尚未設定入場券預覽頁面', 2000);
+    return;
+  }
 
-  if (!target) {
+  const token = state.reportToken || state.report?.token || '';
+  if (!token) {
     showToast('入場券尚未準備完成，請稍後再試。', 2000);
     return;
   }
+
+  state.reportPageUrl = buildUrlWithParams(reportUrl, {
+    token,
+    lead_id: state.leadId || '',
+    ts: Date.now(),
+  });
 
   logEvent('cta_click', {
     action: 'report',
@@ -1541,7 +1374,7 @@ function redirectToReport() {
     source: 'preview',
   });
 
-  openReportWindow(target);
+  openReportWindow(state.reportPageUrl);
 }
 
 function openReportWindow(targetUrl) {
@@ -1572,18 +1405,19 @@ function openReportWindow(targetUrl) {
   return true;
 }
 
-function openAssistant(source = 'preview') {
-  if (!state.assistantUrl) {
-    showToast('專業助理暫時無法連線，請稍後再試。');
+function handleSecondaryCta(event) {
+  event?.preventDefault?.();
+  if (!state.sampleUrl) {
+    showToast('樣本入場券準備中');
     return;
   }
+  window.open(state.sampleUrl, '_blank');
   logEvent('cta_click', {
-    action: 'assistant',
+    action: 'secondary',
     lead_id: state.leadId,
     template_id: state.templateId,
-    source,
+    source: 'preview',
   });
-  window.open(state.assistantUrl, '_blank', 'noopener,noreferrer');
 }
 
 function attachEventListeners() {
@@ -1594,12 +1428,9 @@ function attachEventListeners() {
   els.summaryBack?.addEventListener('click', returnToQuizFromSummary);
   els.returnHome?.addEventListener('click', resetFlow);
   els.timeoutBack?.addEventListener('click', resetFlow);
+  els.timeoutWeekly?.addEventListener('click', handleWeeklyDraft);
   els.timeoutReport?.addEventListener('click', (event) => {
     event.preventDefault();
-    if (els.timeoutReport.classList.contains('btn--disabled')) {
-      showToast('入場券仍在整理，我會完成後再通知你。');
-      return;
-    }
     logEvent('cta_click', {
       action: 'timeout_report',
       lead_id: state.leadId,
@@ -1608,32 +1439,21 @@ function attachEventListeners() {
     });
     redirectToReport();
   });
-  els.timeoutAssistant?.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (els.timeoutAssistant.classList.contains('btn--disabled')) {
-      showToast('顧問稍後聯繫你，請先稍候。');
-      return;
-    }
-    openAssistant('timeout');
-  });
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
   });
+  els.ctaPlan?.addEventListener('click', () => {
+    logEvent('cta_click', {
+      action: 'main',
+      lead_id: state.leadId,
+      template_id: state.templateId,
+      source: 'preview',
+    });
+  });
+  els.ctaSecondary?.addEventListener('click', handleSecondaryCta);
   els.ctaReport?.addEventListener('click', (event) => {
     event.preventDefault();
-    if (els.ctaReport.classList.contains('btn--disabled')) {
-      showToast('入場券尚在生成，完成後會自動開啟。', 2400);
-      return;
-    }
     redirectToReport();
-  });
-  els.ctaAssistant?.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (els.ctaAssistant.classList.contains('btn--disabled')) {
-      showToast('AI 專業助理暫時離線，稍後再試。');
-      return;
-    }
-    openAssistant('preview');
   });
   els.aboutLink?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -1654,16 +1474,14 @@ function attachEventListeners() {
     return;
   }
 
+  if (els.timeoutSample && sampleReportUrl) {
+    els.timeoutSample.href = sampleReportUrl;
+  }
+  if (els.ctaPlan && plansPageUrl) {
+    els.ctaPlan.href = plansPageUrl;
+  }
   if (els.aboutLink) {
     els.aboutLink.href = 'about.html';
-  }
-
-  if (els.ctaAssistant && assistantUrl && 'href' in els.ctaAssistant) {
-    els.ctaAssistant.href = assistantUrl;
-  }
-
-  if (els.timeoutAssistant && assistantUrl && 'href' in els.timeoutAssistant) {
-    els.timeoutAssistant.href = assistantUrl;
   }
 
   attachEventListeners();

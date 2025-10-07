@@ -17,17 +17,27 @@
     btnReturnLine: document.getElementById('btn-return-line'),
     ctaPrimary: document.getElementById('cta-primary'),
     ctaLine: document.getElementById('cta-line'),
-    heroSchema: document.getElementById('hero-schema'),
-    heroSchemaHint: document.getElementById('hero-schema-hint'),
-    heroVisibility: document.getElementById('hero-visibility'),
-    heroVisibilityHint: document.getElementById('hero-visibility-hint'),
-    heroReview: document.getElementById('hero-review'),
-    heroReviewHint: document.getElementById('hero-review-hint'),
+    schemaCard: document.getElementById('schema-card'),
+    schemaScore: document.getElementById('schema-score'),
+    schemaStatus: document.getElementById('schema-status'),
+    schemaHint: document.getElementById('schema-hint'),
+    schemaNext: document.getElementById('schema-next'),
+    visibilityCard: document.getElementById('visibility-card'),
+    visibilityScore: document.getElementById('visibility-score'),
+    visibilityStatus: document.getElementById('visibility-status'),
+    visibilityHint: document.getElementById('visibility-hint'),
+    visibilityNext: document.getElementById('visibility-next'),
+    reviewCard: document.getElementById('review-card'),
+    reviewScore: document.getElementById('review-score'),
+    reviewStatus: document.getElementById('review-status'),
+    reviewHint: document.getElementById('review-hint'),
+    reviewNext: document.getElementById('review-next'),
     heroNote: document.getElementById('hero-note'),
     heroCrisis: document.getElementById('hero-crisis'),
     entryStatus: document.getElementById('entry-status'),
     entryPrimary: document.getElementById('entry-primary'),
     entryNote: document.getElementById('entry-note'),
+    entryNextSteps: document.getElementById('entry-next-steps'),
     indicator: document.getElementById('report-indicator'),
     cognosEyebrow: document.getElementById('cognos-eyebrow'),
     cognosTitle: document.getElementById('cognos-title'),
@@ -158,6 +168,22 @@
     return `${formatted}${unit}`.trim();
   }
 
+  function normalizeScoreValue(value) {
+    if (value == null || value === '') return null;
+    let candidate = value;
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      if (!trimmed) return null;
+      const match = trimmed.match(/-?\d+(?:\.\d+)?/);
+      if (!match) return null;
+      candidate = Number(match[0]);
+    }
+    const number = Number(candidate);
+    if (!Number.isFinite(number)) return null;
+    const normalized = Math.abs(number) <= 1 ? number * 100 : number;
+    return Math.max(0, Math.min(100, Math.round(normalized)));
+  }
+
   function showToast(message, duration = 800) {
     if (!dom.toast) return;
     dom.toast.textContent = message || '';
@@ -170,17 +196,44 @@
     }, duration);
   }
 
-  function setHeroKpi(valueEl, hintEl, valueText, hintText) {
-    if (!valueEl) return;
-    const text = valueText ? String(valueText) : '尚未同步';
-    valueEl.textContent = text;
-    valueEl.classList.toggle('report-hero__kpi-value--pending', !valueText);
+  function updateDashboardCard(cardRefs, data = {}) {
+    if (!cardRefs) return;
+    const {
+      cardEl,
+      scoreEl,
+      statusEl,
+      hintEl,
+      nextEl,
+    } = cardRefs;
+    const {
+      score = '—',
+      status = '檢核中',
+      hint = 'AI 正在同步資料。',
+      next = '建議稍後更新。',
+      level = '',
+    } = data;
+
+    if (scoreEl) {
+      scoreEl.textContent = score || '—';
+    }
+    if (statusEl) {
+      statusEl.textContent = status || '檢核中';
+    }
     if (hintEl) {
-      hintEl.textContent = hintText || (valueText ? '已同步' : '資料整理中');
+      hintEl.textContent = hint || 'AI 正在同步資料。';
+    }
+    if (nextEl) {
+      nextEl.textContent = next || '建議稍後更新。';
+    }
+    if (cardEl) {
+      cardEl.classList.remove('entry-pass-card--state-good', 'entry-pass-card--state-warn', 'entry-pass-card--state-risk');
+      if (level) {
+        cardEl.classList.add(level);
+      }
     }
   }
 
-  function setEntryPassCard({ status, primary, note }) {
+  function setEntryPassCard({ status, primary, note, nextSteps }) {
     if (dom.entryStatus) {
       dom.entryStatus.textContent = status || '檢核中';
     }
@@ -189,6 +242,28 @@
     }
     if (dom.entryNote) {
       dom.entryNote.textContent = note || 'AI 會持續同步狀態並透過 LINE 通知你。';
+    }
+    if (dom.heroCrisis) {
+      const normalizedStatus = (status || '').trim();
+      dom.heroCrisis.classList.toggle('entry-pass-status-card--ready', /可簽發/.test(normalizedStatus));
+      dom.heroCrisis.classList.toggle('entry-pass-status-card--pause', /暫停/.test(normalizedStatus));
+    }
+    if (dom.entryNextSteps) {
+      dom.entryNextSteps.innerHTML = '';
+      const steps = Array.isArray(nextSteps) ? nextSteps.filter(Boolean) : [];
+      if (steps.length) {
+        steps.slice(0, 3).forEach((item) => {
+          const li = document.createElement('li');
+          li.className = 'entry-pass-status-card__item';
+          li.textContent = item;
+          dom.entryNextSteps.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.className = 'entry-pass-status-card__item';
+        li.textContent = 'AI 正在整理下一步建議';
+        dom.entryNextSteps.appendChild(li);
+      }
     }
   }
 
@@ -263,8 +338,9 @@
       derivedDisabled = derivedDisabled ?? false;
     } else {
       state.primaryAction = 'assistant';
-      label = '生成正式入場券';
-      derivedDisabled = derivedDisabled ?? !canLaunchAssistant();
+      const canLaunch = canLaunchAssistant();
+      derivedDisabled = derivedDisabled ?? !canLaunch;
+      label = canLaunch ? '生成正式入場券' : '守護專家準備中';
     }
 
     state.primaryLabel = label;
@@ -286,7 +362,7 @@
     const fallbackUrl = state.assistantUrl || assistantUrlDefault;
 
     if (!entryUrl && !fallbackUrl) {
-      showToast('守護專家暫時無法連線', 1800);
+      showToast('守護專家暫時無法連線，請稍後再試。', 1800);
       return;
     }
 
@@ -357,7 +433,7 @@
           source,
           message: error?.message || String(error),
         });
-        showToast('守護專家暫時無法連線', 1800);
+        showToast('守護專家暫時無法連線，請稍後再試。', 1800);
       } finally {
         setPrimaryLoading(false);
       }
@@ -481,6 +557,48 @@
       return '';
     };
 
+    const createCardState = (score, options = {}) => {
+      const {
+        pendingNext,
+        goodNext,
+        warnNext,
+        riskNext,
+        goodStatus,
+        warnStatus,
+        riskStatus,
+      } = options;
+
+      if (score == null) {
+        return {
+          level: '',
+          status: '檢核中',
+          next: pendingNext || 'AI 正在同步資料。',
+        };
+      }
+
+      if (score >= 80) {
+        return {
+          level: 'entry-pass-card--state-good',
+          status: goodStatus || '已同步',
+          next: goodNext || '維持目前節奏，持續追蹤。',
+        };
+      }
+
+      if (score >= 50) {
+        return {
+          level: 'entry-pass-card--state-warn',
+          status: warnStatus || '需補強',
+          next: warnNext || '補強關鍵欄位，提升簽發率。',
+        };
+      }
+
+      return {
+        level: 'entry-pass-card--state-risk',
+        status: riskStatus || '未達標',
+        next: riskNext || '優先補齊核心欄位，加速簽發。',
+      };
+    };
+
     const formatRatingValue = (value) => {
       if (value == null) return '';
       const number = Number(value);
@@ -543,6 +661,9 @@
       : `看看我能為 ${storeLabel} 挽回多少營收。`;
     const reviewsFallback = isReviewsFallback(payload, report);
 
+    const entryPassData = report.entry_pass || payload.entry_pass || payload.entryPass || {};
+    const entryPassCards = entryPassData.cards || entryPassData.sections || {};
+
     const assistantFromPayload = payload.assistant_url
       || payload.trial_url
       || payload.links?.assistant
@@ -574,7 +695,8 @@
       ?? report.schema?.score
       ?? report.metrics?.schema_score
       ?? report.metrics?.schema?.score;
-    const schemaDisplay = formatScoreDisplay(schemaValueRaw);
+    const schemaDisplay = formatScoreDisplay(schemaValueRaw, { unit: '' });
+    const schemaScoreNumeric = normalizeScoreValue(schemaValueRaw);
     const schemaHint = resolveText(
       schemaMetric?.hint,
       schemaMetric?.raw?.hint,
@@ -594,7 +716,8 @@
       ?? report.aiVisibilityScore
       ?? report.ai_visibility?.score
       ?? report.visibility_score;
-    const visibilityDisplay = formatScoreDisplay(visibilityValueRaw);
+    const visibilityDisplay = formatScoreDisplay(visibilityValueRaw, { unit: '' });
+    const visibilityScoreNumeric = normalizeScoreValue(visibilityValueRaw);
     const visibilityHint = resolveText(
       visibilityMetric?.hint,
       visibilityMetric?.raw?.hint,
@@ -615,7 +738,19 @@
       ?? report.review_health_score
       ?? report.metrics?.review_health
       ?? report.metrics?.review?.health;
-    let reviewDisplay = formatScoreDisplay(reviewValueRaw);
+    let reviewDisplay = formatScoreDisplay(reviewValueRaw, { unit: '' });
+    let reviewScoreNumeric = normalizeScoreValue(reviewValueRaw);
+    if (!reviewScoreNumeric && typeof reviewValueRaw === 'string') {
+      const reviewKey = reviewValueRaw.trim().toLowerCase();
+      const reviewMap = { safe: 92, watch: 68, alert: 42, danger: 28 };
+      if (reviewMap[reviewKey] != null) {
+        reviewScoreNumeric = reviewMap[reviewKey];
+      }
+      if (!reviewDisplay) {
+        const reviewDisplayMap = { safe: '安全', watch: '觀察', alert: '警示', danger: '重大關注' };
+        reviewDisplay = reviewDisplayMap[reviewKey] || reviewValueRaw.trim();
+      }
+    }
     if (!reviewDisplay && typeof reviewValueRaw === 'string' && reviewValueRaw.trim()) {
       reviewDisplay = reviewValueRaw.trim();
     }
@@ -628,22 +763,107 @@
       reviewDisplay ? '評論健康度已更新' : '評論健康度同步中',
     );
 
-    if (dom.heroSchema) {
-      setHeroKpi(dom.heroSchema, dom.heroSchemaHint, schemaDisplay, schemaHint);
-    }
-    if (dom.heroVisibility) {
-      setHeroKpi(dom.heroVisibility, dom.heroVisibilityHint, visibilityDisplay, visibilityHint);
-    }
-    if (dom.heroReview) {
-      setHeroKpi(dom.heroReview, dom.heroReviewHint, reviewDisplay, reviewHint);
-    }
+    const schemaCardSource = entryPassCards.schema
+      || entryPassData.schema
+      || entryPassCards.schema_card
+      || {};
+    const visibilityCardSource = entryPassCards.visibility
+      || entryPassData.visibility
+      || entryPassCards.visibility_card
+      || {};
+    const reviewCardSource = entryPassCards.review
+      || entryPassData.review
+      || entryPassCards.review_card
+      || {};
+
+    const schemaState = createCardState(schemaScoreNumeric, {
+      pendingNext: schemaCardSource.pending_next,
+      goodNext: schemaCardSource.good_next,
+      warnNext: schemaCardSource.warn_next,
+      riskNext: schemaCardSource.risk_next,
+      goodStatus: schemaCardSource.good_status,
+      warnStatus: schemaCardSource.warn_status,
+      riskStatus: schemaCardSource.risk_status,
+    });
+    const visibilityState = createCardState(visibilityScoreNumeric, {
+      pendingNext: visibilityCardSource.pending_next,
+      goodNext: visibilityCardSource.good_next,
+      warnNext: visibilityCardSource.warn_next,
+      riskNext: visibilityCardSource.risk_next,
+      goodStatus: visibilityCardSource.good_status,
+      warnStatus: visibilityCardSource.warn_status,
+      riskStatus: visibilityCardSource.risk_status,
+    });
+    const reviewState = createCardState(reviewScoreNumeric, {
+      pendingNext: reviewCardSource.pending_next,
+      goodNext: reviewCardSource.good_next,
+      warnNext: reviewCardSource.warn_next,
+      riskNext: reviewCardSource.risk_next,
+      goodStatus: reviewCardSource.good_status,
+      warnStatus: reviewCardSource.warn_status,
+      riskStatus: reviewCardSource.risk_status,
+    });
+
+    const schemaStatus = resolveText(schemaCardSource.status, schemaCardSource.state, schemaState.status);
+    const schemaHintResolved = resolveText(schemaCardSource.hint, schemaCardSource.description, schemaHint);
+    const schemaNext = resolveText(schemaCardSource.next, schemaCardSource.action, schemaCardSource.recommendation, schemaState.next);
+
+    const visibilityStatus = resolveText(visibilityCardSource.status, visibilityCardSource.state, visibilityState.status);
+    const visibilityHintResolved = resolveText(visibilityCardSource.hint, visibilityCardSource.description, visibilityHint);
+    const visibilityNext = resolveText(visibilityCardSource.next, visibilityCardSource.action, visibilityCardSource.recommendation, visibilityState.next);
+
+    const reviewStatus = resolveText(reviewCardSource.status, reviewCardSource.state, reviewState.status);
+    const reviewHintResolved = resolveText(reviewCardSource.hint, reviewCardSource.description, reviewHint);
+    const reviewNext = resolveText(reviewCardSource.next, reviewCardSource.action, reviewCardSource.recommendation, reviewState.next);
+
+    updateDashboardCard({
+      cardEl: dom.schemaCard,
+      scoreEl: dom.schemaScore,
+      statusEl: dom.schemaStatus,
+      hintEl: dom.schemaHint,
+      nextEl: dom.schemaNext,
+    }, {
+      score: schemaDisplay || '—',
+      status: schemaStatus,
+      hint: schemaHintResolved || 'AI 正在建立結構化資料。',
+      next: schemaNext,
+      level: schemaState.level,
+    });
+
+    updateDashboardCard({
+      cardEl: dom.visibilityCard,
+      scoreEl: dom.visibilityScore,
+      statusEl: dom.visibilityStatus,
+      hintEl: dom.visibilityHint,
+      nextEl: dom.visibilityNext,
+    }, {
+      score: visibilityDisplay || '—',
+      status: visibilityStatus,
+      hint: visibilityHintResolved || 'AI 正在評估可見度。',
+      next: visibilityNext,
+      level: visibilityState.level,
+    });
+
+    updateDashboardCard({
+      cardEl: dom.reviewCard,
+      scoreEl: dom.reviewScore,
+      statusEl: dom.reviewStatus,
+      hintEl: dom.reviewHint,
+      nextEl: dom.reviewNext,
+    }, {
+      score: reviewDisplay || '—',
+      status: reviewStatus,
+      hint: reviewHintResolved || '評論健康度同步中',
+      next: reviewNext,
+      level: reviewState.level,
+    });
 
     if (dom.cognosEyebrow) {
       const greetingName = nickname || '星級引擎夥伴';
       dom.cognosEyebrow.textContent = `Hi ${greetingName}，我是你的入場券顧問 Cognos`;
     }
     if (dom.cognosTitle) {
-      dom.cognosTitle.textContent = `${storeLabel} 入場券預覽摘要`;
+      dom.cognosTitle.textContent = `${storeLabel} 入場券預審摘要`;
     }
     const locationText = city ? `${city} 的競品與評論` : '附近的競品與評論';
     if (dom.cognosSubtitle) {
@@ -654,12 +874,12 @@
 
     if (dom.heroNote) {
       const noteCity = city ? `${city} 門市` : storeLabel;
-      dom.heroNote.textContent = `AI 已完成 ${noteCity} 的入場券初審，以下是你的即時摘要。`;
+      dom.heroNote.textContent = `AI 已完成 ${noteCity} 的入場券預審，以下是守護專家的即時指引。`;
     }
 
     if (dom.prefs && dom.prefGoalText && dom.prefToneText) {
-      dom.prefGoalText.textContent = goalLabelRaw ? `目前策略：${goalLabel}` : '目前策略：尚未設定';
-      dom.prefToneText.textContent = toneLabelRaw ? `語氣設定：${toneLabel}` : '語氣設定：尚未設定';
+      dom.prefGoalText.textContent = goalLabelRaw ? `策略：${goalLabel}` : '策略：未設定';
+      dom.prefToneText.textContent = toneLabelRaw ? `語氣：${toneLabel}` : '語氣：未設定';
       dom.prefs.hidden = false;
     }
 
@@ -675,41 +895,100 @@
 
     const topCompetitor = competitorsRendered[0];
 
-    const entryPassData = report.entry_pass || payload.entry_pass || payload.entryPass || {};
+    const cardLevels = [schemaState.level, visibilityState.level, reviewState.level];
+    const hasRiskLevel = cardLevels.includes('entry-pass-card--state-risk');
+    const hasWarnLevel = cardLevels.includes('entry-pass-card--state-warn');
+    const hasScoreData = cardLevels.some((level) => Boolean(level));
+    const entryAutoStatus = hasRiskLevel
+      ? '暫停曝光'
+      : hasWarnLevel
+        ? '檢核中'
+        : hasScoreData
+          ? '可簽發'
+          : '檢核中';
+    const entryAutoPrimary = hasRiskLevel
+      ? '指標未達標，暫停曝光，請先補齊紅色指標。'
+      : hasWarnLevel
+        ? '補齊黃色指標後即可簽發入場券。'
+        : hasScoreData
+          ? '所有指標就緒，可簽發入場券。'
+          : '正在建立入場券預審結果';
+    const entryAutoNote = hasRiskLevel
+      ? '守護專家會守護進度，待補件完成後重新評估簽發。'
+      : '守護專家會持續監控並推播異動提醒。';
+
     const entryStatusResolved = resolveText(
       entryPassData.status,
       report.entry_pass_status,
       payload.entry_pass_status,
       payload.status?.entry_pass,
-      reviewsFallback ? '評論同步中' : (schemaDisplay || visibilityDisplay || reviewDisplay ? '預覽完成' : '檢核中'),
+      reviewsFallback ? '評論同步中' : entryAutoStatus,
     );
     const entryPrimaryResolved = resolveText(
       entryPassData.headline,
       entryPassData.primary,
       entryPassData.summary,
       report.entry_pass_primary,
+      entryAutoPrimary,
       lossMessage,
-      '正在建立入場券預覽',
+      entryAutoPrimary,
     );
     const entryNoteResolved = resolveText(
       entryPassData.note,
       entryPassData.description,
       report.entry_pass_note,
       payload.entry_pass_note,
+      entryAutoNote,
       reviewsFallback ? '評論資料補齊後會立即推播通知你。' : gainMessage,
     );
+
+    const actionsRendered = renderActions && dom.actions
+      ? renderActions(dom.actions, actionsSource, { emptyMessage: '' })
+      : [];
+    toggleEmptyState(dom.actionsEmpty, actionsRendered && actionsRendered.length > 0);
+
+    const entryNextStepsFromData = [];
+    const candidateLists = [
+      entryPassData.next_steps,
+      entryPassData.nextSteps,
+      entryPassData.recommendations,
+      entryPassData.actions,
+      entryPassData.todos,
+      entryPassData.todo,
+    ];
+    candidateLists.forEach((source) => {
+      if (!source) return;
+      if (Array.isArray(source)) {
+        source.forEach((item) => {
+          if (!item) return;
+          const text = typeof item === 'string' ? item.trim() : (item.text || item.title || item.action || '').trim();
+          if (text) {
+            entryNextStepsFromData.push(text);
+          }
+        });
+      } else if (typeof source === 'string') {
+        const text = source.trim();
+        if (text) {
+          entryNextStepsFromData.push(text);
+        }
+      }
+    });
+
+    const entryNextSteps = [...entryNextStepsFromData,
+      ...actionsRendered
+        .filter((item) => item && typeof item === 'object')
+        .map((item) => (item.text || item.note || '').trim())
+    ]
+      .filter(Boolean)
+      .filter((value, index, array) => array.indexOf(value) === index)
+      .slice(0, 3);
 
     setEntryPassCard({
       status: entryStatusResolved,
       primary: entryPrimaryResolved,
       note: entryNoteResolved,
+      nextSteps: entryNextSteps,
     });
-
-    const actionsRendered = renderActions && dom.actions
-    const actionsRendered = renderActions && dom.actions
-      ? renderActions(dom.actions, actionsSource, { emptyMessage: '' })
-      : [];
-    toggleEmptyState(dom.actionsEmpty, actionsRendered && actionsRendered.length > 0);
 
     const draftsRendered = renderDrafts && dom.drafts
       ? renderDrafts(dom.drafts, draftsSource, {
@@ -735,22 +1014,28 @@
     const firstAction = actionsRendered[0];
     const firstDraft = draftsRendered[0];
 
-    const metricsSummary = latestReview
-      ? { label: '最新評論摘要', text: truncateText(latestReview, 96) }
-      : firstMetric
-        ? {
-            label: firstMetric.label || '關鍵指標',
-            text: `目前為 ${
-              firstMetric.currency
-                ? formatCurrency(firstMetric.value)
-                : (formatNumber(firstMetric.value) || firstMetric.value || '—')
-            }`,
-          }
+    const metricsSummary = firstMetric
+      ? {
+          label: '補件優先順序',
+          text: truncateText(
+            firstMetric.note
+              || firstMetric.detail
+              || firstMetric.label
+              || `目前為 ${
+                firstMetric.currency
+                  ? formatCurrency(firstMetric.value)
+                  : (formatNumber(firstMetric.value) || firstMetric.value || '—')
+              }`,
+            96,
+          ),
+        }
+      : latestReview
+        ? { label: '評論亮點', text: truncateText(latestReview, 96) }
         : null;
 
     const competitorSummary = topCompetitor
       ? {
-          label: '競品第一名',
+          label: '競品預警',
           text: truncateText(
             `${topCompetitor.name || '競品'}${
               topCompetitor.rating != null
@@ -766,34 +1051,34 @@
 
     const actionsSummary = firstAction
       ? {
-          label: '本週優先事項',
+          label: '守護任務焦點',
           text: truncateText(firstAction.text, 96),
         }
       : null;
 
     const draftSummary = firstDraft
       ? {
-          label: firstDraft.tone ? `首選語氣：${firstDraft.tone}` : '首選草稿',
+          label: firstDraft.tone ? `草稿語氣：${firstDraft.tone}` : 'AI 草稿',
           text: truncateText(firstDraft.text, 96),
         }
       : null;
 
     const summaryFallbacks = {
       metrics: {
-        label: '同步提醒',
-        text: `${storeLabel} 最新評論整理中，很快送上亮點。`,
+        label: '補件提醒',
+        text: `${storeLabel} 的補件項目正在整理，完成後會立即推播給你。`,
       },
       competitors: {
-        label: '競品同步',
+        label: '競品預警',
         text: `${city || '附近'} 競品差距分析中，完成後會第一時間通知你。`,
       },
       actions: {
-        label: '行動建議',
-        text: 'AI 正彙整本週優先事項，很快就緒。',
+        label: '守護任務',
+        text: 'AI 正彙整本週守護任務，很快送上建議。',
       },
       drafts: {
-        label: '草稿準備中',
-        text: 'AI 正為你撰寫回覆草稿，完成後自動推送。',
+        label: 'AI 草稿',
+        text: '我已為你準備草稿，補件時直接使用。',
       },
     };
 
@@ -861,9 +1146,45 @@
       dom.indicator.textContent = '入場券資料整理中';
     }
 
-    setHeroKpi(dom.heroSchema, dom.heroSchemaHint);
-    setHeroKpi(dom.heroVisibility, dom.heroVisibilityHint);
-    setHeroKpi(dom.heroReview, dom.heroReviewHint);
+    updateDashboardCard({
+      cardEl: dom.schemaCard,
+      scoreEl: dom.schemaScore,
+      statusEl: dom.schemaStatus,
+      hintEl: dom.schemaHint,
+      nextEl: dom.schemaNext,
+    }, {
+      score: '—',
+      status: '檢核中',
+      hint: 'AI 正在建立結構化資料。',
+      next: '補件建議稍後更新。',
+      level: '',
+    });
+    updateDashboardCard({
+      cardEl: dom.visibilityCard,
+      scoreEl: dom.visibilityScore,
+      statusEl: dom.visibilityStatus,
+      hintEl: dom.visibilityHint,
+      nextEl: dom.visibilityNext,
+    }, {
+      score: '—',
+      status: '分析中',
+      hint: 'AI 正在建立可見度模型。',
+      next: '曝光補強建議整理中。',
+      level: '',
+    });
+    updateDashboardCard({
+      cardEl: dom.reviewCard,
+      scoreEl: dom.reviewScore,
+      statusEl: dom.reviewStatus,
+      hintEl: dom.reviewHint,
+      nextEl: dom.reviewNext,
+    }, {
+      score: '—',
+      status: '整理中',
+      hint: 'AI 正在彙整評論資料。',
+      next: '評論優先處理順序即將更新。',
+      level: '',
+    });
     if (dom.heroNote) {
       dom.heroNote.textContent = '入場券預覽生成中，我會完成後立即通知你。';
     }
@@ -873,12 +1194,13 @@
 
     const etaSeconds = toNumber(payload?.status?.eta_seconds || payload?.status?.remaining_seconds || payload?.status?.eta || payload?.next_check);
     const pendingStatus = etaSeconds != null
-      ? `入場券生成中（約 ${Math.max(Math.round(etaSeconds), 1)} 秒）`
-      : '入場券生成中';
+      ? `檢核中（約 ${Math.max(Math.round(etaSeconds), 1)} 秒）`
+      : '檢核中';
     setEntryPassCard({
       status: pendingStatus,
       primary: '資料同步中',
       note: 'AI 正在整理入場券所需資料，完成後會透過 LINE 提醒你。',
+      nextSteps: ['資料量較大，完成後自動推播。'],
     });
 
     logEvent('report_load', {
@@ -917,13 +1239,50 @@
     if (dom.indicator) {
       dom.indicator.textContent = '需要協助';
     }
-    setHeroKpi(dom.heroSchema, dom.heroSchemaHint);
-    setHeroKpi(dom.heroVisibility, dom.heroVisibilityHint);
-    setHeroKpi(dom.heroReview, dom.heroReviewHint);
+    updateDashboardCard({
+      cardEl: dom.schemaCard,
+      scoreEl: dom.schemaScore,
+      statusEl: dom.schemaStatus,
+      hintEl: dom.schemaHint,
+      nextEl: dom.schemaNext,
+    }, {
+      score: '—',
+      status: '暫停曝光',
+      hint: '暫時無法取得結構化資料。',
+      next: '稍後重新整理後再試一次。',
+      level: '',
+    });
+    updateDashboardCard({
+      cardEl: dom.visibilityCard,
+      scoreEl: dom.visibilityScore,
+      statusEl: dom.visibilityStatus,
+      hintEl: dom.visibilityHint,
+      nextEl: dom.visibilityNext,
+    }, {
+      score: '—',
+      status: '暫停曝光',
+      hint: '暫時無法取得可見度資料。',
+      next: '請稍後重新整理頁面。',
+      level: '',
+    });
+    updateDashboardCard({
+      cardEl: dom.reviewCard,
+      scoreEl: dom.reviewScore,
+      statusEl: dom.reviewStatus,
+      hintEl: dom.reviewHint,
+      nextEl: dom.reviewNext,
+    }, {
+      score: '—',
+      status: '暫停曝光',
+      hint: '暫時無法取得評論資料。',
+      next: '稍後再試，或通知守護專家協助。',
+      level: '',
+    });
     setEntryPassCard({
-      status: '需要協助',
-      primary: '請稍後再試',
+      status: '暫停曝光',
+      primary: '守護專家正在排除，請稍後再試。',
       note: '我會稍後提醒你再次查看。',
+      nextSteps: ['重新整理頁面或通知守護專家協助。'],
     });
     if (dom.heroNote) {
       dom.heroNote.textContent = '目前入場券整理遇到狀況，我會盡快為你補齊。';

@@ -230,6 +230,28 @@ body:not(.page--info) {
   margin: 0;
 }
 
+.stage-panel__header--hero {
+  justify-items: center;
+  text-align: center;
+}
+
+.stage-panel__header--hero .stage-tag {
+  justify-self: center;
+}
+
+.stage-hero__title {
+  max-width: 28ch;
+  margin: 0 auto;
+  line-height: 1.35;
+}
+
+.stage-hero__subtitle {
+  max-width: 32ch;
+  margin: 0 auto;
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
 .stage-panel__header--compact {
   gap: 12px;
 }
@@ -286,6 +308,23 @@ body:not(.page--info) {
 .stage-form {
   display: grid;
   gap: 24px;
+}
+
+.form-intro {
+  display: grid;
+  gap: 8px;
+}
+
+.form-intro__title {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  color: var(--text);
+}
+
+.form-intro__description {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .form-grid {
@@ -2102,8 +2141,8 @@ body.page--info {
     grid-template-columns: 1fr;
   }
 
-  .report-hero__kpis {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  .entry-pass-dashboard {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: clamp(12px, 4vw, 18px);
   }
 }
@@ -2160,6 +2199,14 @@ body.page--info {
 .analysis-card__tip {
   font-size: 0.95rem;
 }
+
+  .entry-pass-dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .entry-pass-status-card {
+    order: -1;
+  }
 }
 
 .toast {
@@ -2227,91 +2274,211 @@ body.page--info {
 
 .report-hero__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
   gap: clamp(18px, 4vw, 26px);
   align-items: stretch;
 }
 
-.report-hero__kpis {
+.entry-pass-dashboard {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(12px, 3vw, 20px);
+  gap: clamp(14px, 3vw, 22px);
 }
 
-.report-hero__kpi {
+.entry-pass-card {
   display: grid;
-  gap: 6px;
-  padding: clamp(14px, 3vw, 20px);
-  background: var(--kpi-surface);
-  border-radius: 18px;
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  box-shadow: 0 12px 30px -26px rgba(37, 99, 235, 0.32);
-  min-height: 120px;
-}
-
-.report-hero__kpi-label {
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(37, 99, 235, 0.82);
-}
-
-.report-hero__kpi-value {
-  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
-  font-weight: 700;
-  color: var(--kpi-text);
-}
-
-.report-hero__kpi-value--pending {
-  color: var(--muted);
-}
-
-.report-hero__kpi-hint {
-  font-size: 0.88rem;
-  color: rgba(15, 23, 42, 0.62);
-}
-
-.report-hero-crisis {
-  display: grid;
-  gap: 10px;
+  gap: 14px;
   padding: clamp(18px, 3.4vw, 24px);
-  background: linear-gradient(135deg, rgba(219, 234, 254, 0.92) 0%, rgba(191, 219, 254, 0.88) 100%);
-  border-radius: 20px;
-  border: 1px solid rgba(37, 99, 235, 0.22);
-  box-shadow: 0 16px 36px -32px rgba(37, 99, 235, 0.2);
+  border-radius: 22px;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  background: #ffffff;
+  box-shadow: 0 18px 40px -32px rgba(15, 23, 42, 0.28);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.report-hero-crisis__header {
+.entry-pass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 48px -32px rgba(15, 23, 42, 0.32);
+}
+
+.entry-pass-card__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
 }
 
-.report-hero-crisis__label {
+.entry-pass-card__label {
   font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--primary);
+  color: rgba(37, 99, 235, 0.85);
 }
 
-.report-hero-crisis__status {
-  font-size: 0.85rem;
+.entry-pass-card__status {
+  font-size: 0.88rem;
   font-weight: 600;
-  color: rgba(37, 99, 235, 0.95);
+  color: rgba(37, 99, 235, 0.92);
 }
 
-.report-hero-crisis__primary {
+.entry-pass-card__body {
+  display: grid;
+  gap: 10px;
+}
+
+.entry-pass-card__score {
+  font-size: clamp(1.9rem, 3.6vw, 2.4rem);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.entry-pass-card__hint,
+.entry-pass-card__next {
   margin: 0;
-  font-size: clamp(1.05rem, 2.8vw, 1.2rem);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.entry-pass-card__hint {
+  color: var(--muted);
+}
+
+.entry-pass-card__next {
+  color: rgba(30, 64, 175, 0.92);
+  font-weight: 600;
+}
+
+.entry-pass-card--state-good {
+  border-color: rgba(22, 163, 74, 0.28);
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.65) 0%, rgba(187, 247, 208, 0.55) 100%);
+}
+
+.entry-pass-card--state-good .entry-pass-card__score,
+.entry-pass-card--state-good .entry-pass-card__status {
+  color: #15803d;
+}
+
+.entry-pass-card--state-warn {
+  border-color: rgba(245, 158, 11, 0.32);
+  background: linear-gradient(135deg, rgba(254, 249, 195, 0.62) 0%, rgba(253, 230, 138, 0.54) 100%);
+}
+
+.entry-pass-card--state-warn .entry-pass-card__score,
+.entry-pass-card--state-warn .entry-pass-card__status {
+  color: #b45309;
+}
+
+.entry-pass-card--state-risk {
+  border-color: rgba(239, 68, 68, 0.35);
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.68) 0%, rgba(254, 202, 202, 0.56) 100%);
+}
+
+.entry-pass-card--state-risk .entry-pass-card__score,
+.entry-pass-card--state-risk .entry-pass-card__status {
+  color: #b91c1c;
+}
+
+.entry-pass-status-card {
+  display: grid;
+  gap: 14px;
+  padding: clamp(18px, 3.4vw, 24px);
+  border-radius: 24px;
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.14) 0%, rgba(56, 189, 248, 0.12) 100%);
+  box-shadow: 0 20px 44px -32px rgba(30, 64, 175, 0.32);
+}
+
+.entry-pass-status-card--ready {
+  border-color: rgba(22, 163, 74, 0.32);
+  background: linear-gradient(135deg, rgba(187, 247, 208, 0.38) 0%, rgba(134, 239, 172, 0.32) 100%);
+}
+
+.entry-pass-status-card--pause {
+  border-color: rgba(239, 68, 68, 0.32);
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.42) 0%, rgba(254, 202, 202, 0.35) 100%);
+}
+
+.entry-pass-status-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.entry-pass-status-card__label {
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(30, 64, 175, 0.92);
+}
+
+.entry-pass-status-card__state {
+  font-size: 0.95rem;
   font-weight: 600;
   color: rgba(30, 64, 175, 0.95);
 }
 
-.report-hero-crisis__note {
+.entry-pass-status-card__primary {
   margin: 0;
+  font-size: clamp(1.08rem, 2.8vw, 1.28rem);
+  font-weight: 600;
+  color: rgba(30, 64, 175, 0.95);
+}
+
+.entry-pass-status-card__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.entry-pass-status-card__item {
+  position: relative;
+  margin: 0;
+  padding-left: 18px;
   font-size: 0.95rem;
+  color: rgba(15, 23, 42, 0.82);
+  line-height: 1.55;
+}
+
+.entry-pass-status-card__item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(37, 99, 235, 0.85);
+}
+
+.entry-pass-status-card--ready .entry-pass-status-card__item::before {
+  background: rgba(34, 197, 94, 0.85);
+}
+
+.entry-pass-status-card--pause .entry-pass-status-card__item::before {
+  background: rgba(239, 68, 68, 0.85);
+}
+
+.entry-pass-status-card__note {
+  margin: 0;
+  font-size: 0.92rem;
   color: rgba(30, 64, 175, 0.78);
+}
+
+.entry-pass-status-card--ready .entry-pass-status-card__state,
+.entry-pass-status-card--ready .entry-pass-status-card__primary {
+  color: #15803d;
+}
+
+.entry-pass-status-card--pause .entry-pass-status-card__state,
+.entry-pass-status-card--pause .entry-pass-status-card__primary {
+  color: #b91c1c;
+}
+
+.entry-pass-status-card--pause .entry-pass-status-card__note {
+  color: rgba(185, 28, 28, 0.78);
 }
 
 .report-hero-card {

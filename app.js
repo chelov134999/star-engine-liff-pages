@@ -16,16 +16,15 @@ const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 const ANALYSIS_COUNTDOWN_SECONDS = 60;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
-  '我正在蒐集入場券需要的門市資料與評論樣本。',
-  '同時分析商圈與競品差距，建立可見度模型。',
-  '接著套用語氣偏好，準備正式入場券草稿。'
+  '正在建立結構化資料欄位，補齊 AI 可讀資訊。',
+  '同步抓取 Google 評論與商圈競品樣本。',
+  '彙整可見度模型並準備正式入場券草稿。'
 ];
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
-  '同步定位商圈與鄰近競品資料…',
-  '抓取最新 Google Maps 評論與風險指標…',
-  '套用您選擇的語氣與優先要務…',
-  '整理趨勢後，將自動載入專屬設定。',
+  '正在建立結構化資料…',
+  '抓取 Google 評論…',
+  '彙整可見度模型…',
 ];
 const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送正式入場券通知。';
 const DATAFORSEO_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會再次通知你。';
@@ -38,9 +37,9 @@ const logEvent = (...args) => {
 
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
-  { percent: 45, label: '蒐集 AI 入場券資料… 進度 45%', eta: '近 7 天評論與商圈資料載入中' },
-  { percent: 60, label: 'AI 可見度分析… 進度 60%', eta: '完成競品比對與模型建置' },
-  { percent: 75, label: '套用語氣偏好… 進度 75%', eta: '撰寫本週行動與草稿' }
+  { percent: 35, label: 'Schema 完整度', description: '建立結構化資料欄位' },
+  { percent: 65, label: 'AI 可見度模型', description: '比對商圈與曝光差距' },
+  { percent: 85, label: '評論健康度', description: '整理評論分佈與風險指標' },
 ];
 const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
@@ -59,7 +58,7 @@ const els = {
     s5: document.getElementById('stage-s5'),
   },
   leadForm: document.getElementById('lead-form'),
-  submitBtn: document.getElementById('submit-btn'),
+  submitBtn: document.getElementById('cta-start'),
   quizForm: document.getElementById('quiz-form'),
   quizSubmit: document.getElementById('quiz-submit'),
   quizSkip: document.getElementById('quiz-skip'),
@@ -272,9 +271,48 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
     : 0;
   const showAlmostDone = safePercent >= 90 && elapsedSinceNinety >= NINETY_HINT_DELAY_MS;
 
-  let label = stageLabel || `蒐集 AI 入場券資料… 進度 ${safePercent}%`;
+  const resolveTick = () => {
+    if (!Array.isArray(PROGRESS_TICKS) || !PROGRESS_TICKS.length) {
+      return { label: 'Schema 完整度', description: '正在建立結構化資料欄位' };
+    }
+    let candidate = PROGRESS_TICKS[0];
+    for (const tick of PROGRESS_TICKS) {
+      if (typeof tick.percent === 'number' && safePercent >= tick.percent) {
+        candidate = tick;
+      }
+    }
+    return candidate || { label: 'Schema 完整度', description: '正在建立結構化資料欄位' };
+  };
+
+  const tick = resolveTick();
+  let label = `${tick.label || 'Schema 完整度'} · 進度 ${safePercent}%`;
+  let description = tick.description || '正在建立結構化資料欄位';
+  let customDescription = false;
+
+  if (stageLabel && typeof stageLabel === 'object') {
+    if (stageLabel.label) {
+      label = `${stageLabel.label} · 進度 ${safePercent}%`;
+    }
+    if (stageLabel.description) {
+      description = stageLabel.description;
+      customDescription = true;
+    }
+  } else if (typeof stageLabel === 'string' && stageLabel.trim()) {
+    description = stageLabel.trim();
+    customDescription = true;
+  }
+
   if (showAlmostDone) {
-    label = '快完成… 智能體正在整理結果';
+    label = '彙整完成 · 進度 90%';
+    description = '守護專家正在整理結果';
+    customDescription = true;
+  }
+
+  if (!customDescription && etaSeconds != null) {
+    const eta = Math.max(0, Math.round(etaSeconds));
+    if (eta > 0) {
+      description = `${description} · 約 ${eta} 秒完成`;
+    }
   }
 
   if (els.progressBarS2) {
@@ -289,18 +327,11 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   if (els.progressLabelS3) {
     els.progressLabelS3.textContent = label;
   }
-
-  let etaLabel = '預估完成時間 60 秒內';
-  if (showAlmostDone) {
-    etaLabel = '快完成… 正在合併專屬草稿';
-  } else if (etaSeconds != null) {
-    etaLabel = `預估完成 ${Math.max(0, Math.round(etaSeconds))} 秒`;
-  }
   if (els.progressEtaS2) {
-    els.progressEtaS2.textContent = etaLabel;
+    els.progressEtaS2.textContent = description;
   }
   if (els.progressEtaS3) {
-    els.progressEtaS3.textContent = etaLabel;
+    els.progressEtaS3.textContent = description;
   }
 
   state.progress.percent = safePercent;
@@ -449,8 +480,8 @@ function resetProgressUI() {
     els.progressBarS3.style.width = '0%';
   }
 
-  const baseLabel = '蒐集 AI 入場券資料… 進度 0%';
-  const baseEta = '正在準備最新評論與競品資料';
+  const baseLabel = 'Schema 完整度 · 進度 0%';
+  const baseEta = '正在建立結構化資料欄位';
 
   if (els.progressLabelS2) {
     els.progressLabelS2.textContent = baseLabel;
@@ -673,7 +704,7 @@ async function handleLeadSubmit(event) {
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
     setStage('s0');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '送出入場券申請';
+    els.submitBtn.textContent = '申請 AI 入場券';
   }
 }
 
@@ -718,7 +749,7 @@ function startTransitionToQuiz() {
     stopTransitionTips();
     setStage('s2');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '送出入場券申請';
+    els.submitBtn.textContent = '申請 AI 入場券';
     resetProgressUI();
     state.transition.started = false;
   }, TRANSITION_DURATION_MS);
@@ -939,12 +970,12 @@ function handleStatusResponse(payload) {
   const warnings = Array.isArray(payload.warnings) ? payload.warnings : [];
   const flags = payload.flags || (payload.report && payload.report.flags) || {};
   const stageHints = {
-    collecting: '正在定位您的門市與商圈…',
-    processing: '正在抓取 DataForSEO 與附近競品…',
-    analyzing: '正在生成差距雷達與回覆草稿…',
-    scheduled: '資料量較大，已排程推送完成結果',
-    timeout: '資料量較大，已排程推送完成結果',
-    ready: '分析完成！正在回傳結果…',
+    collecting: { description: '正在建立結構化資料欄位' },
+    processing: { description: '正在比對商圈與 AI 可見度模型' },
+    analyzing: { description: '正在整理評論健康度與草稿' },
+    scheduled: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後自動推播' },
+    timeout: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後自動推播' },
+    ready: { label: 'AI 入場券預審完成', description: '正在回傳結果，稍待即可查看' },
   };
 
   if (stage === 'collecting' && state.stage === 's1') {
@@ -954,8 +985,16 @@ function handleStatusResponse(payload) {
 
   if (typeof percent === 'number') {
     const mergedPercent = Math.max(state.progress.frontPercent, percent);
-    updateProgressUI(mergedPercent, etaSeconds, stageHints[stage]);
+    updateProgressUI(mergedPercent, etaSeconds, stageHints[stage] || null);
     state.progress.frontPercent = Math.max(state.progress.frontPercent, mergedPercent);
+  }
+
+  const isPending = lifecycleState === 'pending' || statusValue === 'pending';
+  if (isPending) {
+    updateProgressUI(state.progress.percent, etaSeconds, {
+      label: 'AI 入場券預審排隊中',
+      description: '資料量較大，完成後自動推播',
+    });
   }
 
   if (payload.report) {
@@ -1290,7 +1329,7 @@ function resetFlow() {
   }
   if (els.submitBtn) {
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '送出入場券申請';
+    els.submitBtn.textContent = '申請 AI 入場券';
   }
   if (els.quizForm) {
     els.quizForm.reset();

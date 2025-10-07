@@ -2,17 +2,8 @@
   const params = new URLSearchParams(window.location.search);
   const config = window.STAR_ENGINE_CONFIG || {};
   const reportEndpoint = config.reportDataUrl || config.report_data_url || 'https://chelov134999.app.n8n.cloud/webhook/report-data';
-  const assistantUrlDefault = config.assistantUrl
-    || config.assistant_url
-    || config.trialUrl
-    || config.trial_url
-    || '';
-  const assistantEntryUrlDefault = config.assistantEntryUrl
-    || config.assistant_entry_url
-    || config.assistantEntryURL
-    || config.assistantUrl
-    || config.assistant_url
-    || '';
+  const assistantUrlDefault = config.trialUrl || config.trial_url || '';
+  const assistantEntryUrlDefault = config.assistantEntryUrl || config.assistant_entry_url || '';
   const lineFallbackUrl = config.lineFallbackUrl || 'https://line.me/R/ti/p/@star-up';
 
   const dom = {
@@ -25,27 +16,27 @@
     errorReturn: document.getElementById('error-return-line'),
     btnReturnLine: document.getElementById('btn-return-line'),
     ctaPrimary: document.getElementById('cta-primary'),
-    ctaSecondary: document.getElementById('cta-assistant'),
-    toast: document.getElementById('report-toast'),
-    heroRating: document.getElementById('hero-rating'),
-    heroRatingHint: document.getElementById('hero-rating-hint'),
-    heroReviews: document.getElementById('hero-reviews'),
-    heroReviewsHint: document.getElementById('hero-reviews-hint'),
-    heroGap: document.getElementById('hero-gap'),
-    heroGapHint: document.getElementById('hero-gap-hint'),
+    ctaLine: document.getElementById('cta-line'),
+    heroSchema: document.getElementById('hero-schema'),
+    heroSchemaHint: document.getElementById('hero-schema-hint'),
+    heroVisibility: document.getElementById('hero-visibility'),
+    heroVisibilityHint: document.getElementById('hero-visibility-hint'),
+    heroReview: document.getElementById('hero-review'),
+    heroReviewHint: document.getElementById('hero-review-hint'),
     heroNote: document.getElementById('hero-note'),
-    heroInsight: document.getElementById('hero-insight'),
-    heroInsightText: document.getElementById('hero-insight-text'),
+    heroCrisis: document.getElementById('hero-crisis'),
+    entryStatus: document.getElementById('entry-status'),
+    entryPrimary: document.getElementById('entry-primary'),
+    entryNote: document.getElementById('entry-note'),
     indicator: document.getElementById('report-indicator'),
-    trust: document.getElementById('report-trust'),
     cognosEyebrow: document.getElementById('cognos-eyebrow'),
     cognosTitle: document.getElementById('cognos-title'),
     cognosSubtitle: document.getElementById('cognos-subtitle'),
-    alertLoss: document.getElementById('alert-loss'),
-    alertGain: document.getElementById('alert-gain'),
     prefs: document.getElementById('report-preferences'),
     prefGoal: document.getElementById('pref-goal'),
+    prefGoalText: document.getElementById('pref-goal-text'),
     prefTone: document.getElementById('pref-tone'),
+    prefToneText: document.getElementById('pref-tone-text'),
     metrics: document.getElementById('report-metrics'),
     metricsEmpty: document.getElementById('report-metrics-empty'),
     competitors: document.getElementById('report-competitors'),
@@ -66,6 +57,7 @@
     summaryDrafts: document.getElementById('summary-drafts'),
     summaryDraftsLabel: document.getElementById('summary-drafts-label'),
     summaryDraftsText: document.getElementById('summary-drafts-text'),
+    toast: document.getElementById('report-toast'),
   };
 
   const state = {
@@ -76,91 +68,34 @@
     maxRetry: 3,
     assistantUrl: assistantUrlDefault,
     assistantEntryUrl: assistantEntryUrlDefault,
+    assistantLabel: config.assistantLabel || 'AI 守護專家',
     primaryAction: 'assistant',
-    primaryDisabled: false,
-    primaryLoading: false,
-    primaryHref: '#',
-    toastTimer: null,
+    primaryLabel: '',
+    reportPageUrl: '',
   };
+
+  let toastTimer = null;
   function setAnchorState(anchor, enabled, href = '#') {
     if (!anchor) return;
-    if (enabled && href) {
-      anchor.setAttribute('href', href);
-    } else {
-      anchor.removeAttribute('href');
-    }
-    anchor.classList.toggle('btn--disabled', !enabled);
-    anchor.setAttribute('aria-disabled', enabled ? 'false' : 'true');
-  }
-
-  function setPrimaryLoading(isLoading) {
-    state.primaryLoading = Boolean(isLoading);
-    if (!dom.ctaPrimary) return;
-    dom.ctaPrimary.classList.toggle('btn--loading', state.primaryLoading);
-    dom.ctaPrimary.setAttribute('aria-busy', state.primaryLoading ? 'true' : 'false');
-    updatePrimaryAction(state.primaryAction);
-  }
-
-  function showToast(message, duration = 800) {
-    if (!dom.toast) return;
-    const text = message == null ? '' : String(message);
-    if (state.toastTimer) {
-      window.clearTimeout(state.toastTimer);
-      state.toastTimer = null;
-    }
-    dom.toast.textContent = text;
-    dom.toast.hidden = false;
-    dom.toast.setAttribute('aria-hidden', 'false');
-    dom.toast.classList.add('toast--visible');
-    state.toastTimer = window.setTimeout(() => {
-      dom.toast.classList.remove('toast--visible');
-      dom.toast.setAttribute('aria-hidden', 'true');
-      dom.toast.hidden = true;
-      state.toastTimer = null;
-    }, duration);
-  }
-
-  function hasAssistantEntry() {
-    return Boolean(state.assistantEntryUrl || state.assistantUrl);
-  }
-
-  function refreshPrimaryAction(forceAction) {
-    if (forceAction) {
-      updatePrimaryAction(forceAction);
+    if (anchor.tagName !== 'A') {
+      anchor.classList.toggle('btn--disabled', !enabled);
+      anchor.setAttribute('aria-disabled', enabled ? 'false' : 'true');
       return;
     }
-    if (hasAssistantEntry()) {
-      updatePrimaryAction('assistant', { disabled: false });
+    anchor.setAttribute('href', enabled ? href : '#');
+    anchor.classList.toggle('btn--disabled', anchor.classList.contains('btn') && !enabled);
+    anchor.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    if (!enabled) {
+      anchor.setAttribute('tabindex', '-1');
     } else {
-      updatePrimaryAction('line', { disabled: true });
+      anchor.removeAttribute('tabindex');
     }
   }
 
-  function resolveAssistantTarget(payload) {
-    if (!payload) return '';
-    if (typeof payload === 'string') {
-      return payload.trim();
-    }
-    if (typeof payload === 'object') {
-      const candidates = [
-        payload.deeplink,
-        payload.redirect_url,
-        payload.redirectUrl,
-        payload.assistant_url,
-        payload.assistantUrl,
-        payload.url,
-      ];
-      for (const candidate of candidates) {
-        if (typeof candidate === 'string' && candidate.trim()) {
-          return candidate.trim();
-        }
-      }
-    }
-    return '';
-  }
-
-  if (dom.ctaSecondary) {
-    setAnchorState(dom.ctaSecondary, true, lineFallbackUrl);
+  if (dom.ctaLine) {
+    setAnchorState(dom.ctaLine, Boolean(lineFallbackUrl), lineFallbackUrl);
+    dom.ctaLine.setAttribute('target', '_blank');
+    dom.ctaLine.setAttribute('rel', 'noopener');
   }
 
   function setSummaryBlock(container, labelEl, textEl, { label, text }) {
@@ -201,53 +136,144 @@
     return `NT$${number.toLocaleString('zh-Hant-TW')}`;
   }
 
-  function updatePrimaryAction(action, { disabled } = {}) {
-    state.primaryAction = action;
-    if (typeof disabled === 'boolean') {
-      state.primaryDisabled = disabled;
+  function formatScoreDisplay(value, { unit = ' 分' } = {}) {
+    if (value == null) return '';
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return '';
+      const parsed = Number(trimmed);
+      if (Number.isNaN(parsed)) {
+        return trimmed;
+      }
+      value = parsed;
     }
+
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return '';
+    }
+
+    const normalized = Math.abs(number) <= 1 ? number * 100 : number;
+    const formatted = Number.isInteger(normalized) ? normalized : Number(normalized.toFixed(1));
+    return `${formatted}${unit}`.trim();
+  }
+
+  function showToast(message, duration = 800) {
+    if (!dom.toast) return;
+    dom.toast.textContent = message || '';
+    dom.toast.classList.add('toast--visible');
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+    }
+    toastTimer = setTimeout(() => {
+      dom.toast.classList.remove('toast--visible');
+    }, duration);
+  }
+
+  function setHeroKpi(valueEl, hintEl, valueText, hintText) {
+    if (!valueEl) return;
+    const text = valueText ? String(valueText) : '尚未同步';
+    valueEl.textContent = text;
+    valueEl.classList.toggle('report-hero__kpi-value--pending', !valueText);
+    if (hintEl) {
+      hintEl.textContent = hintText || (valueText ? '已同步' : '資料整理中');
+    }
+  }
+
+  function setEntryPassCard({ status, primary, note }) {
+    if (dom.entryStatus) {
+      dom.entryStatus.textContent = status || '檢核中';
+    }
+    if (dom.entryPrimary) {
+      dom.entryPrimary.textContent = primary || '正在建立入場券預覽';
+    }
+    if (dom.entryNote) {
+      dom.entryNote.textContent = note || 'AI 會持續同步狀態並透過 LINE 通知你。';
+    }
+  }
+
+  function isReviewsFallback(payload = {}, report = {}) {
+    const status = payload.status || {};
+    const reviewsStatus = status.reviews || status.review || {};
+    const dataSources = report.data_sources || report.dataSources || {};
+    const flags = [
+      report.reviews_fallback,
+      report.reviewsFallback,
+      dataSources.reviews_fallback,
+      dataSources.reviewsFallback,
+      reviewsStatus.fallback,
+      status.reviews_fallback,
+      status.reviewsFallback,
+      payload.meta?.reviews_fallback,
+    ];
+
+    if (flags.some(Boolean)) return true;
+
+    const providers = [
+      report.reviews_provider,
+      report.reviewsProvider,
+      report.reviews_source,
+      reviewsStatus.provider,
+      reviewsStatus.source,
+      status.reviews_provider,
+      status.reviewsProvider,
+      status.reviews_source,
+      dataSources.reviews,
+    ].filter(Boolean).map((value) => String(value).toLowerCase());
+
+    return providers.some((value) => value.includes('google_place') || value.includes('fallback'));
+  }
+
+  function canLaunchAssistant() {
+    return Boolean(state.assistantEntryUrl || state.assistantUrl);
+  }
+
+  function setPrimaryLoading(isLoading, loadingLabel = '生成中…') {
     if (!dom.ctaPrimary) return;
-
-    let label = 'AI 守護專家';
-    let href = '#';
-
-    switch (action) {
-      case 'line':
-        label = '回到 LINE';
-        href = lineFallbackUrl;
-        break;
-      case 'refresh':
-        label = '重新整理';
-        href = '#';
-        break;
-      case 'report':
-        label = '查看完整報表';
-        href = state.reportPageUrl || '#';
-        if (typeof disabled === 'undefined') {
-          state.primaryDisabled = !state.reportPageUrl;
-        }
-        break;
-      case 'assistant':
-      default:
-        label = 'AI 守護專家';
-        href = '#';
-        if (typeof disabled === 'undefined') {
-          state.primaryDisabled = !hasAssistantEntry();
-        }
-        break;
+    if (isLoading) {
+      dom.ctaPrimary.classList.add('btn--loading', 'btn--disabled');
+      dom.ctaPrimary.disabled = true;
+      dom.ctaPrimary.setAttribute('aria-disabled', 'true');
+      dom.ctaPrimary.setAttribute('aria-busy', 'true');
+      dom.ctaPrimary.textContent = loadingLabel;
+      return;
     }
 
-    state.primaryHref = href || '#';
-    const isDisabled = state.primaryLoading || state.primaryDisabled;
+    dom.ctaPrimary.classList.remove('btn--loading');
+    dom.ctaPrimary.removeAttribute('aria-busy');
+    updatePrimaryAction(state.primaryAction);
+  }
+
+  function updatePrimaryAction(action, { disabled } = {}) {
+    const resolvedAction = action || 'assistant';
+    state.primaryAction = resolvedAction;
+
+    if (!dom.ctaPrimary) {
+      return;
+    }
+
+    let label = '生成正式入場券';
+    let derivedDisabled = disabled;
+
+    if (resolvedAction === 'line') {
+      label = '回到 LINE';
+      derivedDisabled = derivedDisabled ?? !lineFallbackUrl;
+    } else if (resolvedAction === 'refresh') {
+      label = '重新整理';
+      derivedDisabled = derivedDisabled ?? false;
+    } else {
+      state.primaryAction = 'assistant';
+      label = '生成正式入場券';
+      derivedDisabled = derivedDisabled ?? !canLaunchAssistant();
+    }
+
+    state.primaryLabel = label;
+    dom.ctaPrimary.dataset.action = state.primaryAction;
     dom.ctaPrimary.textContent = label;
+    const isDisabled = Boolean(derivedDisabled);
+    dom.ctaPrimary.disabled = isDisabled;
     dom.ctaPrimary.classList.toggle('btn--disabled', isDisabled);
     dom.ctaPrimary.setAttribute('aria-disabled', isDisabled ? 'true' : 'false');
-    dom.ctaPrimary.setAttribute('aria-busy', state.primaryLoading ? 'true' : 'false');
-    if (isDisabled || !href) {
-      dom.ctaPrimary.removeAttribute('href');
-    } else {
-      dom.ctaPrimary.setAttribute('href', state.primaryHref);
-    }
   }
 
   function toggleEmptyState(element, hasContent) {
@@ -255,89 +281,97 @@
     element.hidden = hasContent;
   }
 
-  async function launchAssistant(source = 'report') {
-    if (state.primaryLoading) return;
-
-    const entryUrl = state.assistantEntryUrl;
-    const fallbackUrl = state.assistantUrl;
+  async function openAssistant(source = 'report') {
+    const entryUrl = state.assistantEntryUrl || assistantEntryUrlDefault;
+    const fallbackUrl = state.assistantUrl || assistantUrlDefault;
 
     if (!entryUrl && !fallbackUrl) {
-      showToast('守護專家暫時無法連線，請稍後再試。');
-      refreshPrimaryAction('line');
+      showToast('守護專家暫時無法連線', 1800);
+      return;
+    }
+
+    if (entryUrl) {
+      setPrimaryLoading(true);
+      const requestBody = {
+        lead_id: state.leadId || '',
+        report_token: state.token || '',
+        report_page_url: state.reportPageUrl || window.location.href,
+      };
+
+      try {
+        logEvent('cta_click', {
+          action: 'assistant',
+          lead_id: state.leadId,
+          template_id: state.templateId,
+          source,
+          channel: 'entry_pass',
+        });
+
+        const response = await fetch(entryUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
+        });
+
+        const raw = await response.text();
+        if (!response.ok) {
+          const error = new Error(raw || response.statusText);
+          error.status = response.status;
+          throw error;
+        }
+
+        let data = {};
+        if (raw) {
+          try {
+            data = JSON.parse(raw);
+          } catch (parseError) {
+            console.warn('[assistant] 無法解析回應', parseError);
+          }
+        }
+
+        const targetUrl = data.deeplink
+          || data.redirect_url
+          || data.redirectUrl
+          || data.assistant_url
+          || data.assistantUrl
+          || data.url
+          || (typeof data === 'string' ? data : '');
+
+        if (!targetUrl) {
+          throw new Error('缺少導向網址');
+        }
+
+        logEvent('assistant_launch', {
+          channel: 'entry_pass',
+          lead_id: state.leadId,
+          template_id: state.templateId,
+          source,
+        });
+        window.location.href = targetUrl;
+        return;
+      } catch (error) {
+        console.error('[assistant] entry request failed', error);
+        logEvent('assistant_entry_error', {
+          lead_id: state.leadId,
+          template_id: state.templateId,
+          source,
+          message: error?.message || String(error),
+        });
+        showToast('守護專家暫時無法連線', 1800);
+      } finally {
+        setPrimaryLoading(false);
+      }
       return;
     }
 
     logEvent('cta_click', {
-      action: 'assistant_entry',
+      action: 'assistant',
       lead_id: state.leadId,
       template_id: state.templateId,
       source,
+      channel: 'fallback',
     });
-
-    if (!entryUrl && fallbackUrl) {
-      window.location.href = fallbackUrl;
-      return;
-    }
-
-    setPrimaryLoading(true);
-    try {
-      const headers = { 'Content-Type': 'application/json' };
-      const payload = {
-        lead_id: state.leadId || '',
-        report_token: state.token || '',
-        report_page_url: window.location.href,
-      };
-      const response = await fetch(entryUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payload),
-      });
-      const text = await response.text();
-      if (!response.ok) {
-        const error = new Error(text || response.statusText || 'assistant_entry_failed');
-        error.status = response.status;
-        throw error;
-      }
-
-      let target = '';
-      if (text) {
-        try {
-          const parsed = JSON.parse(text);
-          target = resolveAssistantTarget(parsed);
-          if (!target && typeof parsed === 'string') {
-            target = resolveAssistantTarget(parsed);
-          }
-        } catch (parseError) {
-          target = resolveAssistantTarget(text);
-        }
-      }
-
-      if (!target && fallbackUrl) {
-        target = fallbackUrl;
-      }
-
-      if (!target) {
-        throw new Error('missing_assistant_redirect');
-      }
-
-      logEvent('assistant_entry_resolved', {
-        lead_id: state.leadId,
-        template_id: state.templateId,
-        target_type: target.startsWith('line://') ? 'deeplink' : 'url',
-      });
-      window.location.href = target;
-    } catch (error) {
-      console.error('[report] assistant entry failed', error);
-      logEvent('assistant_entry_failed', {
-        lead_id: state.leadId,
-        template_id: state.templateId,
-        error: error?.message || String(error),
-      });
-      showToast('守護專家暫時無法連線，請稍後再試。');
-    } finally {
-      setPrimaryLoading(false);
-      refreshPrimaryAction();
-    }
+    window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
   }
 
   function setView({ skeleton = false, loading = false, content = false, error = false }) {
@@ -493,8 +527,6 @@
     if (goalLabelRaw) preferenceSummaryParts.push(`目標鎖定「${goalLabel}」`);
     if (toneLabelRaw) preferenceSummaryParts.push(`語氣採用「${toneLabel}」`);
 
-    const storeRating = toNumber(report.store_rating ?? report.rating_now ?? report.rating ?? report.score);
-    const ratingDisplay = storeRating != null ? `${formatRatingValue(storeRating)} ★` : '';
     const reviewsTotal = toNumber(report.store_review_count ?? report.reviews_total ?? report.reviews ?? report.review_count);
     const reviewsText = reviewsTotal != null ? formatNumber(reviewsTotal) : '';
     const latestReview = resolveText(report.latest_review_summary, report.review_highlight, report.review_summary);
@@ -509,83 +541,126 @@
     const gainMessage = gainEstimate
       ? `把握本週機會，可望挽回 ${formatCurrency(gainEstimate)}。`
       : `看看我能為 ${storeLabel} 挽回多少營收。`;
+    const reviewsFallback = isReviewsFallback(payload, report);
 
     const assistantFromPayload = payload.assistant_url
-      || payload.assistantUrl
       || payload.trial_url
       || payload.links?.assistant
       || payload.links?.assistant_url
       || '';
     const assistantEntryFromPayload = payload.assistant_entry_url
-      || payload.assistantEntryUrl
       || payload.links?.assistant_entry
       || payload.links?.assistant_entry_url
+      || report.assistant_entry_url
       || '';
 
     state.templateId = psychology.template_id || payload.template_id || 'unknown';
     state.leadId = payload.lead_id || state.leadId;
-    if (assistantEntryFromPayload) {
-      state.assistantEntryUrl = assistantEntryFromPayload;
-    }
     if (assistantFromPayload) {
       state.assistantUrl = assistantFromPayload;
     }
-    refreshPrimaryAction();
+    if (assistantEntryFromPayload) {
+      state.assistantEntryUrl = assistantEntryFromPayload;
+    }
+
+    const schemaMetric = pickMetric
+      ? pickMetric(report.metrics, ['schema_score', 'schema'])
+        || pickMetric(report.metrics?.overview, ['schema_score', 'schema'])
+        || pickMetric(report.kpi, ['schema_score', 'schema'])
+      : null;
+    const schemaValueRaw = schemaMetric?.value
+      ?? report.schema_score
+      ?? report.schemaScore
+      ?? report.schema?.score
+      ?? report.metrics?.schema_score
+      ?? report.metrics?.schema?.score;
+    const schemaDisplay = formatScoreDisplay(schemaValueRaw);
+    const schemaHint = resolveText(
+      schemaMetric?.hint,
+      schemaMetric?.raw?.hint,
+      schemaMetric?.raw?.note,
+      report.schema_hint,
+      report.schema?.hint,
+      schemaDisplay ? `${storeLabel} 的結構化資料已同步` : 'Schema 結構化資料檢測中',
+    );
+
+    const visibilityMetric = pickMetric
+      ? pickMetric(report.metrics, ['ai_visibility_score', 'visibility_score', 'ai_visibility'])
+        || pickMetric(report.metrics?.overview, ['ai_visibility_score', 'visibility_score', 'ai_visibility'])
+        || pickMetric(report.kpi, ['ai_visibility_score', 'visibility_score'])
+      : null;
+    const visibilityValueRaw = visibilityMetric?.value
+      ?? report.ai_visibility_score
+      ?? report.aiVisibilityScore
+      ?? report.ai_visibility?.score
+      ?? report.visibility_score;
+    const visibilityDisplay = formatScoreDisplay(visibilityValueRaw);
+    const visibilityHint = resolveText(
+      visibilityMetric?.hint,
+      visibilityMetric?.raw?.hint,
+      visibilityMetric?.raw?.note,
+      report.ai_visibility_hint,
+      report.visibility_hint,
+      visibilityDisplay ? 'AI 可見度已完成評估' : 'AI 正在評估可見度',
+    );
+
+    const reviewMetric = pickMetric
+      ? pickMetric(report.metrics, ['review_health', 'reviews_health', 'review_health_score'])
+        || pickMetric(report.metrics?.overview, ['review_health', 'reviews_health', 'review_health_score'])
+        || pickMetric(report.kpi, ['review_health'])
+      : null;
+    const reviewValueRaw = reviewMetric?.value
+      ?? report.review_health
+      ?? report.reviews_health
+      ?? report.review_health_score
+      ?? report.metrics?.review_health
+      ?? report.metrics?.review?.health;
+    let reviewDisplay = formatScoreDisplay(reviewValueRaw);
+    if (!reviewDisplay && typeof reviewValueRaw === 'string' && reviewValueRaw.trim()) {
+      reviewDisplay = reviewValueRaw.trim();
+    }
+    const reviewHint = resolveText(
+      reviewMetric?.hint,
+      reviewMetric?.raw?.hint,
+      reviewMetric?.raw?.note,
+      report.review_health_hint,
+      report.reviews_health_hint,
+      reviewDisplay ? '評論健康度已更新' : '評論健康度同步中',
+    );
+
+    if (dom.heroSchema) {
+      setHeroKpi(dom.heroSchema, dom.heroSchemaHint, schemaDisplay, schemaHint);
+    }
+    if (dom.heroVisibility) {
+      setHeroKpi(dom.heroVisibility, dom.heroVisibilityHint, visibilityDisplay, visibilityHint);
+    }
+    if (dom.heroReview) {
+      setHeroKpi(dom.heroReview, dom.heroReviewHint, reviewDisplay, reviewHint);
+    }
 
     if (dom.cognosEyebrow) {
-      dom.cognosEyebrow.textContent = `Hi ${nickname}，我是 Cognos`;
+      const greetingName = nickname || '星級引擎夥伴';
+      dom.cognosEyebrow.textContent = `Hi ${greetingName}，我是你的入場券顧問 Cognos`;
     }
     if (dom.cognosTitle) {
-      dom.cognosTitle.textContent = `${storeLabel} 關鍵摘要`;
+      dom.cognosTitle.textContent = `${storeLabel} 入場券預覽摘要`;
     }
     const locationText = city ? `${city} 的競品與評論` : '附近的競品與評論';
     if (dom.cognosSubtitle) {
       dom.cognosSubtitle.textContent = reviewHighlight
         ? `最新評論：${reviewHighlight}`
-        : `我正持續整理 ${locationText}，完成後立刻通知你。`;
+        : `我已同步 ${locationText} 與可見度模型，完成後立即通知你。`;
     }
 
-    if (dom.heroRating) {
-      dom.heroRating.textContent = ratingDisplay || '—';
-    }
-    if (dom.heroRatingHint) {
-      dom.heroRatingHint.textContent = ratingDisplay
-        ? `${storeLabel} 最新 Google 星等`
-        : `${storeLabel} 星等同步中`;
-    }
-    if (dom.heroReviews) {
-      dom.heroReviews.textContent = reviewsText ? `${reviewsText} 則` : '—';
-    }
-    if (dom.heroReviewsHint) {
-      dom.heroReviewsHint.textContent = reviewsText
-        ? `${storeLabel} 評論總數即時更新`
-        : `${storeLabel} 評論整理中`;
-    }
     if (dom.heroNote) {
-      const heroLines = [`30 秒初檢已完成，${locationDisplay} 的關鍵摘要如下。`];
-      if (preferenceSummaryParts.length) {
-        heroLines.push(`${preferenceSummaryParts.join('，')}。`);
-      }
-      dom.heroNote.textContent = heroLines.join(' ');
+      const noteCity = city ? `${city} 門市` : storeLabel;
+      dom.heroNote.textContent = `AI 已完成 ${noteCity} 的入場券初審，以下是你的即時摘要。`;
     }
 
-    if (dom.alertLoss) {
-      dom.alertLoss.textContent = lossMessage;
-    }
-    if (dom.alertGain) {
-      dom.alertGain.textContent = gainMessage;
-    }
-
-    if (dom.prefs) {
-      dom.prefGoal.textContent = `目標：${goalLabel}`;
-      dom.prefTone.textContent = `語氣：${toneLabel}`;
+    if (dom.prefs && dom.prefGoalText && dom.prefToneText) {
+      dom.prefGoalText.textContent = goalLabelRaw ? `目前策略：${goalLabel}` : '目前策略：尚未設定';
+      dom.prefToneText.textContent = toneLabelRaw ? `語氣設定：${toneLabel}` : '語氣設定：尚未設定';
       dom.prefs.hidden = false;
-    }
-
-    if (dom.trust) {
-      dom.trust.textContent = preferenceSummaryParts.length
-        ? `${preferenceSummaryParts.join('，')}，後續推播會依此設定。`
-        : `${storeLabel} 的偏好設定已保存，報表更新會即時通知。`;
     }
 
     const metricsRendered = renderMetrics && dom.metrics
@@ -598,84 +673,39 @@
       : [];
     toggleEmptyState(dom.competitorsEmpty, competitorsRendered && competitorsRendered.length > 0);
 
-    const riskGapMetric = pickMetric
-      ? pickMetric(report.metrics, ['risk_gap_percent', 'risk_gap_percentage', 'risk_gap'])
-        || pickMetric(report.metrics?.overview, ['risk_gap_percent', 'risk_gap_percentage', 'risk_gap'])
-        || pickMetric(report.kpi, ['risk_gap_percent', 'risk_gap_percentage', 'risk_gap'])
-      : null;
-    let riskGapPercent = riskGapMetric ? normalizePercentValue(riskGapMetric.value) : null;
-    if (riskGapPercent == null && typeof report.metrics === 'object' && !Array.isArray(report.metrics)) {
-      riskGapPercent = normalizePercentValue(
-        report.metrics.risk_gap_percent
-        ?? report.metrics.risk_gap_percentage
-        ?? report.metrics.risk_gap,
-      );
-    }
-    const riskGapTarget = resolveText(
-      riskGapMetric?.target,
-      riskGapMetric?.raw?.target,
-      riskGapMetric?.raw?.name,
-      report.metrics?.risk_gap_target,
-      report.metrics?.top_competitor_name,
-    );
-    const riskGapHint = resolveText(
-      riskGapMetric?.hint,
-      riskGapMetric?.raw?.note,
-      riskGapMetric?.raw?.description,
-      report.metrics?.risk_gap_hint,
-      report.metrics?.risk_gap_description,
-    );
-
-    const ratingNumber = storeRating;
     const topCompetitor = competitorsRendered[0];
-    const competitorRating = toNumber(topCompetitor?.rating);
-    let gapValue = '—';
-    let gapHint = riskGapHint || `${riskGapTarget || topCompetitor?.name || '競品'} 資料整理中`;
-    let gapDescription = '';
 
-    if (riskGapPercent != null) {
-      const label = percentLabel(riskGapPercent);
-      const competitorName = riskGapTarget || topCompetitor?.name || '主要競品';
-      if (Math.abs(riskGapPercent) < 0.5) {
-        gapValue = '與競品持平';
-        gapHint = `${competitorName} 差距小於 1%`;
-        gapDescription = `與 ${competitorName} 幾乎持平`;
-      } else if (riskGapPercent > 0) {
-        gapValue = `落後 ${label}`;
-        gapHint = riskGapHint || `${competitorName} 暫時領先`;
-        gapDescription = `目前落後 ${competitorName} ${label}`;
-      } else {
-        gapValue = `領先 ${label}`;
-        gapHint = riskGapHint || `${competitorName} 差距正在擴大`;
-        gapDescription = `領先 ${competitorName} ${label}`;
-      }
-    } else if (ratingNumber != null && competitorRating != null) {
-      const diff = ratingNumber - competitorRating;
-      const diffAbs = Math.abs(diff);
-      const diffLabel = diffAbs ? diffAbs.toFixed(1).replace(/\.0$/, '') : '0';
-      const competitorName = topCompetitor?.name || '競品';
-      if (diffAbs < 0.05) {
-        gapValue = '與競品持平';
-        gapHint = `${competitorName} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
-        gapDescription = `與 ${competitorName} 持平`;
-      } else if (diff > 0) {
-        gapValue = `領先 ${diffLabel} ★`;
-        gapHint = `${competitorName} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
-        gapDescription = `領先 ${competitorName} ${diffLabel} ★`;
-      } else {
-        gapValue = `落後 ${diffLabel} ★`;
-        gapHint = `${competitorName} ${competitorRating.toFixed ? competitorRating.toFixed(1) : competitorRating} ★`;
-        gapDescription = `落後 ${competitorName} ${diffLabel} ★`;
-      }
-    }
+    const entryPassData = report.entry_pass || payload.entry_pass || payload.entryPass || {};
+    const entryStatusResolved = resolveText(
+      entryPassData.status,
+      report.entry_pass_status,
+      payload.entry_pass_status,
+      payload.status?.entry_pass,
+      reviewsFallback ? '評論同步中' : (schemaDisplay || visibilityDisplay || reviewDisplay ? '預覽完成' : '檢核中'),
+    );
+    const entryPrimaryResolved = resolveText(
+      entryPassData.headline,
+      entryPassData.primary,
+      entryPassData.summary,
+      report.entry_pass_primary,
+      lossMessage,
+      '正在建立入場券預覽',
+    );
+    const entryNoteResolved = resolveText(
+      entryPassData.note,
+      entryPassData.description,
+      report.entry_pass_note,
+      payload.entry_pass_note,
+      reviewsFallback ? '評論資料補齊後會立即推播通知你。' : gainMessage,
+    );
 
-    if (dom.heroGap) {
-      dom.heroGap.textContent = gapValue;
-    }
-    if (dom.heroGapHint) {
-      dom.heroGapHint.textContent = gapHint;
-    }
+    setEntryPassCard({
+      status: entryStatusResolved,
+      primary: entryPrimaryResolved,
+      note: entryNoteResolved,
+    });
 
+    const actionsRendered = renderActions && dom.actions
     const actionsRendered = renderActions && dom.actions
       ? renderActions(dom.actions, actionsSource, { emptyMessage: '' })
       : [];
@@ -687,14 +717,14 @@
         onCopy: async (text) => {
           try {
             await navigator.clipboard.writeText(text);
+            showToast('複製成功');
             logEvent('report_draft_copy', {
               lead_id: state.leadId,
               template_id: state.templateId,
             });
-            showToast('複製成功');
           } catch (error) {
             console.warn('[report] copy failed', error);
-            showToast('複製失敗，請稍後再試。');
+            showToast('複製失敗，請稍後再試');
           }
         },
       })
@@ -728,8 +758,6 @@
                 : ''
             }${
               topCompetitor.reviews != null ? ` ｜ ${formatNumber(topCompetitor.reviews)} 則` : ''
-            }${
-              gapDescription ? ` ｜ ${gapDescription}` : ''
             }`,
             96,
           ),
@@ -790,20 +818,6 @@
     const preferenceReminder = preferenceSummaryParts.length
       ? `${preferenceSummaryParts.join('，')}，我會依此協助。`
       : '';
-    const insightText = gapDescription
-      ? `${gapDescription}。${firstAction ? `建議優先處理：${truncateText(firstAction.text, 60)}` : '建議持續關注評論更新。'}`
-      : (metricsSummary?.text || actionsSummary?.text || draftSummary?.text || preferenceReminder || '我會持續監控評論與競品狀態。');
-
-    if (dom.heroInsight && dom.heroInsightText) {
-      if (insightText) {
-        dom.heroInsight.hidden = false;
-        dom.heroInsightText.textContent = insightText;
-      } else {
-        dom.heroInsight.hidden = true;
-        dom.heroInsightText.textContent = '';
-      }
-    }
-
     const resolvedReportUrl = payload.report_url
       || payload.links?.report
       || report.report_url
@@ -816,14 +830,14 @@
       base.searchParams.set('token', payload.report_token);
       state.reportPageUrl = base.toString();
     }
-    refreshPrimaryAction();
+    updatePrimaryAction('assistant');
   }
 
   function handleSuccess(payload) {
     renderReport(payload);
     setView({ content: true });
     state.retry = 0;
-    refreshPrimaryAction();
+    updatePrimaryAction('assistant');
     if (dom.indicator) {
       dom.indicator.textContent = '分析完成';
     }
@@ -842,13 +856,31 @@
 
   function handlePending(payload) {
     setView({ loading: true });
-    updatePrimaryAction('line', { disabled: false });
+    updatePrimaryAction('line');
     if (dom.indicator) {
-      dom.indicator.textContent = 'AI 整理中';
+      dom.indicator.textContent = '入場券資料整理中';
     }
-    if (dom.trust) {
-      dom.trust.textContent = '資料較多，我會完成後立刻通知你。';
+
+    setHeroKpi(dom.heroSchema, dom.heroSchemaHint);
+    setHeroKpi(dom.heroVisibility, dom.heroVisibilityHint);
+    setHeroKpi(dom.heroReview, dom.heroReviewHint);
+    if (dom.heroNote) {
+      dom.heroNote.textContent = '入場券預覽生成中，我會完成後立即通知你。';
     }
+    if (dom.cognosSubtitle) {
+      dom.cognosSubtitle.textContent = 'AI 正在彙整評論與可見度指標，請稍候幾秒。';
+    }
+
+    const etaSeconds = toNumber(payload?.status?.eta_seconds || payload?.status?.remaining_seconds || payload?.status?.eta || payload?.next_check);
+    const pendingStatus = etaSeconds != null
+      ? `入場券生成中（約 ${Math.max(Math.round(etaSeconds), 1)} 秒）`
+      : '入場券生成中';
+    setEntryPassCard({
+      status: pendingStatus,
+      primary: '資料同步中',
+      note: 'AI 正在整理入場券所需資料，完成後會透過 LINE 提醒你。',
+    });
+
     logEvent('report_load', {
       status: 'pending',
       lead_id: state.leadId,
@@ -859,8 +891,13 @@
     if (state.retry >= state.maxRetry) {
       setView({ error: true });
       if (dom.errorMessage) {
-        dom.errorMessage.textContent = '報表仍在生成，稍後會透過 LINE 通知你最新版本。';
+        dom.errorMessage.textContent = '入場券預覽仍在生成，稍後會透過 LINE 通知你最新版本。';
       }
+      setEntryPassCard({
+        status: '需要協助',
+        primary: '請稍後再試',
+        note: '我會透過 LINE 再次提醒你最新版本。',
+      });
       logEvent('report_load', {
         status: 'timeout',
         lead_id: state.leadId,
@@ -876,15 +913,26 @@
 
   function handleFailure(error) {
     setView({ error: true });
-    updatePrimaryAction('line', { disabled: false });
+    updatePrimaryAction('refresh');
     if (dom.indicator) {
       dom.indicator.textContent = '需要協助';
     }
-    if (dom.trust) {
-      dom.trust.textContent = '我正在重新整理資料，稍後會提醒你再次查看。';
+    setHeroKpi(dom.heroSchema, dom.heroSchemaHint);
+    setHeroKpi(dom.heroVisibility, dom.heroVisibilityHint);
+    setHeroKpi(dom.heroReview, dom.heroReviewHint);
+    setEntryPassCard({
+      status: '需要協助',
+      primary: '請稍後再試',
+      note: '我會稍後提醒你再次查看。',
+    });
+    if (dom.heroNote) {
+      dom.heroNote.textContent = '目前入場券整理遇到狀況，我會盡快為你補齊。';
+    }
+    if (dom.cognosSubtitle) {
+      dom.cognosSubtitle.textContent = '我正在與備援流程確認狀態，完成後會立即通知你。';
     }
     if (dom.errorMessage) {
-      dom.errorMessage.textContent = error?.message || '暫時載入不到報表，我會稍後提醒你再試一次。';
+      dom.errorMessage.textContent = error?.message || '暫時載入不到入場券預覽，我會稍後提醒你再試一次。';
     }
     logEvent('report_load', {
       status: 'failed',
@@ -896,7 +944,7 @@
 
   async function startFetch() {
     try {
-      updatePrimaryAction('line', { disabled: false });
+      updatePrimaryAction('line');
       if (!state.retry) {
         setView({ skeleton: true });
       }
@@ -905,7 +953,7 @@
       if (payload.status && typeof payload.status === 'object') {
         const stateValue = payload.status.state || payload.status;
         if (stateValue === 'failed') {
-          const message = payload.status.message || '生成報表失敗，請稍後再試。';
+          const message = payload.status.message || '生成入場券預覽失敗，請稍後再試。';
           throw new Error(message);
         }
       }
@@ -918,7 +966,7 @@
 
       const validation = validatePayload(payload);
       if (!validation.ok) {
-        throw new Error(validation.message || '報表內容缺失，請稍後再試。');
+        throw new Error(validation.message || '入場券內容缺失，請稍後再試。');
       }
 
       handleSuccess(payload);
@@ -930,22 +978,25 @@
   }
 
   if (dom.ctaPrimary) {
-    dom.ctaPrimary.addEventListener('click', (event) => {
-      const isDisabled = dom.ctaPrimary.classList.contains('btn--disabled');
+    dom.ctaPrimary.addEventListener('click', async (event) => {
+      const isDisabled = dom.ctaPrimary.classList.contains('btn--disabled')
+        || dom.ctaPrimary.getAttribute('aria-disabled') === 'true'
+        || dom.ctaPrimary.disabled;
       if (isDisabled) {
         event.preventDefault();
+        showToast('稍候幾秒，我正為你準備最新版。');
+        return;
+      }
+
+      if (state.primaryAction === 'assistant') {
+        event.preventDefault();
+        await openAssistant('report');
         return;
       }
 
       if (state.primaryAction === 'line') {
         event.preventDefault();
         closeToLine();
-        return;
-      }
-
-      if (state.primaryAction === 'assistant') {
-        event.preventDefault();
-        launchAssistant('report');
         return;
       }
 
@@ -962,25 +1013,7 @@
         return;
       }
 
-      if (state.primaryAction === 'report') {
-        logEvent('cta_click', {
-          action: 'open_report',
-          lead_id: state.leadId,
-          template_id: state.templateId,
-          source: 'report',
-        });
-        return;
-      }
-
       event.preventDefault();
-    });
-  }
-
-  if (dom.ctaSecondary) {
-    dom.ctaSecondary.addEventListener('click', (event) => {
-      event.preventDefault();
-      if (dom.ctaSecondary.classList.contains('btn--disabled')) return;
-      closeToLine();
     });
   }
 

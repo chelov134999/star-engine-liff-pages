@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI 入場券｜星級引擎預覽模板</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+      color: #0f172a;
+      background: #f8fbff;
+      line-height: 1.6;
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .shell {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 20px 80px;
+    }
+
+    header.hero {
+      background: linear-gradient(135deg, rgba(219, 234, 254, 0.95) 0%, rgba(191, 219, 254, 0.85) 100%);
+      padding: 48px;
+      border-radius: 28px;
+      box-shadow: 0 40px 80px -60px rgba(37, 99, 235, 0.35);
+      margin-bottom: 48px;
+    }
+
+    .hero h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2rem, 4vw, 2.8rem);
+    }
+
+    .hero p {
+      margin: 0 0 24px;
+      color: rgba(15, 23, 42, 0.74);
+      font-size: 1.05rem;
+    }
+
+    .hero .cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 14px;
+      background: #1d4ed8;
+      color: #fff;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.18s ease, box-shadow 0.2s ease;
+    }
+
+    .hero .cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 30px -24px rgba(29, 78, 216, 0.55);
+    }
+
+    section {
+      margin-bottom: 56px;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      margin-bottom: 18px;
+    }
+
+    .value-list,
+    .latest-list,
+    .faq-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .value-list li,
+    .latest-list li,
+    .faq-list li {
+      background: #fff;
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 22px 48px -40px rgba(15, 23, 42, 0.25);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+    }
+
+    .latest-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: rgba(15, 23, 42, 0.62);
+      margin-bottom: 6px;
+    }
+
+    details summary {
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    footer {
+      margin-top: 72px;
+      font-size: 0.85rem;
+      color: rgba(15, 23, 42, 0.52);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <h1>AI 入場券：先看預覽，再解鎖完整守護方案</h1>
+      <p>星級引擎會先蒐集您的門市資料、競品可見度，以及評論健康度，以 3 個核心指標建立入場券初審。正式版會以 LINE 推播同步，並由 AI 守護專家持續陪伴調校。</p>
+      <a class="cta" href="#">預約守護顧問</a>
+    </header>
+
+    <section>
+      <h2>入場券能帶來什麼？</h2>
+      <ul class="value-list">
+        <li>
+          <strong>Schema 結構分數</strong>
+          <p>偵測您的 Google 商家資料是否完整，缺漏欄位將在入場券中提出修復建議。</p>
+        </li>
+        <li>
+          <strong>AI 可見度</strong>
+          <p>結合競品距離、搜尋曝光與評論速度，衡量在地搜尋的出現機率。</p>
+        </li>
+        <li>
+          <strong>評論健康</strong>
+          <p>自動分類正負評論與關鍵字，估算流失風險並給出本週三件守護事項。</p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>最新三件事（假資料示意）</h2>
+      <ul class="latest-list">
+        <li>
+          <div class="latest-meta">
+            <span>2025-10-07</span>
+            <span>AI 可見度 +6%</span>
+          </div>
+          <p>完成 Schema 填補並新增 25 張菜單照片，搜尋點擊率連續 3 週成長。</p>
+        </li>
+        <li>
+          <div class="latest-meta">
+            <span>2025-10-01</span>
+            <span>評論健康 穩定</span>
+          </div>
+          <p>上週 18 筆評論已回覆，AI 建議本週聚焦「候位體驗」關鍵字的回覆語氣。</p>
+        </li>
+        <li>
+          <div class="latest-meta">
+            <span>2025-09-24</span>
+            <span>Schema 90 分</span>
+          </div>
+          <p>完成品牌敘述更新與 LINE 官方帳號連結，比對競品後獲得 2 份客製守護方案。</p>
+        </li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>常見問題</h2>
+      <ul class="faq-list">
+        <li>
+          <details>
+            <summary>入場券多久會生成？</summary>
+            <p>遞交資料後約 60 秒可看到預覽，正式版本會於完成後推播到 LINE。</p>
+          </details>
+        </li>
+        <li>
+          <details>
+            <summary>需要付費才能查看嗎？</summary>
+            <p>預覽版免費，若想持續守護則可升級 AI 守護方案，會由顧問與自動化流程接手。</p>
+          </details>
+        </li>
+        <li>
+          <details>
+            <summary>可以指定顧問處理嗎？</summary>
+            <p>正式入場券會附上顧問指派資訊，若有特別需求可在 LINE 聯繫專人協助。</p>
+          </details>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>此頁面為 AI 入場券公開模板示意，實際資料將由後端自動注入。</p>
+    </footer>
+  </div>
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "星級引擎 AI 入場券",
+      "description": "AI 協助蒐集 Schema、競品與評論資料，生成入場券預覽與守護建議。",
+      "brand": {
+        "@type": "Brand",
+        "name": "星級引擎"
+      },
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "TWD",
+        "price": "0",
+        "availability": "https://schema.org/PreOrder",
+        "url": "https://example.com/entry-pass"
+      },
+      "audience": {
+        "@type": "BusinessAudience",
+        "businessAudienceType": "Cafe & Restaurant"
+      }
+    }
+  </script>
+</body>
+</html>

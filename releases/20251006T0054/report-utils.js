@@ -24,6 +24,15 @@
     return `NT$${number.toLocaleString('zh-Hant-TW')}`;
   }
 
+  function formatScoreValue(value) {
+    if (value == null || value === '') return '';
+    const number = Number(value);
+    if (!Number.isFinite(number)) return String(value);
+    const normalized = Math.abs(number) <= 1 ? number * 100 : number;
+    const formatted = Number.isInteger(normalized) ? normalized : Number(normalized.toFixed(1));
+    return String(formatted);
+  }
+
   function canonicalKey(value) {
     if (value == null) return '';
     return String(value).trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -135,25 +144,48 @@
     const items = toArray(metrics).map((item) => {
       if (item && typeof item === 'object') {
         const label = item.label || item.title || item.name || item.id || '';
-        const value = item.value ?? item.score ?? item.amount ?? item.metric ?? '';
         const note = item.note || item.description || item.detail || '';
         const delta = item.delta ?? item.diff ?? item.change ?? '';
         const deltaLabel = item.delta_label || item.deltaLabel || '';
         const severity = item.severity || item.level || '';
         const currency = item.currency || '';
         const id = item.id || item.key || item.metric_id || item.metricId || item.slug || item.code || label;
+
+        const valueSources = [
+          ['value', item.value],
+          ['score', item.score],
+          ['amount', item.amount],
+          ['metric', item.metric],
+          ['count', item.count],
+          ['number', item.number],
+        ];
+        let rawValue = null;
+        let valueSource = '';
+        for (const [sourceKey, sourceValue] of valueSources) {
+          if (sourceValue !== null && sourceValue !== undefined && sourceValue !== '') {
+            rawValue = sourceValue;
+            valueSource = sourceKey;
+            break;
+          }
+        }
+
+        const hasValue = !(rawValue === null || rawValue === undefined || rawValue === '');
+
         return {
           id,
           label,
-          value,
+          value: rawValue,
           note,
           delta,
           deltaLabel,
           severity,
           currency,
+          valueSource,
+          pending: !hasValue,
           raw: item,
         };
       }
+      const hasValue = !(item === null || item === undefined || item === '');
       return {
         id: '',
         label: '',
@@ -163,6 +195,8 @@
         deltaLabel: '',
         severity: '',
         currency: '',
+        valueSource: '',
+        pending: !hasValue,
         raw: item,
       };
     });
@@ -179,6 +213,9 @@
       if (item.severity) {
         card.dataset.severity = item.severity;
       }
+      if (item.pending) {
+        card.classList.add('report-metric--pending');
+      }
 
       if (item.label) {
         const label = document.createElement('h3');
@@ -187,7 +224,22 @@
       }
 
       const value = document.createElement('p');
-      const displayValue = item.currency ? formatCurrency(item.value) : formatNumber(item.value) || item.value || '—';
+      let displayValue = '尚未同步';
+      if (!item.pending) {
+        if (item.currency) {
+          displayValue = formatCurrency(item.value) || '尚未同步';
+        } else if (item.valueSource === 'score') {
+          const scoreText = formatScoreValue(item.value);
+          displayValue = scoreText ? `${scoreText} 分` : '尚未同步';
+        } else {
+          const raw = item.value;
+          let formatted = formatNumber(raw);
+          if (!formatted && raw !== null && raw !== undefined && raw !== '') {
+            formatted = String(raw);
+          }
+          displayValue = formatted || '尚未同步';
+        }
+      }
       value.className = 'report-metric__value';
       value.textContent = displayValue;
       card.appendChild(value);
@@ -199,10 +251,10 @@
         card.appendChild(delta);
       }
 
-      if (item.note) {
+      if (item.note || item.pending) {
         const note = document.createElement('p');
         note.className = 'report-metric__note';
-        note.textContent = item.note;
+        note.textContent = item.pending ? '同步完成後立即補上。' : item.note;
         card.appendChild(note);
       }
 
@@ -245,9 +297,12 @@
       return [];
     }
 
-    items.forEach((item) => {
+    items.forEach((item, index) => {
       const li = document.createElement('li');
       li.className = 'report-competitor';
+      if (index === 0) {
+        li.classList.add('report-competitor--leader');
+      }
 
       const name = document.createElement('strong');
       name.textContent = item.name;
@@ -319,9 +374,12 @@
       return [];
     }
 
-    items.forEach((item) => {
+    items.forEach((item, index) => {
       const li = document.createElement('li');
       li.className = 'report-action';
+      if (index === 0) {
+        li.classList.add('report-action--primary');
+      }
 
       const text = document.createElement('p');
       text.className = 'report-action__text';
@@ -422,6 +480,7 @@
   ReportUtils.renderDrafts = renderDrafts;
   ReportUtils.formatNumber = formatNumber;
   ReportUtils.formatCurrency = formatCurrency;
+  ReportUtils.formatScoreValue = formatScoreValue;
   ReportUtils.pickMetric = pickMetric;
 
   global.ReportUtils = ReportUtils;

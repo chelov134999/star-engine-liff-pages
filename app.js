@@ -16,9 +16,9 @@ const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 const ANALYSIS_COUNTDOWN_SECONDS = 60;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
-  'AI 正在整理你的評論與競品差距…',
-  '等候時可以想好想追蹤的競品，我會一併分析。',
-  '選擇語氣後，我會提供貼近門市風格的草稿。'
+  '我正在蒐集入場券需要的門市資料與評論樣本。',
+  '同時分析商圈與競品差距，建立可見度模型。',
+  '接著套用語氣偏好，準備正式入場券草稿。'
 ];
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
@@ -27,8 +27,8 @@ const TRANSITION_TIPS = [
   '套用您選擇的語氣與優先要務…',
   '整理趨勢後，將自動載入專屬設定。',
 ];
-const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送通知。';
-const DATAFORSEO_TIMEOUT_NOTE = '已先交付 Google 資料，評論補齊後會再次通知你。';
+const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送正式入場券通知。';
+const DATAFORSEO_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會再次通知你。';
 
 const logEvent = (...args) => {
   if (typeof window.logEvent === 'function') {
@@ -38,9 +38,9 @@ const logEvent = (...args) => {
 
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
-  { percent: 45, label: '資料收集中… 進度 45%', eta: '最近 7 天評論載入中' },
-  { percent: 60, label: '正在比對競品差距… 進度 60%', eta: '附近競品完成定位' },
-  { percent: 75, label: '生成專屬草稿… 進度 75%', eta: '我正撰寫回覆草稿與建議' }
+  { percent: 45, label: '蒐集 AI 入場券資料… 進度 45%', eta: '近 7 天評論與商圈資料載入中' },
+  { percent: 60, label: 'AI 可見度分析… 進度 60%', eta: '完成競品比對與模型建置' },
+  { percent: 75, label: '套用語氣偏好… 進度 75%', eta: '撰寫本週行動與草稿' }
 ];
 const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
@@ -272,7 +272,7 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
     : 0;
   const showAlmostDone = safePercent >= 90 && elapsedSinceNinety >= NINETY_HINT_DELAY_MS;
 
-  let label = stageLabel || `資料收集中… 進度 ${safePercent}%`;
+  let label = stageLabel || `蒐集 AI 入場券資料… 進度 ${safePercent}%`;
   if (showAlmostDone) {
     label = '快完成… 智能體正在整理結果';
   }
@@ -449,7 +449,7 @@ function resetProgressUI() {
     els.progressBarS3.style.width = '0%';
   }
 
-  const baseLabel = '資料收集中… 進度 0%';
+  const baseLabel = '蒐集 AI 入場券資料… 進度 0%';
   const baseEta = '正在準備最新評論與競品資料';
 
   if (els.progressLabelS2) {
@@ -673,7 +673,7 @@ async function handleLeadSubmit(event) {
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
     setStage('s0');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '啟動 AI 初檢';
+    els.submitBtn.textContent = '送出入場券申請';
   }
 }
 
@@ -718,7 +718,7 @@ function startTransitionToQuiz() {
     stopTransitionTips();
     setStage('s2');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '啟動 AI 初檢';
+    els.submitBtn.textContent = '送出入場券申請';
     resetProgressUI();
     state.transition.started = false;
   }, TRANSITION_DURATION_MS);
@@ -1290,7 +1290,7 @@ function resetFlow() {
   }
   if (els.submitBtn) {
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '啟動 AI 初檢';
+    els.submitBtn.textContent = '送出入場券申請';
   }
   if (els.quizForm) {
     els.quizForm.reset();
@@ -1312,13 +1312,13 @@ function resetFlow() {
 
 function redirectToReport() {
   if (!reportUrl) {
-    showToast('尚未設定報表頁面', 2000);
+    showToast('尚未設定入場券預覽頁面', 2000);
     return;
   }
 
   const token = state.reportToken || state.report?.token || '';
   if (!token) {
-    showToast('報表尚未準備完成，請稍後再試。', 2000);
+    showToast('入場券尚未準備完成，請稍後再試。', 2000);
     return;
   }
 
@@ -1335,22 +1335,26 @@ function redirectToReport() {
     source: 'preview',
   });
 
-  const targetUrl = state.reportPageUrl;
-  let externalAttempted = false;
+  openReportWindow(state.reportPageUrl);
+}
 
-  try {
-    if (window.liff?.openWindow) {
-      window.liff.openWindow({ url: targetUrl, external: true });
+function openReportWindow(targetUrl) {
+  if (!targetUrl) return false;
+
+  let externalAttempted = false;
+  const { liff } = window;
+  if (liff && typeof liff.openWindow === 'function') {
+    try {
+      liff.openWindow({ url: targetUrl, external: true });
       externalAttempted = true;
+    } catch (error) {
+      console.warn('[liff] openWindow failed', error);
     }
-  } catch (error) {
-    console.warn('[liff] openWindow failed, fallback to location.href', error);
-    externalAttempted = false;
   }
 
   if (!externalAttempted) {
     window.location.href = targetUrl;
-    return;
+    return true;
   }
 
   window.setTimeout(() => {
@@ -1358,12 +1362,14 @@ function redirectToReport() {
       window.location.href = targetUrl;
     }
   }, 600);
+
+  return true;
 }
 
 function handleSecondaryCta(event) {
   event?.preventDefault?.();
   if (!state.sampleUrl) {
-    showToast('樣本報表準備中');
+    showToast('樣本入場券準備中');
     return;
   }
   window.open(state.sampleUrl, '_blank');

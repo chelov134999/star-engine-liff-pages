@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20251006T2350" />
+  <link rel="stylesheet" href="styles.css?v=20251007T0900" />
 </head>
 <body class="page--info page--report">
   <main class="info-shell report-shell" id="report-app">
@@ -17,59 +17,63 @@
           <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
-        <div class="report-hero__indicator-group"><span class="report-hero__indicator" id="report-indicator">AI 守護中</span><a class="report-hero__link" href="index.html?v=20251006T0054">返回初檢</a></div>
+        <div class="report-hero__indicator-group"><span class="report-hero__indicator" id="report-indicator">AI 入場券預覽</span><a class="report-hero__link" href="index.html?v=20251007T0900">返回申請</a></div>
       </div>
 
-      <div class="report-hero__panel">
+      <div class="report-hero__layout">
         <div class="report-hero__kpis">
           <article class="report-hero__kpi">
-            <span class="report-hero__kpi-label">Google 星等</span>
-            <strong class="report-hero__kpi-value" id="hero-rating">—</strong>
-            <span class="report-hero__kpi-hint" id="hero-rating-hint">同步中</span>
+            <span class="report-hero__kpi-label">Schema 結構分數</span>
+            <strong class="report-hero__kpi-value" id="hero-schema">尚未同步</strong>
+            <span class="report-hero__kpi-hint" id="hero-schema-hint">檢測中</span>
           </article>
           <article class="report-hero__kpi">
-            <span class="report-hero__kpi-label">評論總數</span>
-            <strong class="report-hero__kpi-value" id="hero-reviews">—</strong>
-            <span class="report-hero__kpi-hint" id="hero-reviews-hint">評論整理中</span>
+            <span class="report-hero__kpi-label">AI 可見度</span>
+            <strong class="report-hero__kpi-value" id="hero-visibility">尚未同步</strong>
+            <span class="report-hero__kpi-hint" id="hero-visibility-hint">分析可見度</span>
           </article>
           <article class="report-hero__kpi">
-            <span class="report-hero__kpi-label">競品差距</span>
-            <strong class="report-hero__kpi-value" id="hero-gap">—</strong>
-            <span class="report-hero__kpi-hint" id="hero-gap-hint">競品比較載入中</span>
+            <span class="report-hero__kpi-label">評論健康</span>
+            <strong class="report-hero__kpi-value" id="hero-review">尚未同步</strong>
+            <span class="report-hero__kpi-hint" id="hero-review-hint">評論整理中</span>
           </article>
         </div>
-        <p class="report-hero__note" id="hero-note">30 秒初檢已完成，這是你的關鍵摘要。</p>
+        <aside class="report-hero-crisis" id="hero-crisis">
+          <div class="report-hero-crisis__header">
+            <span class="report-hero-crisis__label">入場券狀態</span>
+            <span class="report-hero-crisis__status" id="entry-status">檢核中</span>
+          </div>
+          <p class="report-hero-crisis__primary" id="entry-primary">正在生成入場券預覽</p>
+          <p class="report-hero-crisis__note" id="entry-note">AI 會依狀態即時通知你並更新結果。</p>
+        </aside>
       </div>
+      <p class="report-hero__note" id="hero-note">AI 已完成入場券預覽，以下是為你整理的關鍵摘要。</p>
 
       <article class="report-hero-card" id="cognos-card">
         <div class="report-hero-card__media">
-          <img class="report-hero-card__avatar" src="cognos-avatar.svg" alt="Cognos AI 顧問頭像" width="72" height="72" />
+          <img class="report-hero-card__avatar" src="cognos-avatar.svg" alt="Cognos AI 顧問頭像" width="48" height="48" />
         </div>
         <div class="report-hero-card__body">
-          <p class="report-hero-card__eyebrow" id="cognos-eyebrow">Hi 店長，我是 Cognos</p>
-          <h1 class="report-hero-card__title" id="cognos-title">你的最新動態已更新</h1>
-          <p class="report-hero-card__subtitle" id="cognos-subtitle">我會持續監控差距與評論，若有異動立即通知你。</p>
+          <p class="report-hero-card__eyebrow" id="cognos-eyebrow">Hi 星級引擎夥伴，我是你的入場券顧問 Cognos</p>
+          <h1 class="report-hero-card__title" id="cognos-title">你的 AI 入場券預覽已生成</h1>
+          <p class="report-hero-card__subtitle" id="cognos-subtitle">我已同步商圈、評論與可見度模型，後續異動會第一時間提醒你。</p>
         </div>
       </article>
 
       <article class="report-hero-card report-hero-card--prefs" id="report-preferences" hidden>
-        <span class="report-preferences__item" id="pref-goal">目標：—</span>
-        <span class="report-preferences__item" id="pref-tone">語氣：—</span>
+        <span class="pref-pill pref-pill--strategy" id="pref-goal">
+          <span class="pref-pill__icon" aria-hidden="true">🛡️</span>
+          <span class="pref-pill__text" id="pref-goal-text">目前策略：緊急止血</span>
+        </span>
+        <span class="pref-pill pref-pill--tone" id="pref-tone">
+          <span class="pref-pill__icon" aria-hidden="true">💬</span>
+          <span class="pref-pill__text" id="pref-tone-text">語氣設定：直球安心</span>
+        </span>
       </article>
 
-      <div class="report-hero__alerts" id="report-alerts">
-        <div class="report-alert report-alert--loss" id="alert-loss">若不處理，預估流失金額尚待計算。</div>
-        <div class="report-alert report-alert--gain" id="alert-gain">看看我能為你挽回多少營收。</div>
-      </div>
-
-      <div class="report-hero__insight" id="hero-insight" hidden>
-        <span class="report-hero__insight-label">顧問提醒</span>
-        <p class="report-hero__insight-text" id="hero-insight-text"></p>
-      </div>
-
       <div class="report-hero__cta" id="report-cta">
-        <a id="cta-primary" class="btn btn--primary" href="#">AI 守護專家</a>
-        <a id="cta-assistant" class="btn btn--outline" href="#">回到 LINE</a>
+        <button id="cta-primary" class="btn btn--primary" type="button">生成正式入場券</button>
+        <a id="cta-line" class="report-cta__link" href="#" target="_blank" rel="noopener">回到 LINE</a>
       </div>
     </section>
 
@@ -86,12 +90,12 @@
         <span class="loading-indicator__dot"></span>
         <span class="loading-indicator__dot"></span>
       </div>
-      <p class="loading-copy">評論補齊中，稍後會推播提醒。</p>
+      <p class="loading-copy">入場券生成中，稍後會推播提醒。</p>
       <button id="btn-return-line" type="button" class="btn btn--ghost">回到 LINE</button>
     </section>
 
     <section class="report-error" id="report-error" hidden role="alert">
-      <h2>目前資料仍在整理</h2>
+      <h2>入場券仍在整理中</h2>
       <p id="report-error-message">我已重新整理資料，完成後會透過 LINE 提醒你。</p>
       <button id="error-retry" type="button" class="btn btn--primary">重新整理</button>
       <button id="error-return-line" type="button" class="btn btn--outline">回到 LINE</button>
@@ -148,12 +152,13 @@
     </section>
   </main>
 
-  <div class="toast" id="report-toast" hidden aria-live="polite" aria-atomic="true"></div>
+  <div class="toast" id="report-toast" role="status" aria-live="assertive"></div>
 
-  <script src="config.runtime.js?v=20251006T2350"></script>
-  <script src="config.js?v=20251006T2350"></script>
-  <script src="report-utils.js?v=20251006T2350"></script>
-  <script src="analytics.js?v=20251006T2350"></script>
-  <script src="report.js?v=20251006T2350"></script>
+  
+  <script src="config.runtime.js?v=20251007T0900"></script>
+  <script src="config.js?v=20251007T0900"></script>
+  <script src="report-utils.js?v=20251007T0900"></script>
+  <script src="analytics.js?v=20251007T0900"></script>
+  <script src="report.js?v=20251007T0900"></script>
 </body>
 </html>

@@ -14,21 +14,21 @@ const assistantUrl = config.trialUrl || config.trial_url || '';
 const ANALYSIS_COUNTDOWN_SECONDS = 20;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
-  '我先幫你比對最近的評論走勢與關鍵字。',
-  '同時整理同商圈的競品星等與評論量。',
-  '接著套用語氣偏好，準備專屬回覆草稿。'
+  '我正在蒐集入場券需要的門市資料與評論樣本。',
+  '同時分析商圈與競品差距，建立可見度模型。',
+  '接著套用語氣偏好，準備正式入場券草稿。'
 ];
-const DEFAULT_STATUS_LABEL = '定位商圈中';
+const DEFAULT_STATUS_LABEL = '蒐集入場券資料';
 const ANALYSIS_STATUS_LABELS = {
-  collecting: '定位商圈中',
-  processing: '整理評論與競品',
-  analyzing: '彙整行動與草稿',
-  ready: '分析完成',
+  collecting: '蒐集入場券資料',
+  processing: 'AI 可見度分析',
+  analyzing: '彙整守護方案',
+  ready: '入場券預覽完成',
   scheduled: '排程推送中',
   timeout: '排程推送中',
   failed: '分析遇到狀況',
 };
-const POST_COUNTDOWN_MESSAGE = 'AI 正在整理資料，隨時向你回報進度。';
+const POST_COUNTDOWN_MESSAGE = 'AI 正在整理入場券資料，隨時向你回報進度。';
 const ANALYSIS_TIMEOUT_THRESHOLD_MS = 90 * 1000;
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
@@ -65,9 +65,9 @@ function formatDecimal(value, digits = 1) {
 
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
-  { percent: 45, label: '定位門市與評論… 進度 45%', eta: '近 7 天評論同步中' },
-  { percent: 60, label: '檢視競品差距… 進度 60%', eta: '同商圈競品定位完成' },
-  { percent: 75, label: '組裝專屬草稿… 進度 75%', eta: '撰寫本週優先行動' }
+  { percent: 45, label: '蒐集 AI 入場券資料… 進度 45%', eta: '近 7 天評論與商圈資料載入中' },
+  { percent: 60, label: 'AI 可見度分析… 進度 60%', eta: '完成競品比對與模型建置' },
+  { percent: 75, label: '套用語氣偏好… 進度 75%', eta: '撰寫本週行動與草稿' }
 ];
 const TRANSITION_DURATION_MS = 3000;
 const POLL_INTERVAL_MS = 5000;
@@ -318,9 +318,9 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
     : 0;
   const showAlmostDone = safePercent >= 90 && elapsedSinceNinety >= NINETY_HINT_DELAY_MS;
 
-  let label = stageLabel || `整合資料中… 進度 ${safePercent}%`;
+  let label = stageLabel || `蒐集 AI 入場券資料… 進度 ${safePercent}%`;
   if (showAlmostDone) {
-    label = '快完成了，我在整理報告重點';
+    label = '快完成了，正在整理入場券重點';
   }
 
   if (els.progressBarS2) {
@@ -337,10 +337,10 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
   }
 
   let etaLabel = state.progress.postCountdownActive
-    ? 'AI 正在整理資料，請稍候'
-    : '預估 1 分鐘內完成';
+    ? 'AI 正在整理入場券資料，請稍候'
+    : '預估 1 分鐘內完成入場券';
   if (showAlmostDone && !state.progress.postCountdownActive) {
-    etaLabel = '快完成了，正在合併專屬草稿';
+    etaLabel = '快完成了，正在合併入場券草稿';
   } else if (!state.progress.postCountdownActive && etaSeconds != null) {
     etaLabel = `預估完成 ${Math.max(0, Math.round(etaSeconds))} 秒`;
   }
@@ -376,7 +376,7 @@ function stopAnalysisCountdown() {
     els.progressCountdownNumber.textContent = ANALYSIS_COUNTDOWN_SECONDS;
   }
   if (els.progressTip) {
-    els.progressTip.textContent = ANALYSIS_TIPS[0] || 'AI 正在分析資料…';
+    els.progressTip.textContent = ANALYSIS_TIPS[0] || 'AI 正在建立入場券預覽…';
   }
   updateProgressStatus(DEFAULT_STATUS_LABEL);
 }
@@ -389,7 +389,7 @@ function setProgressTip(text) {
 function syncPostCountdownTip() {
   if (!state.progress.postCountdownActive) return;
   const statusLabel = state.progress.currentStatusLabel || DEFAULT_STATUS_LABEL;
-  const statusText = statusLabel ? `AI 正在整理資料｜${statusLabel}` : 'AI 正在整理資料';
+  const statusText = statusLabel ? `AI 正在整理入場券資料｜${statusLabel}` : 'AI 正在整理入場券資料';
   setProgressTip(statusText);
 }
 
@@ -465,7 +465,7 @@ function startAnalysisCountdown() {
   showProgressWaiting(false);
   updateProgressStatus(DEFAULT_STATUS_LABEL);
   updateCountdownNumber();
-  setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
+  setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在建立入場券預覽…');
   state.progress.countdownTimerId = setInterval(() => {
     state.progress.countdownRemaining -= 1;
     if (state.progress.countdownRemaining <= 0) {
@@ -505,7 +505,7 @@ function updateTimeoutUI() {
 
   let noteText = hasDataforseoIssue ? DATAFORSEO_TIMEOUT_NOTE : DEFAULT_TIMEOUT_NOTE;
   if (context.reason === 'analysis_timeout') {
-    noteText = 'AI 正在收尾，資料量較大，稍後會自動送達完整報表。';
+    noteText = 'AI 正在收尾，資料量較大，稍後會自動送達正式入場券預覽。';
   }
   if (typeof context.note === 'string' && context.note.trim()) {
     noteText = context.note.trim();
@@ -549,7 +549,7 @@ function resetProgressUI() {
     els.progressBarS3.style.width = '0%';
   }
 
-  const baseLabel = '定位你的門市… 進度 0%';
+  const baseLabel = '蒐集 AI 入場券資料… 進度 0%';
   const baseEta = '我正在準備評論與競品資料';
 
   if (els.progressLabelS2) {
@@ -689,7 +689,7 @@ async function handleLeadSubmit(event) {
   }
 
   els.submitBtn.disabled = true;
-  els.submitBtn.textContent = '啟動中…';
+  els.submitBtn.textContent = '申請中…';
 
   try {
     const leadId = generateLeadId();
@@ -772,7 +772,7 @@ async function handleLeadSubmit(event) {
     state.quiz = { goal: '', tone: [], competitorsInput: [], skipped: false };
     setStage('s0');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '啟動 AI 初檢';
+    els.submitBtn.textContent = '送出入場券申請';
   }
 }
 
@@ -817,7 +817,7 @@ function startTransitionToQuiz() {
     stopTransitionTips();
     setStage('s2');
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '啟動 AI 初檢';
+    els.submitBtn.textContent = '送出入場券申請';
     resetProgressUI();
     state.transition.started = false;
   }, TRANSITION_DURATION_MS);
@@ -1452,7 +1452,7 @@ function handleAnalysisFailed(context = {}, message = '') {
   state.timeoutContext = { ...state.timeoutContext, ...context };
   enterPostCountdownWait();
   updateProgressStatus(ANALYSIS_STATUS_LABELS.failed || DEFAULT_STATUS_LABEL);
-  setProgressTip(`AI 正在整理資料｜分析遇到狀況；${note}`);
+  setProgressTip(`AI 正在整理入場券資料｜分析遇到狀況；${note}`);
   showToast(note, 2800);
 }
 
@@ -1506,7 +1506,7 @@ function resetFlow() {
   }
   if (els.submitBtn) {
     els.submitBtn.disabled = false;
-    els.submitBtn.textContent = '啟動 AI 初檢';
+    els.submitBtn.textContent = '送出入場券申請';
   }
   if (els.quizForm) {
     els.quizForm.reset();
@@ -1530,7 +1530,7 @@ function redirectToReport() {
   const target = state.reportPageUrl;
 
   if (!target) {
-    showToast('報表尚未準備完成，請稍後再試。', 2000);
+    showToast('入場券尚未準備完成，請稍後再試。', 2000);
     return;
   }
 
@@ -1541,28 +1541,35 @@ function redirectToReport() {
     source: 'preview',
   });
 
-  let externalAttempted = false;
+  openReportWindow(target);
+}
 
-  try {
-    if (window.liff?.openWindow) {
-      window.liff.openWindow({ url: target, external: true });
+function openReportWindow(targetUrl) {
+  if (!targetUrl) return false;
+
+  let externalAttempted = false;
+  const { liff } = window;
+  if (liff && typeof liff.openWindow === 'function') {
+    try {
+      liff.openWindow({ url: targetUrl, external: true });
       externalAttempted = true;
+    } catch (error) {
+      console.warn('[liff] openWindow failed', error);
     }
-  } catch (error) {
-    console.warn('[liff] openWindow failed, fallback to location.href', error);
-    externalAttempted = false;
   }
 
   if (!externalAttempted) {
-    window.location.href = target;
-    return;
+    window.location.href = targetUrl;
+    return true;
   }
 
   window.setTimeout(() => {
     if (document.visibilityState === 'visible') {
-      window.location.href = target;
+      window.location.href = targetUrl;
     }
   }, 600);
+
+  return true;
 }
 
 function openAssistant(source = 'preview') {
@@ -1590,7 +1597,7 @@ function attachEventListeners() {
   els.timeoutReport?.addEventListener('click', (event) => {
     event.preventDefault();
     if (els.timeoutReport.classList.contains('btn--disabled')) {
-      showToast('報表仍在整理，我會完成後再通知你。');
+      showToast('入場券仍在整理，我會完成後再通知你。');
       return;
     }
     logEvent('cta_click', {
@@ -1615,7 +1622,7 @@ function attachEventListeners() {
   els.ctaReport?.addEventListener('click', (event) => {
     event.preventDefault();
     if (els.ctaReport.classList.contains('btn--disabled')) {
-      showToast('報表尚在生成，完成後會自動開啟。', 2400);
+      showToast('入場券尚在生成，完成後會自動開啟。', 2400);
       return;
     }
     redirectToReport();

@@ -9,13 +9,14 @@
     analysisStatusUrl: 'https://chelov134999.app.n8n.cloud/webhook/analysis-status',
     weeklyDraftUrl: 'https://chelov134999.app.n8n.cloud/webhook/weekly-draft',
     reportEndpoint: 'https://chelov134999.app.n8n.cloud/webhook/report-data',
-    assistantEntryUrl: 'https://chelov134999.app.n8n.cloud/webhook/assistant-entry',
-    formUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/index.html?ts=20251006T0054',
-    reportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/report.html?ts=20251006T0054',
+    formUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/index.html?ts=20251007T0900',
+    reportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/report.html?ts=20251007T0900',
     trialUrl: 'https://line.me/ti/p/@star-up',
-    aboutUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/about.html?ts=20251006T0054',
-    sampleReportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/sample-report.html?ts=20251006T0054',
-    plansPageUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/plans.html?ts=20251006T0054',
+    aboutUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/about.html?ts=20251007T0900',
+    sampleReportUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/sample-report.html?ts=20251007T0900',
+    plansPageUrl: 'https://chelov134999.github.io/star-engine-liff-pages/releases/20251006T0054/plans.html?ts=20251007T0900',
+    assistantLabel: 'AI 守護專家',
+    assistantEntryUrl: 'https://chelov134999.app.n8n.cloud/webhook/assistant-entry',
   };
 
   const coalesce = (key) => (runtime[key] ?? defaults[key] ?? '');
@@ -29,8 +30,6 @@
     analysisStatusUrl: coalesce('analysisStatusUrl') || coalesce('analysis_status_url'),
     weeklyDraftUrl: coalesce('weeklyDraftUrl') || coalesce('weekly_draft_url'),
     reportEndpoint: coalesce('reportEndpoint'),
-    assistantEntryUrl: coalesce('assistantEntryUrl') || coalesce('assistant_entry_url')
-      || coalesce('assistantUrl') || coalesce('assistant_url'),
     reportUrl: coalesce('reportUrl'),
     formUrl: coalesce('formUrl') || coalesce('form_url'),
     aboutUrl: coalesce('aboutUrl') || coalesce('about_url'),
@@ -41,6 +40,8 @@
     plansPageUrl: coalesce('plansPageUrl') || coalesce('planPageUrl'),
     checkoutPrimaryUrl: coalesce('checkoutPrimaryUrl'),
     checkoutSecondaryUrl: coalesce('checkoutSecondaryUrl'),
+    assistantLabel: coalesce('assistantLabel') || 'AI 守護專家',
+    assistantEntryUrl: coalesce('assistantEntryUrl') || coalesce('assistant_entry_url'),
   };
 
   const missing = Object.entries({

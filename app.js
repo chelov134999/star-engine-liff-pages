@@ -514,6 +514,7 @@ function startPolling() {
 
 function setStage(nextStage) {
   if (state.stage === nextStage) return;
+  const previousStage = state.stage;
   state.stage = nextStage;
   Object.entries(els.stages).forEach(([key, element]) => {
     if (!element) return;
@@ -524,7 +525,7 @@ function setStage(nextStage) {
 
   if (nextStage === 's2') {
     startAnalysisCountdown();
-  } else if (nextStage !== 's1') {
+  } else if (previousStage === 's2') {
     stopAnalysisCountdown();
   }
 

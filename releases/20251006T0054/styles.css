@@ -3181,6 +3181,7 @@ body.page--info {
     align-items: stretch;
   }
 }
+.analysis-timer,
 .progress-countdown {
   display: flex;
   align-items: center;
@@ -3195,18 +3196,21 @@ body.page--info {
   box-shadow: 0 24px 44px -34px rgba(15, 23, 42, 0.38);
 }
 
+.analysis-timer__clock,
 .progress-countdown__timer {
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
 
+.analysis-timer__number,
 #progress-countdown-number {
   font-size: clamp(2.2rem, 6vw, 2.8rem);
   font-weight: 700;
   color: #1e3a8a;
 }
 
+.analysis-timer__unit,
 .progress-countdown__timer small {
   font-size: 0.9rem;
   font-weight: 600;
@@ -3214,6 +3218,7 @@ body.page--info {
   color: rgba(29, 78, 216, 0.7);
 }
 
+.analysis-tip,
 .progress-countdown__tip {
   margin: 0;
   color: var(--muted);

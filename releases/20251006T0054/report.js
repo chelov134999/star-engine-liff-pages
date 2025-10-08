@@ -78,7 +78,7 @@
     maxRetry: 3,
     assistantUrl: assistantUrlDefault,
     assistantEntryUrl: assistantEntryUrlDefault,
-    assistantLabel: config.assistantLabel || 'AI 守護專家',
+    assistantLabel: config.assistantLabel || '生成正式入場券',
     primaryAction: 'assistant',
     primaryLabel: '',
     reportPageUrl: '',

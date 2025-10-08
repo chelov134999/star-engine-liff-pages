@@ -479,15 +479,23 @@ function startAnalysisCountdown() {
   }
 }
 
-function stopPolling() {
+function clearPollingInterval() {
   if (state.pollId) {
     clearInterval(state.pollId);
     state.pollId = null;
   }
+}
+
+function clearAnalysisTimeout() {
   if (state.timeoutId) {
     clearTimeout(state.timeoutId);
     state.timeoutId = null;
   }
+}
+
+function stopPolling() {
+  clearPollingInterval();
+  clearAnalysisTimeout();
 }
 
 function startPolling() {
@@ -638,7 +646,7 @@ function applyStatusHints(stage = '') {
 }
 
 function handleAnalysisCompleted(context = {}) {
-  stopPolling();
+  clearAnalysisTimeout();
   updateResultWarning(context.warnings || state.warnings);
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
@@ -646,10 +654,11 @@ function handleAnalysisCompleted(context = {}) {
   if (context.report_url) {
     state.reportUrlOverride = context.report_url;
   }
+  clearPollingInterval();
 }
 
 function triggerTimeout(context = {}) {
-  stopPolling();
+  clearAnalysisTimeout();
   setStage('s5');
   const note = context.note || STATUS_HINTS.timeout;
   if (els.timeoutNote) {

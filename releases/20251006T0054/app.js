@@ -524,19 +524,28 @@ function animateFrontProgress(targetPercent, duration = TRANSITION_DURATION_MS) 
   requestAnimationFrame(step);
 }
 
-function stopProgressTimers() {
+function clearProgressTimer() {
   if (state.progress.timerId) {
     clearTimeout(state.progress.timerId);
     state.progress.timerId = null;
   }
+}
+
+function clearProgressPollingInterval() {
   if (state.progress.pollId) {
     clearInterval(state.progress.pollId);
     state.progress.pollId = null;
   }
+}
+
+function clearProgressMessageTimer() {
   if (state.progress.messageId) {
     clearInterval(state.progress.messageId);
     state.progress.messageId = null;
   }
+}
+
+function clearTransitionTimers() {
   if (state.transition.countdownId) {
     clearInterval(state.transition.countdownId);
     state.transition.countdownId = null;
@@ -546,6 +555,16 @@ function stopProgressTimers() {
     state.transition.timeoutId = null;
   }
   state.transition.started = false;
+}
+
+function stopProgressTimers(options = {}) {
+  const { keepPolling = false } = options;
+  clearProgressTimer();
+  if (!keepPolling) {
+    clearProgressPollingInterval();
+  }
+  clearProgressMessageTimer();
+  clearTransitionTimers();
   stopAnalysisCountdown();
   stopTransitionTips();
   stopTimeoutCountdown();
@@ -938,8 +957,12 @@ function startPolling() {
 
 function handleAnalysisCompleted(context = {}) {
   state.progress.timeoutFired = false;
-  stopProgressTimers();
+  clearProgressTimer();
+  clearProgressMessageTimer();
+  clearTransitionTimers();
   stopAnalysisCountdown();
+  stopTransitionTips();
+  stopTimeoutCountdown();
   if (!state.progress.completionLogged) {
     const elapsed = state.progress.startAt ? Date.now() - state.progress.startAt : null;
     logEvent('analysis_completed', {
@@ -953,6 +976,7 @@ function handleAnalysisCompleted(context = {}) {
   state.timeoutContext = {};
   updateTimeoutUI();
   renderAnalysisReport(context);
+  clearProgressPollingInterval();
 }
 
 function handleStatusResponse(payload) {

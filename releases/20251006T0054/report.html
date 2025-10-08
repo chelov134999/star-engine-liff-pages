@@ -7,179 +7,117 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?ts=20251008T0000" />
+  <link rel="stylesheet" href="styles.css?ts=20251008T1013" />
 </head>
 <body class="page--info page--report">
-  <main class="info-shell report-shell" id="report-app">
+  <main class="report-shell" id="report-app">
     <section class="report-hero" aria-live="polite">
-      <div class="report-hero__meta">
-        <div class="brand-line">
-          <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
-          <span class="brand-line__text">星級引擎｜脈動智匯</span>
-        </div>
-        <div class="report-hero__indicator-group"><span class="report-hero__indicator" id="report-indicator">AI 入場券預審</span><a class="report-hero__link" href="index.html?ts=20251008T0000">返回申請</a></div>
+      <div class="brand-line">
+        <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
+        <span class="brand-line__text">星級引擎｜脈動智匯</span>
       </div>
 
-      <div class="report-hero__layout">
-        <div class="entry-pass-dashboard" id="entry-pass-dashboard">
-          <article class="entry-pass-card entry-pass-card--schema" id="schema-card">
-            <header class="entry-pass-card__header">
-              <span class="entry-pass-card__label">Schema</span>
-              <span class="entry-pass-card__status" id="schema-status">檢核中</span>
-            </header>
-            <div class="entry-pass-card__body">
-              <strong class="entry-pass-card__score" id="schema-score">—</strong>
-              <p class="entry-pass-card__hint" id="schema-hint">AI 正在建立結構化資料。</p>
-              <p class="entry-pass-card__next" id="schema-next">優先補件建議將稍後更新。</p>
-            </div>
-          </article>
-          <article class="entry-pass-card entry-pass-card--visibility" id="visibility-card">
-            <header class="entry-pass-card__header">
-              <span class="entry-pass-card__label">AI 可見度</span>
-              <span class="entry-pass-card__status" id="visibility-status">分析中</span>
-            </header>
-            <div class="entry-pass-card__body">
-              <strong class="entry-pass-card__score" id="visibility-score">—</strong>
-              <p class="entry-pass-card__hint" id="visibility-hint">AI 正在建立可見度模型。</p>
-              <p class="entry-pass-card__next" id="visibility-next">優先補強方向將很快提供。</p>
-            </div>
-          </article>
-          <article class="entry-pass-card entry-pass-card--review" id="review-card">
-            <header class="entry-pass-card__header">
-              <span class="entry-pass-card__label">評論健康</span>
-              <span class="entry-pass-card__status" id="review-status">整理中</span>
-            </header>
-            <div class="entry-pass-card__body">
-              <strong class="entry-pass-card__score" id="review-score">—</strong>
-              <p class="entry-pass-card__hint" id="review-hint">AI 正在彙整評論樣本。</p>
-              <p class="entry-pass-card__next" id="review-next">即將提供回覆優先順序。</p>
-            </div>
-          </article>
-        </div>
-        <aside class="entry-pass-status-card" id="hero-crisis">
-          <div class="entry-pass-status-card__header">
-            <span class="entry-pass-status-card__label">入場券狀態</span>
-            <span class="entry-pass-status-card__state" id="entry-status">檢核中</span>
+      <header class="report-hero__header">
+        <span class="stage-tag stage-tag--soft">AI 入場券預審</span>
+        <h1 id="report-title">預審完成，為你整理三大指標</h1>
+        <p class="muted" id="report-subtitle">AI 已同步評論健康、可見度與待辦評論，守護任務如下所示。</p>
+      </header>
+
+      <div class="metric-board metric-board--result" id="report-metric-board">
+        <article class="metric-card" data-metric="review_health" data-stage="report">
+          <div class="metric-card__icon" aria-hidden="true">🛡️</div>
+          <div class="metric-card__body">
+            <span class="metric-card__label">評價健康</span>
+            <span class="metric-card__score" data-role="score">—</span>
+            <span class="metric-card__state" data-role="state">整理中</span>
+            <p class="metric-card__hint" data-role="hint">AI 正在整理評論與回覆速度。</p>
           </div>
-          <p class="entry-pass-status-card__primary" id="entry-primary">正在生成入場券預覽</p>
-          <ul class="entry-pass-status-card__list" id="entry-next-steps">
-            <li class="entry-pass-status-card__item">AI 正在整理下一步建議</li>
-          </ul>
-          <p class="entry-pass-status-card__note" id="entry-note">AI 會依狀態即時通知你並更新結果。</p>
-        </aside>
-      </div>
-      <p class="report-hero__note" id="hero-note">AI 已完成入場券預審，以下是守護專家為你整理的重點指引。</p>
-
-      <article class="report-hero-card" id="cognos-card">
-        <div class="report-hero-card__media">
-          <img class="report-hero-card__avatar" src="cognos-avatar.svg" alt="Cognos AI 顧問頭像" width="48" height="48" />
-        </div>
-        <div class="report-hero-card__body">
-          <p class="report-hero-card__eyebrow" id="cognos-eyebrow">Hi 星級引擎夥伴，我是你的入場券顧問 Cognos</p>
-          <h1 class="report-hero-card__title" id="cognos-title">AI 入場券預審已準備完成</h1>
-          <p class="report-hero-card__subtitle" id="cognos-subtitle">我同步了商圈、評論與可見度模型，後續異動會第一時間提醒你。</p>
-        </div>
-      </article>
-
-      <article class="report-hero-card report-hero-card--prefs" id="report-preferences" hidden>
-        <span class="pref-pill pref-pill--strategy" id="pref-goal">
-          <span class="pref-pill__icon" aria-hidden="true">🛡️</span>
-          <span class="pref-pill__text" id="pref-goal-text">策略：未設定</span>
-        </span>
-        <span class="pref-pill pref-pill--tone" id="pref-tone">
-          <span class="pref-pill__icon" aria-hidden="true">💬</span>
-          <span class="pref-pill__text" id="pref-tone-text">語氣：未設定</span>
-        </span>
-      </article>
-
-      <div class="report-hero__cta" id="report-cta">
-        <button id="cta-primary" class="btn btn--primary" type="button">生成正式入場券</button>
-        <a id="cta-line" class="report-cta__link" href="#" target="_blank" rel="noopener">回到 LINE</a>
+        </article>
+        <article class="metric-card" data-metric="ai_visibility" data-stage="report">
+          <div class="metric-card__icon" aria-hidden="true">📡</div>
+          <div class="metric-card__body">
+            <span class="metric-card__label">AI 可見度</span>
+            <span class="metric-card__score" data-role="score">—</span>
+            <span class="metric-card__state" data-role="state">整理中</span>
+            <p class="metric-card__hint" data-role="hint">AI 正在比對曝光與搜尋表現。</p>
+          </div>
+        </article>
+        <article class="metric-card" data-metric="pending_reviews" data-stage="report">
+          <div class="metric-card__icon" aria-hidden="true">📝</div>
+          <div class="metric-card__body">
+            <span class="metric-card__label">待辦評論</span>
+            <span class="metric-card__score" data-role="score">—</span>
+            <span class="metric-card__state" data-role="state">整理中</span>
+            <p class="metric-card__hint" data-role="hint">AI 正在優先排序守護任務。</p>
+          </div>
+        </article>
       </div>
     </section>
 
-    <section class="report-skeleton" id="report-skeleton" aria-hidden="true">
-      <div class="skeleton-card skeleton-card--hero"></div>
-      <div class="skeleton-card"></div>
-      <div class="skeleton-card"></div>
-      <div class="skeleton-card"></div>
-    </section>
-
-    <section class="report-loading" id="report-loading" hidden>
-      <div class="loading-indicator">
-        <span class="loading-indicator__dot"></span>
-        <span class="loading-indicator__dot"></span>
-        <span class="loading-indicator__dot"></span>
+    <section class="report-section" id="report-tasks">
+      <header class="report-section__header">
+        <h2>守護任務與補件清單</h2>
+        <p class="muted" id="tasks-subtitle">依照風險程度排列，優先完成上方任務。</p>
+      </header>
+      <div class="task-grid">
+        <section class="task-card task-card--result" data-task="priority_tasks">
+          <header class="task-card__header">
+            <h3>守護任務（本週三件事）</h3>
+          </header>
+          <ul class="task-list" data-role="list"></ul>
+          <p class="task-empty" data-role="empty">AI 正在整理守護任務。</p>
+        </section>
+        <section class="task-card task-card--result" data-task="collection_steps">
+          <header class="task-card__header">
+            <h3>資料補件步驟</h3>
+          </header>
+          <ul class="task-list" data-role="list"></ul>
+          <p class="task-empty" data-role="empty">補件清單整理中，稍後指引你補齊缺漏。</p>
+        </section>
+        <section class="task-card task-card--result" data-task="repair_checklist">
+          <header class="task-card__header">
+            <h3>風險評論清單</h3>
+          </header>
+          <ul class="task-list" data-role="list"></ul>
+          <p class="task-empty" data-role="empty">目前沒有需要立即補救的評論。</p>
+        </section>
       </div>
-      <p class="loading-copy">入場券生成中，稍後會推播提醒。</p>
-      <button id="btn-return-line" type="button" class="btn btn--ghost">回到 LINE</button>
     </section>
 
-    <section class="report-error" id="report-error" hidden role="alert">
-      <h2>入場券仍在整理中</h2>
-      <p id="report-error-message">我已重新整理資料，完成後會透過 LINE 提醒你。</p>
-      <button id="error-retry" type="button" class="btn btn--primary">重新整理</button>
-      <button id="error-return-line" type="button" class="btn btn--outline">回到 LINE</button>
-    </section>
-
-    <section class="report-content" id="report-content" hidden>
-      <section class="report-section">
-        <header class="report-section__header">
-          <h2>入場券補件提示</h2>
-        </header>
-        <div class="report-summary" id="summary-metrics" hidden>
-          <span class="report-summary__label" id="summary-metrics-label">補件優先順序</span>
-          <p class="report-summary__text" id="summary-metrics-text"></p>
-        </div>
-        <div id="report-metrics" class="report-metrics" role="list"></div>
-        <p id="report-metrics-empty" class="report-empty" hidden>AI 正在比對欄位，稍後會提供補件建議。</p>
-      </section>
-
-      <section class="report-section">
-        <header class="report-section__header">
-          <h2>競品預警</h2>
-        </header>
-        <div class="report-summary" id="summary-competitors" hidden>
-          <span class="report-summary__label" id="summary-competitors-label">最接近競品</span>
-          <p class="report-summary__text" id="summary-competitors-text"></p>
-        </div>
-        <ul id="report-competitors" class="report-competitors"></ul>
-        <p id="report-competitors-empty" class="report-empty" hidden>競品資料同步中，稍後提醒你最新差距。</p>
-      </section>
-
-      <section class="report-section">
-        <header class="report-section__header">
-          <h2>守護任務｜本週三件事</h2>
-        </header>
-        <div class="report-summary" id="summary-actions" hidden>
-          <span class="report-summary__label" id="summary-actions-label">守護任務焦點</span>
-          <p class="report-summary__text" id="summary-actions-text"></p>
-        </div>
-        <ul id="report-actions" class="report-actions"></ul>
-        <p id="report-actions-empty" class="report-empty" hidden>守護任務整理中，完成後會推播給你。</p>
-      </section>
-
-      <section class="report-section">
-        <header class="report-section__header">
-          <h2>AI 回覆草稿</h2>
-        </header>
-        <div class="report-summary" id="summary-drafts" hidden>
-          <span class="report-summary__label" id="summary-drafts-label">首選語氣</span>
-          <p class="report-summary__text" id="summary-drafts-text"></p>
-        </div>
-        <div id="report-drafts" class="report-drafts"></div>
-        <p id="report-drafts-empty" class="report-empty" hidden>草稿準備中，補件完成後會立即送上。</p>
-      </section>
+    <section class="report-section report-section--cta" id="report-cta">
+      <header class="report-section__header">
+        <h2>下一步</h2>
+        <p class="muted">同步守護專家後，可直接生成正式入場券。</p>
+      </header>
+      <div class="result-actions">
+        <button id="report-cta-primary" class="btn btn--primary" type="button">同步到守護專家</button>
+        <button id="report-cta-refresh" class="btn btn--secondary" type="button">重新整理</button>
+        <a id="report-cta-secondary" class="btn btn--outline" href="index.html?ts=20251008T1013">返回申請頁</a>
+      </div>
     </section>
   </main>
 
-  <div class="toast" id="report-toast" role="status" aria-live="assertive"></div>
+  <section class="report-loading" id="report-loading" hidden>
+    <div class="loading-indicator">
+      <span class="loading-indicator__dot"></span>
+      <span class="loading-indicator__dot"></span>
+      <span class="loading-indicator__dot"></span>
+    </div>
+    <p class="loading-copy">正在同步檢測結果…</p>
+  </section>
 
-  
-  <script src="config.runtime.js?ts=20251008T0000"></script>
-  <script src="config.js?ts=20251008T0000"></script>
-  <script src="report-utils.js?ts=20251008T0000"></script>
-  <script src="analytics.js?ts=20251008T0000"></script>
-  <script src="report.js?ts=20251008T0000"></script>
+  <section class="report-error" id="report-error" hidden role="alert">
+    <h2>暫時無法取得預審結果</h2>
+    <p id="report-error-message">AI 重新整理資料時發生錯誤，請稍後再試或回到 LINE。</p>
+    <button id="report-error-retry" type="button" class="btn btn--primary">重新整理</button>
+    <a id="report-error-home" class="btn btn--outline" href="index.html?ts=20251008T1013">返回申請頁</a>
+  </section>
+
+  <div class="toast" id="report-toast" hidden></div>
+
+  <script src="config.runtime.js?ts=20251008T1013"></script>
+  <script src="config.js?ts=20251008T1013"></script>
+  <script src="analytics.js?ts=20251008T1013"></script>
+  <script src="report.js?ts=20251008T1013"></script>
 </body>
 </html>

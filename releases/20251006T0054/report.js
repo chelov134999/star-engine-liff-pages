@@ -83,7 +83,8 @@
   const state = {
     token: params.get('token') || params.get('report_token') || '',
     leadId: params.get('lead_id') || params.get('leadId') || '',
-    metricsRaw: [],
+    metricsRaw: null,
+    metricsList: [],
     tasks: {
       priority_tasks: [],
       collection_steps: [],
@@ -213,15 +214,55 @@
     });
   }
 
-  function renderMetrics(metrics = []) {
-    const list = Array.isArray(metrics) ? metrics : Object.values(metrics || {});
+  function resolveMetricId(candidate = {}, fallback) {
+    if (!candidate || typeof candidate !== 'object') {
+      return fallback;
+    }
+    return candidate.id
+      || candidate.metric_id
+      || candidate.metricId
+      || candidate.key
+      || candidate.code
+      || fallback;
+  }
+
+  function normalizeMetricsInput(metrics) {
+    const list = [];
     const map = {};
-    list.forEach((item) => {
-      if (item && item.id) {
-        map[item.id] = item;
+
+    const pushEntry = (entry, fallbackId) => {
+      if (entry == null) return;
+      const resolvedId = resolveMetricId(entry, fallbackId);
+      const normalized = resolvedId && (!entry.id || entry.id !== resolvedId)
+        ? { ...entry, id: resolvedId }
+        : entry;
+      if (resolvedId) {
+        map[resolvedId] = normalized;
       }
-    });
-    state.metricsRaw = list;
+      list.push(normalized);
+    };
+
+    if (Array.isArray(metrics)) {
+      metrics.forEach((item, index) => {
+        pushEntry(item, `metric_${index}`);
+      });
+    } else if (metrics && typeof metrics === 'object') {
+      Object.entries(metrics).forEach(([key, value]) => {
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          pushEntry(value, key);
+        } else {
+          pushEntry({ value }, key);
+        }
+      });
+    }
+
+    return { list, map };
+  }
+
+  function renderMetrics(metrics = []) {
+    state.metricsRaw = metrics;
+    const { list, map } = normalizeMetricsInput(metrics);
+    state.metricsList = list;
     Object.keys(METRIC_DEFINITIONS).forEach((metricId) => {
       renderMetricCard(metricId, map[metricId] || null);
     });
@@ -462,7 +503,7 @@
     try {
       const payload = {
         lead_id: state.leadId,
-        metrics: state.metricsRaw,
+        metrics: state.metricsRaw ?? state.metricsList,
         tasks: state.tasks,
       };
       const result = await requestJSON(assistantEntryUrl, {
@@ -470,6 +511,11 @@
         body: JSON.stringify(payload),
       });
       logEvent('cta_click', { action: 'assistant_entry_report', lead_id: state.leadId });
+      if (result && result.ok === false) {
+        const message = result.message || '同步守護專家失敗，請稍後再試。';
+        showToast(message);
+        return;
+      }
       showToast('已同步守護專家，準備開啟報表…', 1800);
       const target = buildUrlWithParams(result?.report_url || state.reportUrlOverride || reportUrlBase, {
         lead_id: state.leadId,

@@ -683,6 +683,16 @@ function handleStatusResponse(payload) {
 
   const statusValue = String(payload.status || payload.state || '').toLowerCase();
   const stageValue = String(payload.stage || '').toLowerCase();
+  const shouldActivateAnalysis = ['collecting', 'processing', 'analyzing'].includes(stageValue) || statusValue === 'pending';
+
+  if (shouldActivateAnalysis) {
+    if (state.stage !== 's2') {
+      setStage('s2');
+    } else if (!state.analysisCountdownId) {
+      startAnalysisCountdown();
+    }
+  }
+
   applyStatusHints(stageValue);
 
   if (stageValue === 'scheduled' || stageValue === 'timeout' || statusValue === 'timeout') {

@@ -91,9 +91,9 @@ const els = {
   transitionCounter: document.getElementById('transition-counter'),
   transitionTip: document.getElementById('transition-tip'),
   analysisDescription: document.getElementById('analysis-description'),
-  analysisTimer: document.getElementById('analysis-timer'),
-  analysisCountdownNumber: document.getElementById('analysis-countdown-number'),
-  analysisTip: document.getElementById('analysis-tip'),
+  analysisTimer: document.getElementById('analysis-timer') || document.getElementById('progress-countdown'),
+  analysisCountdownNumber: document.getElementById('analysis-countdown-number') || document.getElementById('progress-countdown-number'),
+  analysisTip: document.getElementById('analysis-tip') || document.getElementById('progress-tip'),
   resultWarning: document.getElementById('result-warning'),
   resultWarningText: document.getElementById('result-warning-text'),
   ctaSecondary: document.getElementById('cta-secondary'),
@@ -430,6 +430,11 @@ function stopAnalysisCountdown() {
   if (state.analysisTipId) {
     clearInterval(state.analysisTipId);
     state.analysisTipId = null;
+  }
+  state.analysisRemaining = 0;
+  state.analysisTipIndex = 0;
+  if (els.analysisTimer) {
+    els.analysisTimer.hidden = true;
   }
 }
 
@@ -824,6 +829,9 @@ function bootstrap() {
   renderTasks({});
   updateResultWarning([]);
   syncLinks();
+  if (els.analysisTimer) {
+    els.analysisTimer.hidden = true;
+  }
 }
 
 bootstrap();

@@ -115,7 +115,8 @@ const state = {
   leadId: params.get('lead_id') || '',
   reportToken: params.get('token') || '',
   metricsMap: {},
-  metricsRaw: [],
+  metricsRaw: null,
+  metricsList: [],
   tasks: {
     priority_tasks: [],
     collection_steps: [],
@@ -257,19 +258,59 @@ function renderMetricCard(metricId, metricData = null) {
   });
 }
 
-function renderMetricsCards(metrics = []) {
-  const array = Array.isArray(metrics) ? metrics : Object.values(metrics || {});
-  const nextMap = {};
-  array.forEach((item) => {
-    if (item && item.id) {
-      nextMap[item.id] = item;
+function resolveMetricId(candidate = {}, fallback) {
+  if (!candidate || typeof candidate !== 'object') {
+    return fallback;
+  }
+  return candidate.id
+    || candidate.metric_id
+    || candidate.metricId
+    || candidate.key
+    || candidate.code
+    || fallback;
+}
+
+function normalizeMetricsInput(metrics) {
+  const list = [];
+  const map = {};
+
+  const pushEntry = (entry, fallbackId) => {
+    if (entry == null) return;
+    const resolvedId = resolveMetricId(entry, fallbackId);
+    const normalized = resolvedId && (!entry.id || entry.id !== resolvedId)
+      ? { ...entry, id: resolvedId }
+      : entry;
+    if (resolvedId) {
+      map[resolvedId] = normalized;
     }
-  });
-  state.metricsMap = nextMap;
-  state.metricsRaw = array;
+    list.push(normalized);
+  };
+
+  if (Array.isArray(metrics)) {
+    metrics.forEach((item, index) => {
+      pushEntry(item, `metric_${index}`);
+    });
+  } else if (metrics && typeof metrics === 'object') {
+    Object.entries(metrics).forEach(([key, value]) => {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        pushEntry(value, key);
+      } else {
+        pushEntry({ value }, key);
+      }
+    });
+  }
+
+  return { list, map };
+}
+
+function renderMetricsCards(metrics = []) {
+  state.metricsRaw = metrics;
+  const { list, map } = normalizeMetricsInput(metrics);
+  state.metricsList = list;
+  state.metricsMap = map;
 
   Object.keys(METRIC_DEFINITIONS).forEach((metricId) => {
-    renderMetricCard(metricId, nextMap[metricId] || null);
+    renderMetricCard(metricId, map[metricId] || null);
   });
 }
 
@@ -547,7 +588,8 @@ async function handleLeadSubmit(event) {
   state.leadId = leadId;
   state.reportToken = '';
   state.metricsMap = {};
-  state.metricsRaw = [];
+  state.metricsRaw = null;
+  state.metricsList = [];
   renderMetricsCards([]);
   renderTasks({});
   syncLinks();
@@ -670,7 +712,7 @@ async function handleAssistantEntry() {
   try {
     const payload = {
       lead_id: state.leadId,
-      metrics: state.metricsRaw,
+      metrics: state.metricsRaw ?? state.metricsList,
       tasks: state.tasks,
     };
     const result = await requestJSON(endpoints.assistantEntry, {
@@ -678,8 +720,17 @@ async function handleAssistantEntry() {
       body: JSON.stringify(payload),
     });
     logEvent('cta_click', { action: 'assistant_entry', lead_id: state.leadId });
+    if (result && result.ok === false) {
+      const message = result.message || '同步守護專家失敗，請稍後再試。';
+      showToast(message);
+      return;
+    }
     showToast('已同步守護專家，開啟報表中…', 1800);
-    openReport(result?.report_url);
+    if (result?.report_url) {
+      openReport(result.report_url);
+    } else {
+      openReport();
+    }
   } catch (error) {
     console.error('[assistant-entry]', error);
     showToast(`同步失敗：${error.message}`);

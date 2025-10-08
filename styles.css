@@ -2596,3 +2596,158 @@ body.page--info {
   background: rgba(37, 99, 235, 0.12);
   color: rgba(37, 99, 235, 1);
 }
+
+.hero-title {
+  margin: 12px 0;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.stage-panel--entry-pass {
+  display: grid;
+  gap: clamp(24px, 4vw, 32px);
+}
+
+.entry-pass-grid {
+  display: grid;
+  gap: clamp(16px, 3vw, 24px);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.entry-pass-card {
+  display: grid;
+  gap: 10px;
+  padding: clamp(18px, 3.5vw, 24px);
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 32px -36px rgba(15, 23, 42, 0.22);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.entry-pass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 40px -34px rgba(15, 23, 42, 0.28);
+}
+
+.entry-pass-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.entry-pass-card__label {
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(15, 23, 42, 0.58);
+}
+
+.entry-pass-card__score {
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.entry-pass-card__hint {
+  margin: 0;
+  font-size: 0.95rem;
+  color: rgba(15, 23, 42, 0.74);
+}
+
+.entry-pass-card__meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(15, 23, 42, 0.54);
+}
+
+.entry-pass-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: rgba(37, 99, 235, 0.9);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.entry-pass-card--status {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.96) 0%, rgba(237, 242, 255, 0.94) 100%);
+  box-shadow: 0 26px 48px -32px rgba(15, 23, 42, 0.28);
+}
+
+.entry-pass-status {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.entry-pass-status > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.92rem;
+}
+
+.entry-pass-status dt {
+  color: rgba(15, 23, 42, 0.6);
+  font-weight: 500;
+}
+
+.entry-pass-status dd {
+  margin: 0;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.entry-pass-card__note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  color: rgba(15, 23, 42, 0.74);
+  font-size: 0.88rem;
+}
+
+.entry-pass-tasks {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: rgba(15, 23, 42, 0.78);
+}
+
+.entry-pass-tasks li::marker {
+  color: rgba(37, 99, 235, 0.7);
+}
+
+.entry-pass-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 720px) {
+  .entry-pass-card__score {
+    font-size: clamp(1.6rem, 7vw, 2.1rem);
+  }
+
+  .entry-pass-status > div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .entry-pass-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

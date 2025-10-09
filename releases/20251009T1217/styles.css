@@ -313,6 +313,12 @@ body:not(.page--info) {
   color: rgba(15, 23, 42, 0.55);
 }
 
+.metric-card__updated {
+  font-size: 0.78rem;
+  color: rgba(15, 23, 42, 0.45);
+  letter-spacing: 0.02em;
+}
+
 .metric-card__hint {
   margin: 0;
   font-size: 0.86rem;
@@ -3224,4 +3230,3 @@ body.page--info {
   color: var(--muted);
   font-size: 0.9rem;
 }
-

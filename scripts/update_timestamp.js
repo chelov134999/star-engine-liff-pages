@@ -7,7 +7,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const root = path.resolve(__dirname, '..');
-const releaseDir = path.join(root, 'releases', '20251008T1405');
+const releasesRoot = path.join(root, 'releases');
+
+const KEEP_RELEASE_COUNT = (() => {
+  const raw = process.env.KEEP_RELEASE_COUNT || process.env.RELEASE_KEEP_COUNT || '2';
+  const parsed = Number.parseInt(raw, 10);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return parsed;
+  }
+  return 2;
+})();
 
 const rawInput = process.argv[2];
 const nowIso = new Date().toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
@@ -19,6 +28,12 @@ if (!/^20\d{6}T\d{4}$/.test(timestamp)) {
   process.exit(1);
 }
 
+const releaseDir = path.join(releasesRoot, timestamp);
+
+if (!fs.existsSync(releasesRoot)) {
+  fs.mkdirSync(releasesRoot, { recursive: true });
+}
+
 const filesToUpdate = [
   'config.js',
   'config.runtime.js',
@@ -27,29 +42,23 @@ const filesToUpdate = [
   'plans.html',
   'report.html',
   'sample-report.html',
-  path.join('releases', '20251008T1405', 'config.js'),
-  path.join('releases', '20251008T1405', 'config.runtime.js'),
-  path.join('releases', '20251008T1405', 'index.html'),
-  path.join('releases', '20251008T1405', 'about.html'),
-  path.join('releases', '20251008T1405', 'plans.html'),
-  path.join('releases', '20251008T1405', 'report.html'),
-  path.join('releases', '20251008T1405', 'sample-report.html'),
 ];
 
 const copyPairs = [
-  ['index.html', path.join('releases', '20251008T1405', 'index.html')],
-  ['about.html', path.join('releases', '20251008T1405', 'about.html')],
-  ['plans.html', path.join('releases', '20251008T1405', 'plans.html')],
-  ['sample-report.html', path.join('releases', '20251008T1405', 'sample-report.html')],
-  ['report.html', path.join('releases', '20251008T1405', 'report.html')],
-  ['config.js', path.join('releases', '20251008T1405', 'config.js')],
-  ['config.runtime.js', path.join('releases', '20251008T1405', 'config.runtime.js')],
-  ['report.js', path.join('releases', '20251008T1405', 'report.js')],
-  ['report-utils.js', path.join('releases', '20251008T1405', 'report-utils.js')],
-  ['styles.css', path.join('releases', '20251008T1405', 'styles.css')],
+  ['index.html', path.join('releases', timestamp, 'index.html')],
+  ['about.html', path.join('releases', timestamp, 'about.html')],
+  ['plans.html', path.join('releases', timestamp, 'plans.html')],
+  ['sample-report.html', path.join('releases', timestamp, 'sample-report.html')],
+  ['report.html', path.join('releases', timestamp, 'report.html')],
+  ['config.js', path.join('releases', timestamp, 'config.js')],
+  ['config.runtime.js', path.join('releases', timestamp, 'config.runtime.js')],
+  ['report.js', path.join('releases', timestamp, 'report.js')],
+  ['report-utils.js', path.join('releases', timestamp, 'report-utils.js')],
+  ['styles.css', path.join('releases', timestamp, 'styles.css')],
 ];
 
 const pattern = /ts=20\d{6}T\d{4}/g;
+const releasePathPattern = /releases\/20\d{6}T\d{4}/g;
 let updatedCount = 0;
 
 filesToUpdate.forEach((relativePath) => {
@@ -60,7 +69,9 @@ filesToUpdate.forEach((relativePath) => {
   }
 
   const original = fs.readFileSync(targetPath, 'utf8');
-  const replaced = original.replace(pattern, `ts=${timestamp}`);
+  const replaced = original
+    .replace(pattern, `ts=${timestamp}`)
+    .replace(releasePathPattern, `releases/${timestamp}`);
   if (replaced !== original) {
     fs.writeFileSync(targetPath, replaced);
     updatedCount += 1;
@@ -79,4 +90,64 @@ copyPairs.forEach(([source, dest]) => {
   fs.copyFileSync(srcPath, destPath);
 });
 
-console.log(`[update_timestamp] 已設定 ts=${timestamp}，更新 ${updatedCount} 份檔案並同步 release 目錄。`);
+const replaceInFile = (filePath, replacements) => {
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+  let content = fs.readFileSync(filePath, 'utf8');
+  let mutated = content;
+  replacements.forEach(([pattern, value]) => {
+    mutated = mutated.replace(pattern, value);
+  });
+  if (mutated !== content) {
+    fs.writeFileSync(filePath, mutated);
+    return true;
+  }
+  return false;
+};
+
+const releaseConfigTargets = [
+  path.join(releaseDir, 'config.js'),
+  path.join(releaseDir, 'config.runtime.js'),
+];
+
+releaseConfigTargets.forEach((target) => {
+  replaceInFile(target, [[/releases\/latest/g, `releases/${timestamp}`]]);
+});
+
+const latestDir = path.join(releasesRoot, 'latest');
+try {
+  fs.rmSync(latestDir, { recursive: true, force: true });
+  fs.cpSync(releaseDir, latestDir, { recursive: true });
+  console.log('[update_timestamp] 已更新 latest 快照。');
+} catch (error) {
+  console.warn(`[update_timestamp] 更新 latest 快照時發生錯誤：${error.message || error}`);
+}
+
+const latestConfigTargets = [
+  path.join(latestDir, 'config.js'),
+  path.join(latestDir, 'config.runtime.js'),
+];
+
+latestConfigTargets.forEach((target) => {
+  replaceInFile(target, [[/releases\/20\d{6}T\d{4}/g, 'releases/latest']]);
+});
+
+const releaseDirs = fs
+  .readdirSync(releasesRoot, { withFileTypes: true })
+  .filter((entry) => entry.isDirectory() && /^20\d{6}T\d{4}$/.test(entry.name))
+  .map((entry) => entry.name)
+  .sort((a, b) => (a > b ? -1 : 1));
+
+releaseDirs.slice(KEEP_RELEASE_COUNT).forEach((dir) => {
+  const target = path.join(releasesRoot, dir);
+  fs.rmSync(target, { recursive: true, force: true });
+  console.log(`[update_timestamp] 移除舊 release 目錄 ${dir}`);
+});
+
+const latestFile = path.join(releasesRoot, 'latest.txt');
+fs.writeFileSync(latestFile, `${timestamp}\n`, 'utf8');
+
+console.log(
+  `[update_timestamp] 已設定 ts=${timestamp}，更新 ${updatedCount} 份檔案並同步 release 目錄 ${path.relative(root, releaseDir)}。`,
+);

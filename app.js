@@ -117,6 +117,7 @@ const state = {
   metricsMap: {},
   metricsRaw: null,
   metricsList: [],
+  metricTimestamps: {},
   tasks: {
     priority_tasks: [],
     collection_steps: [],
@@ -128,6 +129,7 @@ const state = {
   transitionRemaining: TRANSITION_SECONDS,
   analysisCountdownId: null,
   analysisTipId: null,
+  analysisCountdownFrameId: null,
   analysisRemaining: ANALYSIS_COUNTDOWN_SECONDS,
   analysisTipIndex: 0,
   warnings: [],
@@ -216,6 +218,92 @@ function applyMetricStateClass(card, stateKey) {
   }
 }
 
+const METRIC_TIMESTAMP_SUFFIXES = ['checked_at', 'updated_at', 'last_checked_at', 'refreshed_at'];
+
+function parseTimestampValue(value) {
+  if (value == null || value === '') return null;
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value;
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    if (value > 1e12) {
+      return new Date(value);
+    }
+    if (value > 1e9) {
+      return new Date(value * 1000);
+    }
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  const normalized = text.replace(/\s+/g, ' ');
+  const parsed = new Date(normalized);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed;
+  }
+  return null;
+}
+
+function extractTimestampFromEntry(entry) {
+  if (!entry || typeof entry !== 'object') return null;
+  const candidates = [];
+  METRIC_TIMESTAMP_SUFFIXES.forEach((suffix) => {
+    if (entry[suffix]) {
+      candidates.push(entry[suffix]);
+    }
+  });
+  if (entry.timestamp) candidates.push(entry.timestamp);
+  if (entry.ts) candidates.push(entry.ts);
+  if (Array.isArray(entry.timestamps)) {
+    candidates.push(...entry.timestamps);
+  }
+  if (entry.metadata && typeof entry.metadata === 'object') {
+    METRIC_TIMESTAMP_SUFFIXES.forEach((suffix) => {
+      if (entry.metadata[suffix]) {
+        candidates.push(entry.metadata[suffix]);
+      }
+    });
+  }
+  if (entry.value && (typeof entry.value === 'string' || typeof entry.value === 'number')) {
+    candidates.push(entry.value);
+  }
+  for (const candidate of candidates) {
+    const parsed = parseTimestampValue(candidate);
+    if (parsed) return parsed;
+  }
+  return null;
+}
+
+function resolveMetricTimestamp(metricId, map) {
+  const direct = extractTimestampFromEntry(map[metricId]);
+  if (direct) return direct;
+  for (const suffix of METRIC_TIMESTAMP_SUFFIXES) {
+    const altEntry = map[`${metricId}_${suffix}`];
+    const fallback = extractTimestampFromEntry(altEntry);
+    if (fallback) return fallback;
+  }
+  return null;
+}
+
+function formatRelativeTimestamp(date) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+  const diffMs = Date.now() - date.getTime();
+  if (!Number.isFinite(diffMs)) return '';
+  const delta = diffMs < 0 ? 0 : diffMs;
+  const minutes = Math.floor(delta / 60000);
+  if (minutes < 1) return '更新於 1 分鐘內';
+  if (minutes < 60) return `更新於 ${minutes} 分鐘前`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `更新於 ${hours} 小時前`;
+  const days = Math.floor(hours / 24);
+  return `更新於 ${days} 天前`;
+}
+
+function getMetricTimestamp(metricId, metricData) {
+  const stored = state.metricTimestamps?.[metricId];
+  if (stored) return stored;
+  return extractTimestampFromEntry(metricData);
+}
+
 function renderMetricCard(metricId, metricData = null) {
   const definition = resolveMetricDefinition(metricId);
   const cards = document.querySelectorAll(`.metric-card[data-metric="${metricId}"]`);
@@ -254,6 +342,17 @@ function renderMetricCard(metricId, metricData = null) {
     const hintEl = card.querySelector('[data-role="hint"]');
     if (hintEl) {
       hintEl.textContent = hintText;
+    }
+    const updatedEl = card.querySelector('[data-role="updated"]');
+    if (updatedEl) {
+      const timestamp = getMetricTimestamp(metricId, metricData);
+      const relative = timestamp ? formatRelativeTimestamp(timestamp) : '';
+      if (relative) {
+        updatedEl.textContent = relative;
+        updatedEl.hidden = false;
+      } else {
+        updatedEl.hidden = true;
+      }
     }
   });
 }
@@ -308,8 +407,13 @@ function renderMetricsCards(metrics = []) {
   const { list, map } = normalizeMetricsInput(metrics);
   state.metricsList = list;
   state.metricsMap = map;
+  state.metricTimestamps = {};
 
   Object.keys(METRIC_DEFINITIONS).forEach((metricId) => {
+    const resolvedTimestamp = resolveMetricTimestamp(metricId, map);
+    if (resolvedTimestamp) {
+      state.metricTimestamps[metricId] = resolvedTimestamp;
+    }
     renderMetricCard(metricId, map[metricId] || null);
   });
 }
@@ -427,6 +531,10 @@ function stopAnalysisCountdown() {
     clearInterval(state.analysisCountdownId);
     state.analysisCountdownId = null;
   }
+  if (state.analysisCountdownFrameId && typeof cancelAnimationFrame === 'function') {
+    cancelAnimationFrame(state.analysisCountdownFrameId);
+    state.analysisCountdownFrameId = null;
+  }
   if (state.analysisTipId) {
     clearInterval(state.analysisTipId);
     state.analysisTipId = null;
@@ -454,6 +562,7 @@ function startAnalysisCountdown() {
   stopAnalysisCountdown();
   state.analysisRemaining = ANALYSIS_COUNTDOWN_SECONDS;
   state.analysisTipIndex = 0;
+  const deadline = Date.now() + (ANALYSIS_COUNTDOWN_SECONDS * 1000);
   if (els.analysisTimer) {
     els.analysisTimer.hidden = false;
   }
@@ -461,16 +570,35 @@ function startAnalysisCountdown() {
     els.analysisTip.textContent = ANALYSIS_TIPS[0];
   }
   updateAnalysisCountdown();
-  state.analysisCountdownId = setInterval(() => {
-    state.analysisRemaining -= 1;
+
+  const tick = () => {
+    const remainingMs = Math.max(0, deadline - Date.now());
+    state.analysisRemaining = Math.ceil(remainingMs / 1000);
     updateAnalysisCountdown();
-    if (state.analysisRemaining <= 0) {
+    if (remainingMs <= 0) {
       stopAnalysisCountdown();
       if (state.stage !== 's4' && state.stage !== 's5') {
         triggerTimeout({ reason: 'countdown_expired' });
       }
+      return;
     }
-  }, 1000);
+    state.analysisCountdownFrameId = requestAnimationFrame(tick);
+  };
+
+  if (typeof requestAnimationFrame === 'function') {
+    state.analysisCountdownFrameId = requestAnimationFrame(tick);
+  } else {
+    state.analysisCountdownId = setInterval(() => {
+      state.analysisRemaining -= 1;
+      updateAnalysisCountdown();
+      if (state.analysisRemaining <= 0) {
+        stopAnalysisCountdown();
+        if (state.stage !== 's4' && state.stage !== 's5') {
+          triggerTimeout({ reason: 'countdown_expired' });
+        }
+      }
+    }, 1000);
+  }
 
   if (ANALYSIS_TIPS.length > 1) {
     state.analysisTipId = setInterval(() => {
@@ -604,6 +732,7 @@ async function handleLeadSubmit(event) {
   state.metricsMap = {};
   state.metricsRaw = null;
   state.metricsList = [];
+  state.metricTimestamps = {};
   renderMetricsCards([]);
   renderTasks({});
   syncLinks();

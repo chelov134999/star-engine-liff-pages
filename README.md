@@ -6,7 +6,7 @@
 - `about.html`：品牌介紹
 - `sample-report.html`：示例報表預覽
 
-所有靜態檔案現以 `chelov134999.github.io/star-engine-liff-pages/` 為唯一部署來源；`star-engine-liff-pages` 倉庫僅保留原始碼與歷史版本。任何對外連結請指向 `https://chelov134999.github.io/star-engine-liff-pages/releases/latest/...`。
+所有靜態檔案可直接透過 GitHub Pages 發佈。
 
 ## 發佈流程建議
 

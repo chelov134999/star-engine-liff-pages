@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20251005c" />
+  <link rel="stylesheet" href="styles.css?v=20251008T1405" />
 </head>
 <body>
   <main class="page" id="app">
@@ -19,16 +19,11 @@
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
         <header class="stage-panel__header stage-panel__header--hero">
-          <span class="stage-tag stage-tag--soft">申請 AI 入場券</span>
-          <h1 class="stage-hero__title">AI 搜尋時代，不申請入場券就等著被忽略</h1>
-          <p class="stage-hero__subtitle">30 秒申請 AI 入場券，免費預審可見度</p>
+          <h1 class="stage-hero__title">AI 搜尋時代｜建立被 AI 看見的機會</h1>
+          <p class="stage-hero__subtitle">30 秒免費預審，看你的 AI 可見度</p>
         </header>
 
         <form id="lead-form" class="stage-form" autocomplete="off">
-          <div class="form-intro">
-            <h2 class="form-intro__title">開啟你的 AI 入場券預審</h2>
-            <p class="form-intro__description">這些資料會生成 AI 可讀草稿，請一次填好。</p>
-          </div>
           <div class="form-grid">
             <label class="form-field">
               <span class="form-label">城市</span>
@@ -47,11 +42,9 @@
               <input id="name" name="name" type="text" placeholder="例如：星級咖啡館" required />
             </label>
           </div>
-
           <button id="cta-start" type="submit" class="btn btn--primary">申請 AI 入場券</button>
+          <p class="form-note">你提供的資料會生成 AI 可讀草稿，請一次填好。</p>
         </form>
-
-        <p class="form-note">請準備好城市、路段、門牌、店名一次填齊。</p>
       </div>
     </section>
 
@@ -66,14 +59,19 @@
           <div class="transition-bar" id="transition-bar"></div>
         </div>
         <div class="transition-copy">
-          <h2>已收到資料！正在定位您的店家與商圈…</h2>
-          <p>我正在抓取 Google Maps 最新資訊，稍後會自動帶入設定。</p>
+          <h2>資料已收到，正在建立你的 AI 入場券</h2>
+          <p>我會依序建立結構化資料、AI 可見度模型與評論健康檢查。</p>
           <div class="transition-meta">
             <span id="transition-counter">3</span>
-            <small>秒後帶您進入專屬調校</small>
+            <small>秒後進入守護設定</small>
           </div>
-          <p id="transition-tip" class="transition-tip" hidden>智能體正在準備提示…</p>
+          <p id="transition-tip" class="transition-tip" hidden>守護專家正在準備提示…</p>
         </div>
+        <ul class="transition-steps">
+          <li>建立結構化資料</li>
+          <li>建立 AI 可見度模型</li>
+          <li>檢查評論健康</li>
+        </ul>
       </div>
     </section>
 
@@ -85,9 +83,9 @@
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
-          <h2>先幫您客製化風格（約 60 秒）</h2>
-          <p class="muted">同時我正在抓取評論與競品資料，完成後會自動帶入結果。</p>
-          <p class="muted muted--context" id="quiz-context" hidden>我已定位您的門市，正在蒐集附近的競品與評論。</p>
+          <h2>幫你設定守護偏好（約 60 秒）</h2>
+          <p class="muted">同時我會補齊資料並建立 AI 可見度模型，完成後自動帶入結果。</p>
+          <p class="muted muted--context" id="quiz-context" hidden>我已定位你的門市，正在蒐集附近的競品與評論。</p>
         </header>
 
         <form id="quiz-form" class="quiz-form">
@@ -155,7 +153,7 @@
           <div id="progress-bar" class="progress-dock__fill" style="width: 0%;"></div>
         </div>
         <div class="progress-dock__meta">
-          <span id="progress-label">Schema 完整度 · 進度 0%</span>
+          <span id="progress-label">建立結構化資料 · 進度 0%</span>
           <span id="progress-eta" class="muted">正在建立結構化資料欄位</span>
         </div>
       </div>
@@ -170,8 +168,8 @@
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
           <h2>設定已完成，我會依照您的偏好產生報告。</h2>
-          <p class="muted">稍後您將收到：差距雷達、本週三件事，以及依語氣調整的三版回覆草稿。</p>
-          <p class="muted muted--context" id="summary-context" hidden>我已鎖定您的門市與城市資料，正在同步競品與評論。</p>
+          <p class="muted">稍後你會收到：補件提示、競品預警與依語氣調整的回覆草稿。</p>
+          <p class="muted muted--context" id="summary-context" hidden>我已鎖定你的門市與城市資料，正在同步競品與評論。</p>
         </header>
 
         <div class="summary-card">
@@ -216,45 +214,110 @@
 
     <!-- S4｜分析完成 -->
     <section id="stage-s4" class="stage" data-stage="s4" hidden>
-      <div class="stage-panel stage-panel--result">
+      <div class="stage-panel stage-panel--result stage-panel--entry-pass">
         <div class="brand-line brand-line--compact">
           <img src="logo.png" alt="星級引擎" class="brand-line__logo" />
           <span class="brand-line__text">星級引擎｜脈動智匯</span>
         </div>
-        <header class="stage-panel__header stage-panel__header--compact">
-          <h2>入場券初審完成！這是你的 AI 預覽</h2>
-          <p class="muted">差距雷達、本週三件事與回覆草稿都已套用你的設定，點擊即可生成正式入場券。</p>
-        </header>
-        <div class="result-warning" id="result-warning" hidden>
+
+        <div class="entry-pass-hero">
+          <div class="entry-pass-dashboard">
+            <article class="entry-pass-card" id="preview-schema-card">
+              <header class="entry-pass-card__header">
+                <span class="entry-pass-card__label">Schema</span>
+                <span class="entry-pass-card__status" id="preview-schema-status">同步中</span>
+              </header>
+              <div class="entry-pass-card__body">
+                <strong class="entry-pass-card__score" id="preview-schema-score">—</strong>
+                <p class="entry-pass-card__hint" id="preview-schema-hint">AI 正在建立結構化資料。</p>
+                <p class="entry-pass-card__next" id="preview-schema-next">補件建議將稍後更新。</p>
+                <p class="entry-pass-card__meta" id="preview-schema-updated" hidden>更新於 1 分鐘內</p>
+              </div>
+            </article>
+
+            <article class="entry-pass-card" id="preview-visibility-card">
+              <header class="entry-pass-card__header">
+                <span class="entry-pass-card__label">AI 可見度</span>
+                <span class="entry-pass-card__status" id="preview-visibility-status">同步中</span>
+              </header>
+              <div class="entry-pass-card__body">
+                <strong class="entry-pass-card__score" id="preview-visibility-score">—</strong>
+                <p class="entry-pass-card__hint" id="preview-visibility-hint">AI 正在建立可見度模型。</p>
+                <p class="entry-pass-card__next" id="preview-visibility-next">優先補強方向即將提供。</p>
+                <p class="entry-pass-card__meta" id="preview-visibility-updated" hidden>更新於 1 分鐘內</p>
+              </div>
+            </article>
+
+            <article class="entry-pass-card" id="preview-review-card">
+              <header class="entry-pass-card__header">
+                <span class="entry-pass-card__label">評論健康</span>
+                <span class="entry-pass-card__status" id="preview-review-status">同步中</span>
+              </header>
+              <div class="entry-pass-card__body">
+                <strong class="entry-pass-card__score" id="preview-review-score">—</strong>
+                <p class="entry-pass-card__hint" id="preview-review-hint">AI 正在整理近期評論。</p>
+                <p class="entry-pass-card__next" id="preview-review-next">守護任務會隨即推送。</p>
+                <p class="entry-pass-card__meta" id="preview-review-updated" hidden>更新於 1 分鐘內</p>
+              </div>
+            </article>
+          </div>
+
+          <aside class="entry-pass-status-card" id="preview-status-card">
+            <div class="entry-pass-status-card__header">
+              <span class="entry-pass-status-card__label">入場券狀態</span>
+              <span class="entry-pass-status-card__state" id="preview-entry-status">檢核中</span>
+            </div>
+            <p class="entry-pass-status-card__primary" id="preview-entry-primary">AI 正在生成正式入場券，補齊黃色與紅色指標即可簽發。</p>
+            <ul class="entry-pass-status-card__list" id="preview-entry-next-steps">
+              <li class="entry-pass-status-card__item">AI 正在整理下一步補件建議</li>
+            </ul>
+            <p class="entry-pass-status-card__note" id="preview-entry-note">完成後會自動推播結果並同步到 LINE。</p>
+          </aside>
+        </div>
+
+        <div class="entry-pass-warning" id="result-warning" hidden>
           <strong>提醒：</strong>
           <span id="result-warning-text"></span>
         </div>
-        <div class="result-grid">
-          <article class="result-card result-card--radar" id="result-radar">
-            <h3>差距雷達</h3>
-            <p class="muted">星等、評論量與距離差距即時更新</p>
-            <ul id="result-radar-list" class="result-list"></ul>
-          </article>
 
-          <article class="result-card result-card--actions" id="result-actions">
-            <h3>本週三件事</h3>
-            <p class="muted">直接複製即可交派團隊執行</p>
-            <ul id="result-actions-list" class="result-list"></ul>
-            <button id="copy-actions" type="button" class="btn btn--ghost">複製三件事</button>
-          </article>
+        <div class="entry-pass-sections">
+          <section class="entry-pass-section">
+            <header class="entry-pass-section__header">
+              <h3>入場券補件提示</h3>
+            </header>
+            <div id="preview-metrics" class="report-metrics"></div>
+            <p id="preview-metrics-empty" class="report-empty" hidden>AI 正在比對欄位，稍後提供補件建議。</p>
+          </section>
 
-          <article class="result-card result-card--drafts" id="result-drafts">
-            <h3>三版回覆草稿</h3>
-            <p class="muted">已套用您的語氣偏好，可一鍵複製</p>
-            <div id="result-drafts-list" class="drafts"></div>
-          </article>
+          <section class="entry-pass-section">
+            <header class="entry-pass-section__header">
+              <h3>競品預警</h3>
+            </header>
+            <ul id="preview-competitors" class="report-competitors"></ul>
+            <p id="preview-competitors-empty" class="report-empty" hidden>競品資料同步中，完成後會推播提醒。</p>
+          </section>
+
+          <section class="entry-pass-section">
+            <header class="entry-pass-section__header entry-pass-section__header--with-action">
+              <h3>守護任務｜本週三件事</h3>
+              <button id="copy-actions" type="button" class="btn btn--ghost">複製本週任務</button>
+            </header>
+            <ul id="preview-actions" class="report-actions"></ul>
+            <p id="preview-actions-empty" class="report-empty" hidden>守護任務整理中，稍後會推播。</p>
+          </section>
+
+          <section class="entry-pass-section">
+            <header class="entry-pass-section__header">
+              <h3>AI 回覆草稿</h3>
+            </header>
+            <div id="preview-drafts" class="report-drafts"></div>
+            <p id="preview-drafts-empty" class="report-empty" hidden>草稿準備中，稍後會自動推播。</p>
+          </section>
         </div>
 
-        <div class="result-actions">
-          <a id="cta-plan" class="btn btn--gradient" href="plans.html" target="_blank" rel="noopener">開啟 AI 守護方案</a>
-          <button id="cta-secondary" type="button" class="btn btn--outline">生成正式入場券</button>
-          <button id="cta-report" type="button" class="btn btn--ghost">查看入場券預覽</button>
-          <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
+        <div class="entry-pass-actions">
+          <button id="cta-secondary" type="button" class="btn btn--gradient">生成正式入場券</button>
+          <a id="cta-line" class="entry-pass-link" href="#">回到 LINE</a>
         </div>
       </div>
     </section>
@@ -274,7 +337,7 @@
 
         <p class="timeout-note" id="timeout-note">資料較多，我會在完成後發送通知。</p>
         <div class="timeout-actions">
-          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?v=20251005c" target="_blank" rel="noopener">查看樣本報表</a>
+          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?v=20251008T1405" target="_blank" rel="noopener">查看樣本報表</a>
           <button id="timeout-weekly" type="button" class="btn btn--outline">先拿本週三件事（試算版）</button>
           <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
         </div>
@@ -285,16 +348,16 @@
 </main>
 
   <footer class="footer-link">
-    <a href="about.html?v=20251005c" id="about-link">關於我們</a>
+    <a href="about.html?v=20251008T1405" id="about-link">關於我們</a>
   </footer>
 
   <div class="toast" id="toast" hidden></div>
 
   <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
-  <script src="config.runtime.js?v=20251005c"></script>
-  <script src="config.js?v=20251005c"></script>
-  <script src="report-utils.js?v=20251005c"></script>
-  <script src="analytics.js?v=20251005c"></script>
-  <script src="app.js?v=20251005c"></script>
+  <script src="config.runtime.js?v=20251008T1405"></script>
+  <script src="config.js?v=20251008T1405"></script>
+  <script src="report-utils.js?v=20251008T1405"></script>
+  <script src="analytics.js?v=20251008T1405"></script>
+  <script src="app.js?v=20251008T1405"></script>
 </body>
 </html>

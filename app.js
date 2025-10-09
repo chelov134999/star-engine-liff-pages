@@ -12,21 +12,25 @@ const reportUrl = config.reportUrl || config.report_url || 'report.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
+const lineFallbackUrl = config.trialUrl
+  || config.trial_url
+  || config.lineFallbackUrl
+  || 'https://line.me/R/ti/p/@star-up';
 
 const ANALYSIS_COUNTDOWN_SECONDS = 60;
 const TIP_ROTATE_INTERVAL_MS = 9000;
 const ANALYSIS_TIPS = [
-  '正在建立結構化資料欄位，補齊 AI 可讀資訊。',
-  '同步抓取 Google 評論與商圈競品樣本。',
-  '彙整可見度模型並準備正式入場券草稿。'
+  '建立結構化資料欄位，生成 AI 可讀 Schema。',
+  '比對商圈資料並建立 AI 可見度模型。',
+  '檢查評論健康，整理守護任務草稿。',
 ];
 const TRANSITION_TIP_INTERVAL_MS = 1500;
 const TRANSITION_TIPS = [
-  '正在建立結構化資料…',
-  '抓取 Google 評論…',
-  '彙整可見度模型…',
+  '建立結構化資料…',
+  '建立 AI 可見度模型…',
+  '檢查評論健康…',
 ];
-const DEFAULT_TIMEOUT_NOTE = '資料較多，我會在完成後發送正式入場券通知。';
+const DEFAULT_TIMEOUT_NOTE = '資料較大，完成後會自動推播。';
 const DATAFORSEO_TIMEOUT_NOTE = 'Google 資料已就緒，評論補齊後會再次通知你。';
 
 const logEvent = (...args) => {
@@ -37,9 +41,9 @@ const logEvent = (...args) => {
 
 const STAGES = ['s0', 's1', 's2', 's3', 's4', 's5'];
 const PROGRESS_TICKS = [
-  { percent: 35, label: 'Schema 完整度', description: '建立結構化資料欄位' },
-  { percent: 65, label: 'AI 可見度模型', description: '比對商圈與曝光差距' },
-  { percent: 85, label: '評論健康度', description: '整理評論分佈與風險指標' },
+  { percent: 35, label: '建立結構化資料', description: '補齊 AI 可讀欄位' },
+  { percent: 65, label: '建立 AI 可見度模型', description: '比對商圈與曝光差距' },
+  { percent: 85, label: '檢查評論健康', description: '整理評論樣本與守護風險' },
 ];
 const PROGRESS_TIMEOUT_MS = 75 * 1000;
 const TRANSITION_DURATION_MS = 3000;
@@ -77,18 +81,44 @@ const els = {
   progressBarS3: document.getElementById('progress-bar-s3'),
   progressLabelS3: document.getElementById('progress-label-s3'),
   progressEtaS3: document.getElementById('progress-eta-s3'),
-  progressCountdown: document.getElementById('progress-countdown'),
-  progressCountdownNumber: document.getElementById('progress-countdown-number'),
-  progressTip: document.getElementById('progress-tip'),
-  resultRadarList: document.getElementById('result-radar-list'),
-  resultActionsList: document.getElementById('result-actions-list'),
-  resultDraftsList: document.getElementById('result-drafts-list'),
+  analysisTimer: document.getElementById('analysis-timer') || document.getElementById('progress-countdown'),
+  analysisCountdownNumber: document.getElementById('analysis-countdown-number') || document.getElementById('progress-countdown-number'),
+  analysisTip: document.getElementById('analysis-tip') || document.getElementById('progress-tip'),
+  previewSchemaCard: document.getElementById('preview-schema-card'),
+  previewSchemaScore: document.getElementById('preview-schema-score'),
+  previewSchemaStatus: document.getElementById('preview-schema-status'),
+  previewSchemaHint: document.getElementById('preview-schema-hint'),
+  previewSchemaNext: document.getElementById('preview-schema-next'),
+  previewSchemaUpdated: document.getElementById('preview-schema-updated'),
+  previewVisibilityCard: document.getElementById('preview-visibility-card'),
+  previewVisibilityScore: document.getElementById('preview-visibility-score'),
+  previewVisibilityStatus: document.getElementById('preview-visibility-status'),
+  previewVisibilityHint: document.getElementById('preview-visibility-hint'),
+  previewVisibilityNext: document.getElementById('preview-visibility-next'),
+  previewVisibilityUpdated: document.getElementById('preview-visibility-updated'),
+  previewReviewCard: document.getElementById('preview-review-card'),
+  previewReviewScore: document.getElementById('preview-review-score'),
+  previewReviewStatus: document.getElementById('preview-review-status'),
+  previewReviewHint: document.getElementById('preview-review-hint'),
+  previewReviewNext: document.getElementById('preview-review-next'),
+  previewReviewUpdated: document.getElementById('preview-review-updated'),
+  previewStatusCard: document.getElementById('preview-status-card'),
+  previewEntryStatus: document.getElementById('preview-entry-status'),
+  previewEntryPrimary: document.getElementById('preview-entry-primary'),
+  previewEntryNextSteps: document.getElementById('preview-entry-next-steps'),
+  previewEntryNote: document.getElementById('preview-entry-note'),
+  previewMetrics: document.getElementById('preview-metrics'),
+  previewMetricsEmpty: document.getElementById('preview-metrics-empty'),
+  previewCompetitors: document.getElementById('preview-competitors'),
+  previewCompetitorsEmpty: document.getElementById('preview-competitors-empty'),
+  previewActions: document.getElementById('preview-actions'),
+  previewActionsEmpty: document.getElementById('preview-actions-empty'),
+  previewDrafts: document.getElementById('preview-drafts'),
+  previewDraftsEmpty: document.getElementById('preview-drafts-empty'),
   resultWarning: document.getElementById('result-warning'),
   resultWarningText: document.getElementById('result-warning-text'),
-  ctaReport: document.getElementById('cta-report'),
-  ctaPlan: document.getElementById('cta-plan'),
   ctaSecondary: document.getElementById('cta-secondary'),
-  returnHome: document.getElementById('return-home'),
+  ctaLine: document.getElementById('cta-line'),
   timeoutSample: document.getElementById('timeout-sample'),
   timeoutWeekly: document.getElementById('timeout-weekly'),
   timeoutReport: document.getElementById('timeout-report'),
@@ -185,7 +215,7 @@ function stopTransitionTips() {
     clearInterval(state.transition.tipId);
     state.transition.tipId = null;
   }
-  setTransitionTip('智能體正在準備提示…', true);
+  setTransitionTip('守護專家正在準備提示…', true);
 }
 
 function startTransitionTips() {
@@ -273,7 +303,7 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
 
   const resolveTick = () => {
     if (!Array.isArray(PROGRESS_TICKS) || !PROGRESS_TICKS.length) {
-      return { label: 'Schema 完整度', description: '正在建立結構化資料欄位' };
+      return { label: '建立結構化資料', description: '正在建立結構化資料欄位' };
     }
     let candidate = PROGRESS_TICKS[0];
     for (const tick of PROGRESS_TICKS) {
@@ -281,11 +311,11 @@ function updateProgressUI(percent, etaSeconds, stageLabel = '') {
         candidate = tick;
       }
     }
-    return candidate || { label: 'Schema 完整度', description: '正在建立結構化資料欄位' };
+    return candidate || { label: '建立結構化資料', description: '正在建立結構化資料欄位' };
   };
 
   const tick = resolveTick();
-  let label = `${tick.label || 'Schema 完整度'} · 進度 ${safePercent}%`;
+  let label = `${tick.label || '建立結構化資料'} · 進度 ${safePercent}%`;
   let description = tick.description || '正在建立結構化資料欄位';
   let customDescription = false;
 
@@ -348,36 +378,37 @@ function stopAnalysisCountdown() {
   }
   state.progress.countdownRemaining = 0;
   state.progress.tipIndex = 0;
-  if (els.progressCountdown) {
-    els.progressCountdown.hidden = true;
+  if (els.analysisTimer) {
+    els.analysisTimer.hidden = true;
   }
 }
 
-function setProgressTip(text) {
-  if (!els.progressTip) return;
-  els.progressTip.textContent = text;
+function setAnalysisTip(text) {
+  if (!els.analysisTip) return;
+  els.analysisTip.textContent = text;
 }
 
 function updateCountdownNumber() {
-  if (!els.progressCountdownNumber) return;
+  if (!els.analysisCountdownNumber) return;
   const value = Math.max(0, Math.round(state.progress.countdownRemaining));
-  els.progressCountdownNumber.textContent = value;
+  els.analysisCountdownNumber.textContent = value;
 }
 
 function rotateAnalysisTip() {
   if (!ANALYSIS_TIPS.length) return;
   state.progress.tipIndex = (state.progress.tipIndex + 1) % ANALYSIS_TIPS.length;
-  setProgressTip(ANALYSIS_TIPS[state.progress.tipIndex]);
+  setAnalysisTip(ANALYSIS_TIPS[state.progress.tipIndex]);
 }
 
 function startAnalysisCountdown() {
-  if (!els.progressCountdown) return;
   stopAnalysisCountdown();
   state.progress.countdownRemaining = ANALYSIS_COUNTDOWN_SECONDS;
   state.progress.tipIndex = 0;
-  els.progressCountdown.hidden = false;
+  if (els.analysisTimer) {
+    els.analysisTimer.hidden = false;
+  }
   updateCountdownNumber();
-  setProgressTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
+  setAnalysisTip(ANALYSIS_TIPS[0] || 'AI 正在分析資料…');
   state.progress.countdownTimerId = setInterval(() => {
     state.progress.countdownRemaining -= 1;
     if (state.progress.countdownRemaining <= 0) {
@@ -480,7 +511,7 @@ function resetProgressUI() {
     els.progressBarS3.style.width = '0%';
   }
 
-  const baseLabel = 'Schema 完整度 · 進度 0%';
+  const baseLabel = '建立結構化資料 · 進度 0%';
   const baseEta = '正在建立結構化資料欄位';
 
   if (els.progressLabelS2) {
@@ -971,10 +1002,10 @@ function handleStatusResponse(payload) {
   const flags = payload.flags || (payload.report && payload.report.flags) || {};
   const stageHints = {
     collecting: { description: '正在建立結構化資料欄位' },
-    processing: { description: '正在比對商圈與 AI 可見度模型' },
-    analyzing: { description: '正在整理評論健康度與草稿' },
-    scheduled: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後自動推播' },
-    timeout: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後自動推播' },
+    processing: { description: '正在建立 AI 可見度模型' },
+    analyzing: { description: '正在檢查評論健康與守護任務' },
+    scheduled: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後會自動推播' },
+    timeout: { label: 'AI 入場券預審排隊中', description: '資料量較大，完成後會自動推播' },
     ready: { label: 'AI 入場券預審完成', description: '正在回傳結果，稍待即可查看' },
   };
 
@@ -993,7 +1024,7 @@ function handleStatusResponse(payload) {
   if (isPending) {
     updateProgressUI(state.progress.percent, etaSeconds, {
       label: 'AI 入場券預審排隊中',
-      description: '資料量較大，完成後自動推播',
+      description: '資料量較大，完成後會自動推播',
     });
   }
 
@@ -1059,7 +1090,16 @@ function renderAnalysisReport(context = {}) {
   }
 
   const report = state.report;
+  const psychology = state.psychology || {};
   const utils = window.ReportUtils || {};
+  const {
+    renderMetrics,
+    renderCompetitors,
+    renderActions,
+    renderDrafts,
+    pickMetric,
+  } = utils;
+
   const warnings = Array.isArray(context.warnings) ? context.warnings : state.latestWarnings;
   const flags = context.flags || report.flags || {};
 
@@ -1082,89 +1122,695 @@ function renderAnalysisReport(context = {}) {
     }
   }
 
+  const resolveText = (...values) => {
+    for (const value of values) {
+      if (value == null) continue;
+      const text = String(value).trim();
+      if (text) return text;
+    }
+    return '';
+  };
+
+  const formatScoreDisplay = (value, { unit = '' } = {}) => {
+    if (value == null) return '';
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return '';
+      const parsed = Number(trimmed);
+      if (!Number.isNaN(parsed)) {
+        value = parsed;
+      } else {
+        return trimmed;
+      }
+    }
+    const number = Number(value);
+    if (!Number.isFinite(number)) {
+      return '';
+    }
+    const normalized = Math.abs(number) <= 1 ? number * 100 : number;
+    const formatted = Number.isInteger(normalized) ? normalized : Number(normalized.toFixed(1));
+    return `${formatted}${unit}`.trim();
+  };
+
+  const normalizeScoreValue = (value) => {
+    if (value == null || value === '') return null;
+    let candidate = value;
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim();
+      if (!trimmed) return null;
+      const match = trimmed.match(/-?\d+(?:\.\d+)?/);
+      if (!match) return null;
+      candidate = Number(match[0]);
+    }
+    const number = Number(candidate);
+    if (!Number.isFinite(number)) return null;
+    const normalized = Math.abs(number) <= 1 ? number * 100 : number;
+    return Math.max(0, Math.min(100, Math.round(normalized)));
+  };
+
+  const TIMESTAMP_KEYS = [
+    'checked_at',
+    'checkedAt',
+    'updated_at',
+    'updatedAt',
+    'last_checked_at',
+    'lastCheckedAt',
+    'refreshed_at',
+    'refreshedAt',
+    'computed_at',
+    'computedAt',
+    'generated_at',
+    'generatedAt',
+    'timestamp',
+    'ts',
+  ];
+
+  const parseTimestampValue = (value) => {
+    if (value == null || value === '') return null;
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? null : value;
+    }
+    if (typeof value === 'number') {
+      if (!Number.isFinite(value)) return null;
+      if (value > 1e12) return new Date(value);
+      if (value > 1e9) return new Date(value * 1000);
+      return null;
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return null;
+      if (/^\d{13}$/.test(trimmed)) return new Date(Number(trimmed));
+      if (/^\d{10}$/.test(trimmed)) return new Date(Number(trimmed) * 1000);
+      if (/^20\d{6}T\d{4}$/.test(trimmed)) {
+        const year = Number(trimmed.slice(0, 4));
+        const month = Number(trimmed.slice(4, 6)) - 1;
+        const day = Number(trimmed.slice(6, 8));
+        const hour = Number(trimmed.slice(9, 11));
+        const minute = Number(trimmed.slice(11, 13));
+        const result = new Date(year, month, day, hour, minute);
+        return Number.isNaN(result.getTime()) ? null : result;
+      }
+      const parsed = new Date(trimmed);
+      return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+    return null;
+  };
+
+  const extractTimestampValue = (source, visited = new Set()) => {
+    if (source == null) return null;
+    const parsedDirect = parseTimestampValue(source);
+    if (parsedDirect) return parsedDirect;
+    if (typeof source !== 'object') return null;
+    if (visited.has(source)) return null;
+    visited.add(source);
+
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        const parsed = extractTimestampValue(item, visited);
+        if (parsed) return parsed;
+      }
+      return null;
+    }
+
+    for (const key of TIMESTAMP_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        const parsed = parseTimestampValue(source[key]);
+        if (parsed) return parsed;
+      }
+      const camelKey = key.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+      if (Object.prototype.hasOwnProperty.call(source, camelKey)) {
+        const parsed = parseTimestampValue(source[camelKey]);
+        if (parsed) return parsed;
+      }
+    }
+
+    for (const [key, value] of Object.entries(source)) {
+      if (!value) continue;
+      const canonicalKey = key.toLowerCase();
+      if (TIMESTAMP_KEYS.some((candidate) => canonicalKey.includes(candidate.replace(/_/g, '')))) {
+        const parsed = parseTimestampValue(value);
+        if (parsed) return parsed;
+      }
+    }
+
+    if (source.meta) {
+      const parsed = extractTimestampValue(source.meta, visited);
+      if (parsed) return parsed;
+    }
+    if (source.metadata) {
+      const parsed = extractTimestampValue(source.metadata, visited);
+      if (parsed) return parsed;
+    }
+    if (source.raw) {
+      const parsed = extractTimestampValue(source.raw, visited);
+      if (parsed) return parsed;
+    }
+
+    for (const value of Object.values(source)) {
+      if (value && typeof value === 'object') {
+        const parsed = extractTimestampValue(value, visited);
+        if (parsed) return parsed;
+      }
+    }
+
+    return null;
+  };
+
+  const resolveFirstTimestamp = (...sources) => {
+    for (const source of sources) {
+      const parsed = extractTimestampValue(source);
+      if (parsed) return parsed;
+    }
+    return null;
+  };
+
+  const formatRelativeTimestampLabel = (date) => {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+    const diffMs = Date.now() - date.getTime();
+    const safeDiff = Number.isFinite(diffMs) ? diffMs : 0;
+    const clampedDiff = safeDiff < 0 ? 0 : safeDiff;
+    const minutes = Math.floor(clampedDiff / 60000);
+    if (minutes < 1) return '更新於 1 分鐘內';
+    if (minutes < 60) return `更新於 ${minutes} 分鐘前`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `更新於 ${hours} 小時前`;
+    const days = Math.floor(hours / 24);
+    if (days < 60) return `更新於 ${days} 天前`;
+    const months = Math.floor(days / 30);
+    return `更新於 ${months} 個月前`;
+  };
+
+  const createCardState = (score, options = {}) => {
+    const {
+      pendingNext,
+      goodNext,
+      warnNext,
+      riskNext,
+      goodStatus,
+      warnStatus,
+      riskStatus,
+    } = options;
+
+    if (score == null) {
+      return {
+        level: '',
+        status: '同步中',
+        next: pendingNext || 'AI 正在整理指標，稍後會提供補件建議。',
+      };
+    }
+
+    if (score >= 80) {
+      return {
+        level: 'entry-pass-card--state-good',
+        status: goodStatus || '可簽發',
+        next: goodNext || '維持亮綠燈，持續追蹤即可。',
+      };
+    }
+
+    if (score >= 50) {
+      return {
+        level: 'entry-pass-card--state-warn',
+        status: warnStatus || '待補件',
+        next: warnNext || '優先補齊黃色指標，加速簽發。',
+      };
+    }
+
+    return {
+      level: 'entry-pass-card--state-risk',
+      status: riskStatus || '需緊急守護',
+      next: riskNext || '立即處理紅色指標，守護評論健康。',
+    };
+  };
+
+  const updatePreviewCard = (refs, data = {}) => {
+    if (!refs) return;
+    const {
+      cardEl,
+      scoreEl,
+      statusEl,
+      hintEl,
+      nextEl,
+      updatedEl,
+    } = refs;
+    const {
+      score = '—',
+      status = '同步中',
+      hint = 'AI 正在整理資料。',
+      next = '稍後會提供補件建議。',
+      level = '',
+      updated = '',
+    } = data;
+
+    if (scoreEl) scoreEl.textContent = score || '—';
+    if (statusEl) statusEl.textContent = status || '同步中';
+    if (hintEl) hintEl.textContent = hint || 'AI 正在整理資料。';
+    if (nextEl) nextEl.textContent = next || '稍後會提供補件建議。';
+    if (updatedEl) {
+      if (updated) {
+        updatedEl.textContent = updated;
+        updatedEl.hidden = false;
+      } else {
+        updatedEl.hidden = true;
+      }
+    }
+    if (cardEl) {
+      cardEl.classList.remove('entry-pass-card--state-good', 'entry-pass-card--state-warn', 'entry-pass-card--state-risk');
+      if (level) {
+        cardEl.classList.add(level);
+      }
+    }
+  };
+
+  const setPreviewEntryStatus = ({ status, primary, note, nextSteps }) => {
+    if (els.previewEntryStatus) {
+      els.previewEntryStatus.textContent = status || '檢核中';
+    }
+    if (els.previewEntryPrimary) {
+      els.previewEntryPrimary.textContent = primary || 'AI 正在生成正式入場券，補齊黃色與紅色指標即可簽發。';
+    }
+    if (els.previewEntryNote) {
+      els.previewEntryNote.textContent = note || '完成後會自動推播結果並同步到 LINE。';
+    }
+    if (els.previewStatusCard) {
+      const normalizedStatus = (status || '').trim();
+      els.previewStatusCard.classList.toggle('entry-pass-status-card--ready', /可簽發/.test(normalizedStatus));
+      els.previewStatusCard.classList.toggle('entry-pass-status-card--pause', /暫停|待守護/.test(normalizedStatus));
+    }
+    if (els.previewEntryNextSteps) {
+      els.previewEntryNextSteps.innerHTML = '';
+      const steps = Array.isArray(nextSteps) ? nextSteps.filter(Boolean) : [];
+      if (steps.length) {
+        steps.slice(0, 3).forEach((item) => {
+          const li = document.createElement('li');
+          li.className = 'entry-pass-status-card__item';
+          li.textContent = item;
+          els.previewEntryNextSteps.appendChild(li);
+        });
+      } else {
+        const li = document.createElement('li');
+        li.className = 'entry-pass-status-card__item';
+        li.textContent = 'AI 正在整理下一步補件建議';
+        els.previewEntryNextSteps.appendChild(li);
+      }
+    }
+  };
+
+  const entryPassData = report.entry_pass || {};
+  const entryPassCards = entryPassData.cards || entryPassData.sections || {};
+  const preferences = report.preferences || {};
+
+  const schemaMetric = pickMetric
+    ? pickMetric(report.metrics, ['schema_score', 'schema'])
+      || pickMetric(report.metrics?.overview, ['schema_score', 'schema'])
+      || pickMetric(report.kpi, ['schema_score', 'schema'])
+    : null;
+  const schemaValueRaw = schemaMetric?.value
+    ?? report.schema_score
+    ?? report.schemaScore
+    ?? report.schema?.score
+    ?? report.metrics?.schema_score
+    ?? report.metrics?.schema?.score;
+  const schemaDisplay = formatScoreDisplay(schemaValueRaw, { unit: '' });
+  const schemaScoreNumeric = normalizeScoreValue(schemaValueRaw);
+  const schemaHint = resolveText(
+    schemaMetric?.hint,
+    schemaMetric?.raw?.hint,
+    schemaMetric?.raw?.note,
+    report.schema_hint,
+    report.schema?.hint,
+    schemaDisplay ? '結構化資料已同步' : 'Schema 結構化資料檢測中',
+  );
+
+  const visibilityMetric = pickMetric
+    ? pickMetric(report.metrics, ['ai_visibility_score', 'visibility_score', 'ai_visibility'])
+      || pickMetric(report.metrics?.overview, ['ai_visibility_score', 'visibility_score', 'ai_visibility'])
+      || pickMetric(report.kpi, ['ai_visibility_score', 'visibility_score'])
+    : null;
+  const visibilityValueRaw = visibilityMetric?.value
+    ?? report.ai_visibility_score
+    ?? report.aiVisibilityScore
+    ?? report.ai_visibility?.score
+    ?? report.visibility_score;
+  const visibilityDisplay = formatScoreDisplay(visibilityValueRaw, { unit: '' });
+  const visibilityScoreNumeric = normalizeScoreValue(visibilityValueRaw);
+  const visibilityHint = resolveText(
+    visibilityMetric?.hint,
+    visibilityMetric?.raw?.hint,
+    visibilityMetric?.raw?.note,
+    report.ai_visibility_hint,
+    report.visibility_hint,
+    visibilityDisplay ? 'AI 可見度已完成評估' : 'AI 正在評估可見度',
+  );
+
+  const reviewMetric = pickMetric
+    ? pickMetric(report.metrics, ['review_health', 'reviews_health', 'review_health_score'])
+      || pickMetric(report.metrics?.overview, ['review_health', 'reviews_health', 'review_health_score'])
+      || pickMetric(report.kpi, ['review_health'])
+    : null;
+  const reviewValueRaw = reviewMetric?.value
+    ?? report.review_health
+    ?? report.reviews_health
+    ?? report.review_health_score
+    ?? report.metrics?.review_health
+    ?? report.metrics?.review?.health;
+  let reviewDisplay = formatScoreDisplay(reviewValueRaw, { unit: '' });
+  let reviewScoreNumeric = normalizeScoreValue(reviewValueRaw);
+  if (!reviewScoreNumeric && typeof reviewValueRaw === 'string') {
+    const reviewKey = reviewValueRaw.trim().toLowerCase();
+    const reviewMap = { safe: 92, watch: 68, alert: 42, danger: 28 };
+    if (reviewMap[reviewKey] != null) {
+      reviewScoreNumeric = reviewMap[reviewKey];
+    }
+    if (!reviewDisplay) {
+      const reviewDisplayMap = { safe: '安全', watch: '觀察', alert: '警示', danger: '重大關注' };
+      reviewDisplay = reviewDisplayMap[reviewKey] || reviewValueRaw.trim();
+    }
+  }
+  if (!reviewDisplay && typeof reviewValueRaw === 'string' && reviewValueRaw.trim()) {
+    reviewDisplay = reviewValueRaw.trim();
+  }
+  const reviewHint = resolveText(
+    reviewMetric?.hint,
+    reviewMetric?.raw?.hint,
+    reviewMetric?.raw?.note,
+    report.review_health_hint,
+    report.reviews_health_hint,
+    reviewDisplay ? '評論健康度已更新' : '評論健康度同步中',
+  );
+
+  const schemaCardSource = entryPassCards.schema
+    || entryPassData.schema
+    || entryPassCards.schema_card
+    || {};
+  const visibilityCardSource = entryPassCards.visibility
+    || entryPassData.visibility
+    || entryPassCards.visibility_card
+    || {};
+  const reviewCardSource = entryPassCards.review
+    || entryPassData.review
+    || entryPassCards.review_card
+    || {};
+
+  const schemaState = createCardState(schemaScoreNumeric, {
+    pendingNext: schemaCardSource.pending_next,
+    goodNext: schemaCardSource.good_next,
+    warnNext: schemaCardSource.warn_next,
+    riskNext: schemaCardSource.risk_next,
+    goodStatus: schemaCardSource.good_status,
+    warnStatus: schemaCardSource.warn_status,
+    riskStatus: schemaCardSource.risk_status,
+  });
+  const visibilityState = createCardState(visibilityScoreNumeric, {
+    pendingNext: visibilityCardSource.pending_next,
+    goodNext: visibilityCardSource.good_next,
+    warnNext: visibilityCardSource.warn_next,
+    riskNext: visibilityCardSource.risk_next,
+    goodStatus: visibilityCardSource.good_status,
+    warnStatus: visibilityCardSource.warn_status,
+    riskStatus: visibilityCardSource.risk_status,
+  });
+  const reviewState = createCardState(reviewScoreNumeric, {
+    pendingNext: reviewCardSource.pending_next,
+    goodNext: reviewCardSource.good_next,
+    warnNext: reviewCardSource.warn_next,
+    riskNext: reviewCardSource.risk_next,
+    goodStatus: reviewCardSource.good_status,
+    warnStatus: reviewCardSource.warn_status,
+    riskStatus: reviewCardSource.risk_status,
+  });
+
+  const schemaStatus = resolveText(schemaCardSource.status, schemaCardSource.state, schemaState.status);
+  const schemaHintResolved = resolveText(schemaCardSource.hint, schemaCardSource.description, schemaHint);
+  const schemaNext = resolveText(schemaCardSource.next, schemaCardSource.action, schemaCardSource.recommendation, schemaState.next);
+
+  const visibilityStatus = resolveText(visibilityCardSource.status, visibilityCardSource.state, visibilityState.status);
+  const visibilityHintResolved = resolveText(visibilityCardSource.hint, visibilityCardSource.description, visibilityHint);
+  const visibilityNext = resolveText(visibilityCardSource.next, visibilityCardSource.action, visibilityCardSource.recommendation, visibilityState.next);
+
+  const reviewStatus = resolveText(reviewCardSource.status, reviewCardSource.state, reviewState.status);
+  const reviewHintResolved = resolveText(reviewCardSource.hint, reviewCardSource.description, reviewHint);
+  const reviewNext = resolveText(reviewCardSource.next, reviewCardSource.action, reviewCardSource.recommendation, reviewState.next);
+
+  const schemaTimestamp = resolveFirstTimestamp(
+    schemaMetric?.raw,
+    schemaCardSource,
+    schemaCardSource?.meta,
+    schemaCardSource?.metadata,
+    entryPassCards.schema_checked_at,
+    entryPassCards.schema?.checked_at,
+    entryPassData.schema_checked_at,
+    entryPassData.schema?.checked_at,
+    report.schema_checked_at,
+    report.schema_updated_at,
+    report.schema?.checked_at,
+    report.schema?.updated_at,
+    report.metrics?.schema_checked_at,
+    report.metrics?.schema?.checked_at,
+    report.metrics?.schema?.updated_at,
+  );
+  const schemaUpdatedLabel = schemaTimestamp ? formatRelativeTimestampLabel(schemaTimestamp) : '';
+
+  const visibilityTimestamp = resolveFirstTimestamp(
+    visibilityMetric?.raw,
+    visibilityCardSource,
+    visibilityCardSource?.meta,
+    visibilityCardSource?.metadata,
+    entryPassCards.visibility_checked_at,
+    entryPassCards.visibility?.checked_at,
+    entryPassData.visibility_checked_at,
+    entryPassData.visibility?.checked_at,
+    report.ai_visibility_checked_at,
+    report.visibility_checked_at,
+    report.ai_visibility?.checked_at,
+    report.visibility?.checked_at,
+    report.metrics?.ai_visibility_checked_at,
+    report.metrics?.visibility_checked_at,
+    report.metrics?.visibility?.checked_at,
+  );
+  const visibilityUpdatedLabel = visibilityTimestamp ? formatRelativeTimestampLabel(visibilityTimestamp) : '';
+
+  const reviewTimestamp = resolveFirstTimestamp(
+    reviewMetric?.raw,
+    reviewCardSource,
+    reviewCardSource?.meta,
+    reviewCardSource?.metadata,
+    entryPassCards.review_checked_at,
+    entryPassCards.review?.checked_at,
+    entryPassData.review_checked_at,
+    entryPassData.review?.checked_at,
+    report.review_health_checked_at,
+    report.reviews_health_checked_at,
+    report.review?.checked_at,
+    report.metrics?.review_health_checked_at,
+    report.metrics?.review_checked_at,
+    report.metrics?.review?.checked_at,
+  );
+  const reviewUpdatedLabel = reviewTimestamp ? formatRelativeTimestampLabel(reviewTimestamp) : '';
+
+  updatePreviewCard({
+    cardEl: els.previewSchemaCard,
+    scoreEl: els.previewSchemaScore,
+    statusEl: els.previewSchemaStatus,
+    hintEl: els.previewSchemaHint,
+    nextEl: els.previewSchemaNext,
+    updatedEl: els.previewSchemaUpdated,
+  }, {
+    score: schemaDisplay || '—',
+    status: schemaStatus,
+    hint: schemaHintResolved || 'AI 正在建立結構化資料。',
+    next: schemaNext,
+    level: schemaState.level,
+    updated: schemaUpdatedLabel,
+  });
+
+  updatePreviewCard({
+    cardEl: els.previewVisibilityCard,
+    scoreEl: els.previewVisibilityScore,
+    statusEl: els.previewVisibilityStatus,
+    hintEl: els.previewVisibilityHint,
+    nextEl: els.previewVisibilityNext,
+    updatedEl: els.previewVisibilityUpdated,
+  }, {
+    score: visibilityDisplay || '—',
+    status: visibilityStatus,
+    hint: visibilityHintResolved || 'AI 正在評估可見度。',
+    next: visibilityNext,
+    level: visibilityState.level,
+    updated: visibilityUpdatedLabel,
+  });
+
+  updatePreviewCard({
+    cardEl: els.previewReviewCard,
+    scoreEl: els.previewReviewScore,
+    statusEl: els.previewReviewStatus,
+    hintEl: els.previewReviewHint,
+    nextEl: els.previewReviewNext,
+    updatedEl: els.previewReviewUpdated,
+  }, {
+    score: reviewDisplay || '—',
+    status: reviewStatus,
+    hint: reviewHintResolved || '評論健康度同步中',
+    next: reviewNext,
+    level: reviewState.level,
+    updated: reviewUpdatedLabel,
+  });
+
+  const entryStatusSource = entryPassData.status || entryPassData.state || {};
+  const entryStatus = resolveText(
+    entryStatusSource.label,
+    entryStatusSource.status,
+    entryPassData.status_text,
+    entryPassData.status,
+    entryPassData.state,
+    '檢核中',
+  );
+  const entryPrimary = resolveText(
+    entryStatusSource.primary,
+    entryPassData.primary,
+    entryStatusSource.note,
+    'AI 正在生成正式入場券，補齊黃色與紅色指標即可簽發。',
+  );
+  const entryNote = resolveText(
+    entryStatusSource.note,
+    entryPassData.note,
+    '完成後會自動推播結果並同步到 LINE。',
+  );
+  const entrySteps = entryStatusSource.next_steps
+    || entryPassData.next_steps
+    || entryPassData.nextSteps
+    || [];
+
+  setPreviewEntryStatus({
+    status: entryStatus,
+    primary: entryPrimary,
+    note: entryNote,
+    nextSteps: Array.isArray(entrySteps) ? entrySteps : [entrySteps].filter(Boolean),
+  });
+
+  const metricsSource = entryPassData.metrics
+    || report.metrics?.priority
+    || report.metrics?.top
+    || report.metrics?.summary
+    || report.metrics
+    || [];
+
+  const renderWithFallback = (renderFn, container, data, { emptyMessage, fallback }) => {
+    if (!container) return [];
+    if (typeof renderFn === 'function') {
+      return renderFn(container, data, { emptyMessage });
+    }
+    if (typeof fallback === 'function') {
+      return fallback();
+    }
+    container.innerHTML = '';
+    return [];
+  };
+
+  const metricsRendered = renderWithFallback(renderMetrics, els.previewMetrics, metricsSource, {
+    emptyMessage: 'AI 正在比對欄位，稍後提供補件建議。',
+    fallback: () => {
+      const items = Array.isArray(metricsSource) ? metricsSource.slice(0, 4) : [];
+      els.previewMetrics.innerHTML = '';
+      items.forEach((item) => {
+        const block = document.createElement('div');
+        block.className = 'report-metric';
+        const title = document.createElement('h3');
+        title.textContent = resolveText(item.label, item.title, item.name, '指標');
+        const value = document.createElement('p');
+        value.className = 'report-metric__value';
+        value.textContent = resolveText(item.value, item.score, '—');
+        block.append(title, value);
+        els.previewMetrics.appendChild(block);
+      });
+      return items;
+    },
+  });
+  if (els.previewMetricsEmpty) {
+    els.previewMetricsEmpty.hidden = Boolean(metricsRendered?.length);
+  }
+
   const competitorsPreferred = report.competitors || report.competitors_agent || [];
   const competitorFallback = (report.competitors_selected || []).concat(report.competitors_auto || []);
   const competitors = competitorsPreferred.length ? competitorsPreferred : competitorFallback;
-  const weeklyActions = report.weekly_actions || [];
-  const replyDrafts = report.reply_drafts || [];
 
-  let renderedActions = weeklyActions;
-
-  if (els.resultRadarList) {
-    if (utils.renderCompetitors) {
-      utils.renderCompetitors(els.resultRadarList, competitors.slice(0, 5), {
-        emptyMessage: '競品資料整理中，稍後自動更新。',
-      });
-    } else {
-      els.resultRadarList.innerHTML = '';
+  const competitorsRendered = renderWithFallback(renderCompetitors, els.previewCompetitors, competitors.slice(0, 5), {
+    emptyMessage: '競品資料同步中，完成後會推播提醒。',
+    fallback: () => {
+      els.previewCompetitors.innerHTML = '';
       competitors.slice(0, 5).forEach((item) => {
         const li = document.createElement('li');
         li.className = 'report-competitor';
-        li.textContent = `${item.name || '未命名店家'}｜${item.rating || '—'}｜${item.reviews_total || ''}`;
-        els.resultRadarList.appendChild(li);
+        li.textContent = `${item.name || '未命名店家'}｜${item.rating || '—'}★｜${item.reviews_total || item.reviews || ''} 則評論`;
+        els.previewCompetitors.appendChild(li);
       });
-    }
+      return competitors.slice(0, 5);
+    },
+  });
+  if (els.previewCompetitorsEmpty) {
+    els.previewCompetitorsEmpty.hidden = Boolean(competitorsRendered?.length);
   }
 
-  if (els.resultActionsList) {
-    if (utils.renderActions) {
-      renderedActions = utils.renderActions(els.resultActionsList, weeklyActions.slice(0, 3), {
-        emptyMessage: '本週行動清單準備中。',
-      });
-    } else {
-      els.resultActionsList.innerHTML = '';
+  const weeklyActions = report.weekly_actions || [];
+  const replyDrafts = report.reply_drafts || [];
+  let renderedActions = weeklyActions;
+
+  renderedActions = renderWithFallback(renderActions, els.previewActions, weeklyActions.slice(0, 3), {
+    emptyMessage: '守護任務整理中，稍後會推播。',
+    fallback: () => {
+      els.previewActions.innerHTML = '';
       weeklyActions.slice(0, 3).forEach((item) => {
         const li = document.createElement('li');
-        li.textContent = String(item);
-        els.resultActionsList.appendChild(li);
+        li.className = 'report-action';
+        const text = document.createElement('p');
+        text.className = 'report-action__text';
+        text.textContent = String(item);
+        li.appendChild(text);
+        els.previewActions.appendChild(li);
       });
-    }
+      return weeklyActions.slice(0, 3).map((item) => ({ text: String(item) }));
+    },
+  });
+  if (els.previewActionsEmpty) {
+    els.previewActionsEmpty.hidden = Boolean(renderedActions?.length);
   }
 
-  if (els.resultDraftsList) {
-    if (utils.renderDrafts) {
-      utils.renderDrafts(els.resultDraftsList, replyDrafts.slice(0, 3), {
-        copyLabel: '複製草稿',
-        onCopy: async (text) => {
-          try {
-            await navigator.clipboard.writeText(text);
-            showToast('已複製草稿', 1800);
-            logEvent('cta_click', {
-              action: 'copy_draft',
-              lead_id: state.leadId,
-              template_id: state.templateId,
-              source: 'preview',
-            });
-          } catch (error) {
-            showToast('複製失敗，請手動複製');
-          }
-        },
-      });
-    } else {
-      els.resultDraftsList.innerHTML = '';
+  renderWithFallback(renderDrafts, els.previewDrafts, replyDrafts.slice(0, 3), {
+    emptyMessage: '草稿準備中，稍後會自動推播。',
+    fallback: () => {
+      els.previewDrafts.innerHTML = '';
       replyDrafts.slice(0, 3).forEach((draft, index) => {
-        const card = document.createElement('div');
-        card.className = 'draft-item';
+        const card = document.createElement('article');
+        card.className = 'report-draft';
+        const header = document.createElement('header');
+        header.className = 'report-draft__header';
         const title = document.createElement('strong');
         title.textContent = `草稿 #${index + 1}`;
+        header.appendChild(title);
+        card.appendChild(header);
         const body = document.createElement('p');
+        body.className = 'report-draft__body';
         body.textContent = draft.text || draft;
-        card.append(title, body);
-        els.resultDraftsList.appendChild(card);
+        card.appendChild(body);
+        els.previewDrafts.appendChild(card);
       });
-    }
+      return replyDrafts.slice(0, 3).map((draft, index) => ({ title: `草稿 #${index + 1}`, text: draft.text || draft }));
+    },
+  });
+  if (els.previewDraftsEmpty) {
+    els.previewDraftsEmpty.hidden = Boolean((replyDrafts || []).length);
   }
 
   if (els.copyActions) {
     els.copyActions.onclick = async () => {
-      const list = (Array.isArray(renderedActions) ? renderedActions : []).map((item) => item.text || item);
+      const list = (Array.isArray(renderedActions) ? renderedActions : [])
+        .map((item) => item.text || item);
       if (!list.length) {
         showToast('尚無可複製的任務');
         return;
       }
       try {
         await navigator.clipboard.writeText(list.map((text) => `• ${text}`).join('\n'));
-        showToast('已複製本週三件事', 1800);
+        showToast('已複製本週任務', 1800);
         logEvent('cta_click', {
           action: 'copy_actions',
           lead_id: state.leadId,
@@ -1184,11 +1830,6 @@ function renderAnalysisReport(context = {}) {
     els.summaryTone.textContent = report.tone_label || els.summaryTone.textContent;
   }
 
-  const planParams = {
-    lead_id: state.leadId || '',
-    template_id: state.templateId || 'unknown',
-  };
-  state.planUrl = buildUrlWithParams(plansPageUrl, planParams);
   state.sampleUrl = buildUrlWithParams(sampleReportUrl, {
     lead_id: state.leadId || '',
     template_id: state.templateId || 'unknown',
@@ -1199,11 +1840,10 @@ function renderAnalysisReport(context = {}) {
     ts: Date.now(),
   });
 
-  if (els.ctaPlan) {
-    els.ctaPlan.href = state.planUrl;
-  }
   if (els.ctaSecondary) {
-    els.ctaSecondary.disabled = !state.sampleUrl;
+    const disabled = !state.reportPageUrl;
+    els.ctaSecondary.disabled = disabled;
+    els.ctaSecondary.classList.toggle('btn--disabled', disabled);
   }
 
   logEvent('report_preview_ready', {
@@ -1241,7 +1881,7 @@ function triggerTimeout(context = {}) {
   }
   stopAnalysisCountdown();
   startTimeoutCountdown();
-  updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，已排程推送完成結果');
+  updateProgressUI(Math.max(state.progress.percent || 90, 90), null, '資料量較大，完成後會自動推播結果');
   if (els.timeoutSample && state.sampleUrl) {
     els.timeoutSample.href = state.sampleUrl;
   }
@@ -1405,19 +2045,24 @@ function openReportWindow(targetUrl) {
   return true;
 }
 
+function closeToLine() {
+  const { liff } = window;
+  try {
+    if (liff?.closeWindow) {
+      liff.closeWindow();
+      return;
+    }
+  } catch (error) {
+    console.warn('[LIFF] closeWindow failed', error);
+  }
+  if (lineFallbackUrl) {
+    window.location.href = buildUrlWithParams(lineFallbackUrl, { ts: Date.now() });
+  }
+}
+
 function handleSecondaryCta(event) {
   event?.preventDefault?.();
-  if (!state.sampleUrl) {
-    showToast('樣本入場券準備中');
-    return;
-  }
-  window.open(state.sampleUrl, '_blank');
-  logEvent('cta_click', {
-    action: 'secondary',
-    lead_id: state.leadId,
-    template_id: state.templateId,
-    source: 'preview',
-  });
+  redirectToReport();
 }
 
 function attachEventListeners() {
@@ -1426,7 +2071,6 @@ function attachEventListeners() {
   els.quizSkip?.addEventListener('click', handleQuizSkip);
   els.summaryConfirm?.addEventListener('click', acknowledgeSummary);
   els.summaryBack?.addEventListener('click', returnToQuizFromSummary);
-  els.returnHome?.addEventListener('click', resetFlow);
   els.timeoutBack?.addEventListener('click', resetFlow);
   els.timeoutWeekly?.addEventListener('click', handleWeeklyDraft);
   els.timeoutReport?.addEventListener('click', (event) => {
@@ -1442,18 +2086,10 @@ function attachEventListeners() {
   els.copyActions?.addEventListener('click', (event) => {
     event.preventDefault();
   });
-  els.ctaPlan?.addEventListener('click', () => {
-    logEvent('cta_click', {
-      action: 'main',
-      lead_id: state.leadId,
-      template_id: state.templateId,
-      source: 'preview',
-    });
-  });
   els.ctaSecondary?.addEventListener('click', handleSecondaryCta);
-  els.ctaReport?.addEventListener('click', (event) => {
+  els.ctaLine?.addEventListener('click', (event) => {
     event.preventDefault();
-    redirectToReport();
+    closeToLine();
   });
   els.aboutLink?.addEventListener('click', (event) => {
     event.preventDefault();
@@ -1476,9 +2112,6 @@ function attachEventListeners() {
 
   if (els.timeoutSample && sampleReportUrl) {
     els.timeoutSample.href = sampleReportUrl;
-  }
-  if (els.ctaPlan && plansPageUrl) {
-    els.ctaPlan.href = plansPageUrl;
   }
   if (els.aboutLink) {
     els.aboutLink.href = 'about.html';

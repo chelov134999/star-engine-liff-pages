@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const releaseDir = path.join(root, 'releases', '20251006T0054');
+const releaseDir = path.join(root, 'releases', '20251008T1405');
 
 const rawInput = process.argv[2];
 const nowIso = new Date().toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
@@ -23,26 +23,26 @@ const filesToUpdate = [
   'plans.html',
   'report.html',
   'sample-report.html',
-  path.join('releases', '20251006T0054', 'config.js'),
-  path.join('releases', '20251006T0054', 'config.runtime.js'),
-  path.join('releases', '20251006T0054', 'index.html'),
-  path.join('releases', '20251006T0054', 'about.html'),
-  path.join('releases', '20251006T0054', 'plans.html'),
-  path.join('releases', '20251006T0054', 'report.html'),
-  path.join('releases', '20251006T0054', 'sample-report.html'),
+  path.join('releases', '20251008T1405', 'config.js'),
+  path.join('releases', '20251008T1405', 'config.runtime.js'),
+  path.join('releases', '20251008T1405', 'index.html'),
+  path.join('releases', '20251008T1405', 'about.html'),
+  path.join('releases', '20251008T1405', 'plans.html'),
+  path.join('releases', '20251008T1405', 'report.html'),
+  path.join('releases', '20251008T1405', 'sample-report.html'),
 ];
 
 const copyPairs = [
-  ['index.html', path.join('releases', '20251006T0054', 'index.html')],
-  ['about.html', path.join('releases', '20251006T0054', 'about.html')],
-  ['plans.html', path.join('releases', '20251006T0054', 'plans.html')],
-  ['sample-report.html', path.join('releases', '20251006T0054', 'sample-report.html')],
-  ['report.html', path.join('releases', '20251006T0054', 'report.html')],
-  ['config.js', path.join('releases', '20251006T0054', 'config.js')],
-  ['config.runtime.js', path.join('releases', '20251006T0054', 'config.runtime.js')],
-  ['report.js', path.join('releases', '20251006T0054', 'report.js')],
-  ['report-utils.js', path.join('releases', '20251006T0054', 'report-utils.js')],
-  ['styles.css', path.join('releases', '20251006T0054', 'styles.css')],
+  ['index.html', path.join('releases', '20251008T1405', 'index.html')],
+  ['about.html', path.join('releases', '20251008T1405', 'about.html')],
+  ['plans.html', path.join('releases', '20251008T1405', 'plans.html')],
+  ['sample-report.html', path.join('releases', '20251008T1405', 'sample-report.html')],
+  ['report.html', path.join('releases', '20251008T1405', 'report.html')],
+  ['config.js', path.join('releases', '20251008T1405', 'config.js')],
+  ['config.runtime.js', path.join('releases', '20251008T1405', 'config.runtime.js')],
+  ['report.js', path.join('releases', '20251008T1405', 'report.js')],
+  ['report-utils.js', path.join('releases', '20251008T1405', 'report-utils.js')],
+  ['styles.css', path.join('releases', '20251008T1405', 'styles.css')],
 ];
 
 const pattern = /ts=20\d{6}T\d{4}/g;

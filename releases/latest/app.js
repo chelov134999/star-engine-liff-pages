@@ -139,9 +139,14 @@ const state = {
   reportUrlOverride: '',
 };
 
+const externalLogEvent =
+  typeof window !== 'undefined' && typeof window.logEvent === 'function'
+    ? window.logEvent.bind(window)
+    : null;
+
 function logEvent(...args) {
-  if (typeof window.logEvent === 'function') {
-    window.logEvent(...args);
+  if (externalLogEvent) {
+    externalLogEvent(...args);
   }
 }
 

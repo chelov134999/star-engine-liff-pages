@@ -12,8 +12,8 @@ const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
-const ANALYSIS_COUNTDOWN_SECONDS = 60;
-const TRANSITION_SECONDS = 3;
+const ANALYSIS_COUNTDOWN_SECONDS = 15;
+const TRANSITION_SECONDS = 2;
 const ANALYSIS_TIMEOUT_MS = 75 * 1000;
 const POLL_INTERVAL_MS = 5000;
 const ANALYSIS_TIPS = [
@@ -118,6 +118,8 @@ const state = {
   metricsRaw: null,
   metricsList: [],
   metricTimestamps: {},
+  pollTimer: null,
+  submitLocked: false,
   tasks: {
     priority_tasks: [],
     collection_steps: [],
@@ -608,9 +610,9 @@ function startAnalysisCountdown() {
 }
 
 function clearPollingInterval() {
-  if (state.pollId) {
-    clearInterval(state.pollId);
-    state.pollId = null;
+  if (state.pollTimer) {
+    clearTimeout(state.pollTimer);
+    state.pollTimer = null;
   }
 }
 
@@ -633,14 +635,19 @@ function startPolling() {
     try {
       const url = new URL(endpoints.analysisStatus);
       url.searchParams.set('lead_id', state.leadId);
+      url.searchParams.set('_', Date.now().toString());
       const payload = await requestJSON(url.toString(), { method: 'GET' });
       handleStatusResponse(payload);
     } catch (error) {
       console.warn('[analysis-status]', error.message || error);
+    } finally {
+      if (state.pollTimer !== null) {
+        state.pollTimer = setTimeout(poll, POLL_INTERVAL_MS);
+      }
     }
   };
+  state.pollTimer = 0; // sentinel 表示輪詢啟用
   poll();
-  state.pollId = setInterval(poll, POLL_INTERVAL_MS);
   state.timeoutId = setTimeout(() => {
     if (state.stage !== 's4' && state.stage !== 's5') {
       triggerTimeout({ reason: 'timeout' });
@@ -713,6 +720,11 @@ async function handleLeadSubmit(event) {
     return;
   }
 
+  if (state.submitLocked) {
+    showToast('AI 正在檢測中，請稍候完成結果。');
+    return;
+  }
+
   const leadId = generateLeadId();
   const payload = {
     lead_id: leadId,
@@ -739,6 +751,7 @@ async function handleLeadSubmit(event) {
   setStage('s1');
   startTransitionCountdown();
   startPolling();
+  state.submitLocked = true;
 
   if (els.submitBtn) {
     els.submitBtn.disabled = true;
@@ -755,12 +768,9 @@ async function handleLeadSubmit(event) {
     console.error('[lead] submit failed', error);
     showToast(`送出失敗：${error.message}`);
     stopPolling();
-    setStage('s0');
+    state.submitLocked = false;
   } finally {
-    if (els.submitBtn) {
-      els.submitBtn.disabled = false;
-      els.submitBtn.textContent = '申請 AI 入場券';
-    }
+    // 持續鎖定按鈕，待流程完成或超時時再釋放
   }
 }
 
@@ -775,20 +785,22 @@ function applyStatusHints(stage = '') {
 }
 
 function handleAnalysisCompleted(context = {}) {
-  clearAnalysisTimeout();
+  state.submitLocked = false;
+  stopAnalysisCountdown();
+  stopPolling();
+  setStage('s4');
   updateResultWarning(context.warnings || state.warnings);
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
-  setStage('s4');
   if (context.report_url) {
     state.reportUrlOverride = context.report_url;
   }
-  clearPollingInterval();
 }
 
 function triggerTimeout(context = {}) {
   clearAnalysisTimeout();
   setStage('s5');
+  state.submitLocked = false;
   const note = context.note || STATUS_HINTS.timeout;
   if (els.timeoutNote) {
     els.timeoutNote.textContent = note;
@@ -907,6 +919,7 @@ function openReport(customUrl) {
 
 function returnHome() {
   window.location.href = formUrl;
+  state.submitLocked = false;
 }
 
 async function initLiff() {

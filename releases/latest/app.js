@@ -176,13 +176,15 @@ const state = {
   partialNotice: '',
 };
 
-const externalLogEvent =
+const originalLogEvent =
   typeof window !== 'undefined' && typeof window.logEvent === 'function'
-    ? window.logEvent.bind(window)
+    ? window.logEvent
     : null;
 
+const externalLogEvent = originalLogEvent ? originalLogEvent.bind(window) : null;
+
 function logEvent(...args) {
-  if (externalLogEvent) {
+  if (externalLogEvent && originalLogEvent !== logEvent) {
     externalLogEvent(...args);
   }
 }

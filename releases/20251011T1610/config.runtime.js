@@ -1,5 +1,5 @@
 window.__STAR_ENGINE_CONFIG__ = {
-  "formUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1535/index.html?ts=20251011T1535",
+  "formUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1610/index.html?ts=20251011T1610",
   "formLiffId": "2008215846-5LwXlWVN",
   "reportLiffId": "2008215846-5LwXlWVN",
   "webhookUrl": "https://chelov134999.app.n8n.cloud/webhook/lead-entry",
@@ -7,15 +7,15 @@ window.__STAR_ENGINE_CONFIG__ = {
   "analysisStatusUrl": "https://chelov134999.app.n8n.cloud/webhook/analysis-status",
   "weeklyDraftUrl": "https://chelov134999.app.n8n.cloud/webhook/weekly-draft",
   "reportEndpoint": "https://chelov134999.app.n8n.cloud/webhook/report-data",
-  "reportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1535/report.html?ts=20251011T1535",
+  "reportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1610/report.html?ts=20251011T1610",
   "trialUrl": "https://line.me/ti/p/@star-up",
-  "plansPageUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1535/plans.html?ts=20251011T1535",
-  "aboutUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1535/about.html?ts=20251011T1535",
+  "plansPageUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1610/plans.html?ts=20251011T1610",
+  "aboutUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1610/about.html?ts=20251011T1610",
   "checkoutPrimaryUrl": "https://chelov134999.app.n8n.cloud/pay/star-guard-4980",
   "checkoutSecondaryUrl": "https://chelov134999.app.n8n.cloud/pay/star-cabin-2980",
   "googlePlacesApiKey": "AIzaSyCRy2IFDTjfA0co5EBggpPTcZG323YPaNY",
   "scraperApiKey": "5b62aa6ae725da5b1162a4674a3ea49e",
-  "sampleReportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1535/sample-report.html?ts=20251011T1535",
+  "sampleReportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251011T1610/sample-report.html?ts=20251011T1610",
   "assistantLabel": "生成正式入場券",
   "assistantEntryUrl": "https://chelov134999.app.n8n.cloud/webhook/assistant-entry"
 };

@@ -14,7 +14,7 @@ const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
 const ANALYSIS_COUNTDOWN_SECONDS = 30;
 const TRANSITION_SECONDS = 2;
-const ANALYSIS_TIMEOUT_MS = 75 * 1000;
+const ANALYSIS_TIMEOUT_MS = 10 * 60 * 1000;
 const POLL_INTERVAL_MS = 5000;
 const ANALYSIS_TIPS = [
   'AI 正在建立結構化資料欄位…',

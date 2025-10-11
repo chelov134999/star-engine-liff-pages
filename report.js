@@ -516,12 +516,42 @@
         showToast(message);
         return;
       }
-      showToast('已同步守護專家，準備開啟報表…', 1800);
-      const target = buildUrlWithParams(result?.report_url || state.reportUrlOverride || reportUrlBase, {
-        lead_id: state.leadId,
-        token: state.token,
-      });
-      window.open(target, '_blank');
+      const assistantLink =
+        result?.assistant_url
+        || result?.assistantUrl
+        || result?.chat_url
+        || result?.chatUrl
+        || result?.line_url
+        || result?.lineUrl
+        || result?.url
+        || '';
+      const fallbackAssistantLink =
+        result?.fallback_url
+        || config.trialUrl
+        || config.checkoutPrimaryUrl
+        || config.checkoutSecondaryUrl
+        || '';
+      if (assistantLink) {
+        showToast('已同步守護專家，開啟對話中…', 1600);
+        window.open(assistantLink, '_blank', 'noopener');
+        return;
+      }
+      if (fallbackAssistantLink) {
+        const target = buildUrlWithParams(fallbackAssistantLink, { lead_id: state.leadId || undefined });
+        showToast('已同步守護專家，使用 LINE 專家入口…', 2000);
+        window.open(target, '_blank', 'noopener');
+        return;
+      }
+      if (result?.report_url || state.reportUrlOverride || reportUrlBase) {
+        showToast('已同步守護專家，開啟報表中…', 1800);
+        const target = buildUrlWithParams(result?.report_url || state.reportUrlOverride || reportUrlBase, {
+          lead_id: state.leadId,
+          token: state.token,
+        });
+        window.open(target, '_blank');
+        return;
+      }
+      showToast('已同步守護專家，稍後將於 LINE 推送通知。', 2200);
     } catch (error) {
       console.error('[assistant-entry/report]', error);
       showToast(`同步失敗：${error.message}`);

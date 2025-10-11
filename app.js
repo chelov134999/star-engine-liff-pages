@@ -13,7 +13,9 @@ const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
 const ANALYSIS_COUNTDOWN_SECONDS = 30;
-const TRANSITION_SECONDS = 2;
+const TRANSITION_SECONDS = 3;
+const TRANSITION_COMPLETE_DELAY_MS = 1200;
+const TRANSITION_COMPLETE_MESSAGE = '完整報告約 15 分鐘送達';
 const ANALYSIS_TIMEOUT_MS = 10 * 60 * 1000;
 const POLL_INTERVAL_MS = 5000;
 const ANALYSIS_TIPS = [
@@ -27,9 +29,9 @@ const STATUS_HINTS = {
   analyzing: 'AI 正在整理守護任務與補件清單。',
   scheduled: '資料量較大，AI 正在排程生成入場券。',
   timeout: '資料量較大，完成後會自動推播。',
-  ready: '分析完成，整理報告中。',
-  ready_partial: 'AI 已完成速查版，完整報告生成中。',
-  partial: 'AI 已完成速查版，完整報告生成中。',
+  ready: '速查完成，完整報告整理中（約 15 分鐘送達）。',
+  ready_partial: '速查完成，完整報告整理中（約 15 分鐘送達）。',
+  partial: '速查結果已整理，完整報告生成中（約 15 分鐘送達）。',
 };
 
 const PARTIAL_NOTICE_TEXT = '目前是速查版，資料補齊中，完整資料生成後自動更新';
@@ -107,6 +109,60 @@ const TASK_SECTION_CONFIG = {
   },
 };
 
+const METRIC_SOURCE_HINTS = [
+  {
+    token: 'serpapi',
+    label: 'SERPAPI',
+    className: 'metric-card--source-live',
+    patterns: [/serp[-_\s]?api/i, /\bgoogle\s*serp\b/i],
+  },
+  {
+    token: 'live',
+    label: '即時資料',
+    className: 'metric-card--source-live',
+    patterns: [/\blive\b/i, /\b即時\b/i, /\breal[-\s]?time\b/i, /\b現場\b/i, /\b即刻\b/i],
+  },
+  {
+    token: 'fallback',
+    label: '快取 fallback',
+    className: 'metric-card--source-fallback',
+    patterns: [/fallback/i, /cache/i, /cached/i, /supabase/i, /快取/i, /備援/i, /backup/i],
+  },
+];
+
+const METRIC_SOURCE_PRIORITY = ['serpapi', 'live', 'fallback'];
+const METRIC_SOURCE_VALUE_KEYS = [
+  'source',
+  'source_name',
+  'source_label',
+  'source_provider',
+  'provider',
+  'provider_name',
+  'provider_label',
+  'provider_key',
+  'provider_display',
+  'origin',
+  'channel',
+  'mode',
+  'name',
+  'label',
+  'title',
+];
+const METRIC_SOURCE_ARRAY_KEYS = [
+  'sources',
+  'providers',
+  'source_list',
+  'provider_list',
+  'channels',
+  'origins',
+  'tags',
+  'labels',
+  'identifiers',
+  'details',
+];
+const METRIC_SOURCE_FLAG_KEYS = ['fallback', 'is_fallback', 'isFallback', 'cache', 'is_cache', 'from_cache', 'uses_cache'];
+const METRIC_SOURCE_RECURSIVE_KEYS = ['metadata', 'meta', 'context', 'detail', 'details', 'extra', 'provider_metadata'];
+
 const els = {
   stages: {
     s0: document.getElementById('stage-s0'),
@@ -162,6 +218,8 @@ const state = {
   pollId: null,
   timeoutId: null,
   transitionId: null,
+  transitionCompleteTimeout: null,
+  transitionCompleteShown: false,
   transitionRemaining: TRANSITION_SECONDS,
   analysisCountdownId: null,
   analysisTipId: null,
@@ -173,7 +231,7 @@ const state = {
   warnings: [],
   reportUrlOverride: '',
   isPartialResult: false,
-  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || '查看預審報表',
+  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || '查看速查詳情',
   partialCards: [],
   partialNotice: '',
 };
@@ -250,6 +308,139 @@ function formatMetricScore(value, unit = '') {
     return unit ? `${rounded} ${unit}` : `${rounded}`;
   }
   return String(value);
+}
+
+function gatherSourceCandidates(target, depth = 0, collected = [], visited = new WeakSet()) {
+  if (depth > 3 || target == null) {
+    return collected;
+  }
+  if (typeof target === 'object') {
+    if (visited.has(target)) {
+      return collected;
+    }
+    visited.add(target);
+  }
+  if (Array.isArray(target)) {
+    target.forEach((item) => gatherSourceCandidates(item, depth + 1, collected, visited));
+    return collected;
+  }
+  if (typeof target !== 'object') {
+    collected.push(target);
+    return collected;
+  }
+
+  METRIC_SOURCE_VALUE_KEYS.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(target, key)) {
+      collected.push(target[key]);
+    }
+  });
+
+  METRIC_SOURCE_ARRAY_KEYS.forEach((key) => {
+    if (!Object.prototype.hasOwnProperty.call(target, key)) return;
+    const value = target[key];
+    if (Array.isArray(value)) {
+      value.forEach((entry) => gatherSourceCandidates(entry, depth + 1, collected, visited));
+    } else if (value && typeof value === 'object') {
+      gatherSourceCandidates(value, depth + 1, collected, visited);
+    } else if (value != null) {
+      collected.push(value);
+    }
+  });
+
+  METRIC_SOURCE_FLAG_KEYS.forEach((key) => {
+    if (!Object.prototype.hasOwnProperty.call(target, key)) return;
+    const raw = target[key];
+    if (raw === true || (typeof raw === 'string' && raw.toLowerCase() === 'true')) {
+      collected.push('fallback');
+    }
+  });
+
+  METRIC_SOURCE_RECURSIVE_KEYS.forEach((key) => {
+    if (!Object.prototype.hasOwnProperty.call(target, key)) return;
+    gatherSourceCandidates(target[key], depth + 1, collected, visited);
+  });
+
+  return collected;
+}
+
+function normalizeSourceToken(value) {
+  if (value == null) return null;
+  if (typeof value === 'boolean') {
+    return value ? 'live' : null;
+  }
+  if (typeof value === 'number') {
+    return null;
+  }
+  const text = String(value).trim();
+  if (!text) return null;
+  const normalized = text.toLowerCase();
+  for (const hint of METRIC_SOURCE_HINTS) {
+    if (hint.patterns.some((pattern) => pattern.test(normalized))) {
+      return hint.token;
+    }
+  }
+  return null;
+}
+
+function resolveMetricSourceInfo(metricId, metricData = {}) {
+  if (!metricData || typeof metricData !== 'object') {
+    return { text: '', classNames: [] };
+  }
+  const collected = gatherSourceCandidates(metricData);
+  const tokens = [];
+  collected.forEach((entry) => {
+    const token = normalizeSourceToken(entry);
+    if (token && !tokens.includes(token)) {
+      tokens.push(token);
+    }
+  });
+
+  if (!tokens.length && metricId === 'ai_visibility') {
+    if (metricData.fallback === true || String(metricData.fallback).toLowerCase() === 'true') {
+      tokens.push('fallback');
+    }
+  }
+
+  if (!tokens.length) {
+    return { text: '', classNames: [] };
+  }
+
+  const prioritized = METRIC_SOURCE_PRIORITY.filter((token) => tokens.includes(token));
+  const others = tokens.filter((token) => !METRIC_SOURCE_PRIORITY.includes(token));
+  const ordered = [...prioritized, ...others];
+
+  const deduped = [];
+  ordered.forEach((token) => {
+    if (token === 'live' && ordered.includes('serpapi')) {
+      return;
+    }
+    if (!deduped.includes(token)) {
+      deduped.push(token);
+    }
+  });
+
+  const labels = deduped
+    .map((token) => {
+      const hint = METRIC_SOURCE_HINTS.find((item) => item.token === token);
+      return hint?.label || null;
+    })
+    .filter(Boolean);
+
+  if (!labels.length) {
+    return { text: '', classNames: [] };
+  }
+
+  const classNames = deduped
+    .map((token) => {
+      const hint = METRIC_SOURCE_HINTS.find((item) => item.token === token);
+      return hint?.className || null;
+    })
+    .filter(Boolean);
+
+  return {
+    text: `資料來源：${labels.join(' · ')}`,
+    classNames: Array.from(new Set(classNames)),
+  };
 }
 
 function resolveMetricDefinition(metricId) {
@@ -372,8 +563,10 @@ function renderMetricCard(metricId, metricData = null) {
   const iconValue = metricData?.icon || definitionState?.icon || preset?.icon || iconMap[stateKey] || iconMap.default;
   const unit = metricData?.unit || definition.unit || '';
   const scoreDisplay = metricData?.display_score || formatMetricScore(scoreRaw, unit);
+  const sourceInfo = resolveMetricSourceInfo(metricId, metricData);
 
   cards.forEach((card) => {
+    card.classList.remove('metric-card--source-live', 'metric-card--source-fallback');
     applyMetricStateClass(card, stateKey);
     const iconEl = card.querySelector('.metric-card__icon');
     if (iconEl && iconValue) {
@@ -395,6 +588,15 @@ function renderMetricCard(metricId, metricData = null) {
     if (hintEl) {
       hintEl.textContent = hintText;
     }
+    const sourceEl = card.querySelector('[data-role="source"]');
+    if (sourceEl) {
+      if (sourceInfo.text) {
+        sourceEl.textContent = sourceInfo.text;
+        sourceEl.hidden = false;
+      } else {
+        sourceEl.hidden = true;
+      }
+    }
     const updatedEl = card.querySelector('[data-role="updated"]');
     if (updatedEl) {
       const timestamp = getMetricTimestamp(metricId, metricData);
@@ -405,6 +607,9 @@ function renderMetricCard(metricId, metricData = null) {
       } else {
         updatedEl.hidden = true;
       }
+    }
+    if (Array.isArray(sourceInfo.classNames) && sourceInfo.classNames.length) {
+      sourceInfo.classNames.forEach((className) => card.classList.add(className));
     }
   });
 }
@@ -832,6 +1037,10 @@ function stopTransitionCountdown() {
     clearInterval(state.transitionId);
     state.transitionId = null;
   }
+  if (state.transitionCompleteTimeout) {
+    clearTimeout(state.transitionCompleteTimeout);
+    state.transitionCompleteTimeout = null;
+  }
 }
 
 function updateTransitionCounter() {
@@ -843,18 +1052,46 @@ function updateTransitionCounter() {
 function startTransitionCountdown() {
   stopTransitionCountdown();
   state.transitionRemaining = TRANSITION_SECONDS;
+  state.transitionCompleteShown = false;
   updateTransitionCounter();
   if (els.transitionTip) {
     els.transitionTip.textContent = 'AI 正在準備詳細分析…';
+    els.transitionTip.classList.remove('transition-tip--complete');
+  }
+  const transitionPanel = els.stages?.s1?.querySelector('.stage-panel--transition');
+  if (transitionPanel) {
+    transitionPanel.classList.remove('stage-panel--complete');
   }
   state.transitionId = setInterval(() => {
     state.transitionRemaining -= 1;
-    updateTransitionCounter();
     if (state.transitionRemaining <= 0) {
+      state.transitionRemaining = 0;
+      updateTransitionCounter();
       stopTransitionCountdown();
+      completeTransitionPreview();
+      return;
+    }
+    updateTransitionCounter();
+  }, 1000);
+}
+
+function completeTransitionPreview() {
+  if (state.transitionCompleteShown) return;
+  state.transitionCompleteShown = true;
+  if (els.transitionTip) {
+    els.transitionTip.textContent = TRANSITION_COMPLETE_MESSAGE;
+    els.transitionTip.classList.add('transition-tip--complete');
+  }
+  const transitionPanel = els.stages?.s1?.querySelector('.stage-panel--transition');
+  if (transitionPanel) {
+    transitionPanel.classList.add('stage-panel--complete');
+  }
+  state.transitionCompleteTimeout = setTimeout(() => {
+    state.transitionCompleteTimeout = null;
+    if (state.stage === 's1') {
       setStage('s2');
     }
-  }, 1000);
+  }, TRANSITION_COMPLETE_DELAY_MS);
 }
 
 function stopAnalysisCountdown() {
@@ -1019,6 +1256,13 @@ function setStage(nextStage) {
 
   if (nextStage !== 's1') {
     stopTransitionCountdown();
+    if (els.transitionTip) {
+      els.transitionTip.classList.remove('transition-tip--complete');
+    }
+    const transitionPanel = els.stages?.s1?.querySelector('.stage-panel--transition');
+    if (transitionPanel) {
+      transitionPanel.classList.remove('stage-panel--complete');
+    }
   }
 }
 
@@ -1310,12 +1554,38 @@ async function handleAssistantEntry() {
       showToast(message);
       return;
     }
-    showToast('已同步守護專家，開啟報表中…', 1800);
-    if (result?.report_url) {
-      openReport(result.report_url);
-    } else {
-      openReport();
+    const assistantLink =
+      result?.assistant_url
+      || result?.assistantUrl
+      || result?.chat_url
+      || result?.chatUrl
+      || result?.line_url
+      || result?.lineUrl
+      || result?.url
+      || '';
+    const fallbackAssistantLink =
+      result?.fallback_url
+      || config.trialUrl
+      || config.checkoutPrimaryUrl
+      || config.checkoutSecondaryUrl
+      || '';
+    if (assistantLink) {
+      showToast('已同步守護專家，開啟對話中…', 1600);
+      window.open(assistantLink, '_blank', 'noopener');
+      return;
     }
+    if (fallbackAssistantLink) {
+      const target = buildUrlWithParams(fallbackAssistantLink, { lead_id: state.leadId || undefined });
+      showToast('已同步守護專家，使用 LINE 專家入口…', 2000);
+      window.open(target, '_blank', 'noopener');
+      return;
+    }
+    if (result?.report_url || state.reportUrlOverride || reportUrlBase) {
+      showToast('已同步守護專家，開啟報表中…', 1800);
+      openReport(result?.report_url);
+      return;
+    }
+    showToast('已同步守護專家，稍後將於 LINE 推送通知。', 2200);
   } catch (error) {
     console.error('[assistant-entry]', error);
     showToast(`同步失敗：${error.message}`);
@@ -1349,6 +1619,37 @@ function returnHome() {
   state.submitLocked = false;
 }
 
+function focusOnDetails() {
+  if (state.stage === 's4') {
+    const target = document.getElementById('result-metric-board');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      return;
+    }
+  } else if (state.stage === 's2') {
+    const target = document.getElementById('analysis-metric-board');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      return;
+    }
+  } else if (state.stage === 's5') {
+    showToast('資料補齊中，完成後會推送通知。');
+    return;
+  } else if (state.stage === 's1') {
+    showToast('倒數結束後會立即顯示速查指標，請稍候。');
+    return;
+  } else if (state.stage === 's0') {
+    showToast('請先填寫門市資料啟動速查流程。');
+    return;
+  }
+  const fallbackTarget = document.getElementById('analysis-metric-board') || document.getElementById('result-metric-board');
+  if (fallbackTarget) {
+    fallbackTarget.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+    return;
+  }
+  showToast('速查詳情整理中，請稍候。');
+}
+
 async function initLiff() {
   const liffId = config.formLiffId || config.liffId || '';
   if (!window.liff || !liffId) return;
@@ -1375,7 +1676,7 @@ function bindEvents() {
     els.ctaSecondary.addEventListener('click', handleAssistantEntry);
   }
   if (els.ctaReport) {
-    els.ctaReport.addEventListener('click', () => openReport());
+    els.ctaReport.addEventListener('click', focusOnDetails);
   }
   if (els.returnHome) {
     els.returnHome.addEventListener('click', returnHome);

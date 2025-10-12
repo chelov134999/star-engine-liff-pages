@@ -114,24 +114,24 @@ const METRIC_SOURCE_HINTS = [
   {
     token: 'serpapi',
     label: 'SERPAPI',
-    className: 'metric-card--source-live',
+    className: 'metric-card--source-serpapi',
     patterns: [/serp[-_\s]?api/i, /\bgoogle\s*serp\b/i],
   },
   {
     token: 'live',
-    label: '即時資料',
+    label: 'LIVE',
     className: 'metric-card--source-live',
     patterns: [/\blive\b/i, /\b即時\b/i, /\breal[-\s]?time\b/i, /\b現場\b/i, /\b即刻\b/i],
   },
   {
-    token: 'fallback',
-    label: '快取 fallback',
-    className: 'metric-card--source-fallback',
+    token: 'cache',
+    label: 'CACHE',
+    className: 'metric-card--source-cache',
     patterns: [/fallback/i, /cache/i, /cached/i, /supabase/i, /快取/i, /備援/i, /backup/i],
   },
 ];
 
-const METRIC_SOURCE_PRIORITY = ['serpapi', 'live', 'fallback'];
+const METRIC_SOURCE_PRIORITY = ['serpapi', 'live', 'cache'];
 const METRIC_SOURCE_VALUE_KEYS = [
   'source',
   'source_name',
@@ -163,6 +163,37 @@ const METRIC_SOURCE_ARRAY_KEYS = [
 ];
 const METRIC_SOURCE_FLAG_KEYS = ['fallback', 'is_fallback', 'isFallback', 'cache', 'is_cache', 'from_cache', 'uses_cache'];
 const METRIC_SOURCE_RECURSIVE_KEYS = ['metadata', 'meta', 'context', 'detail', 'details', 'extra', 'provider_metadata'];
+
+const METRIC_RAW_LABEL_KEYS = ['raw_label', 'rawLabel', 'original_label', 'originalLabel', 'label_raw', 'labelRaw'];
+const METRIC_RAW_UNIT_KEYS = ['raw_unit', 'rawUnit', 'original_unit', 'originalUnit', 'unit_raw', 'unitRaw'];
+const METRIC_RAW_VALUE_KEYS = [
+  'raw_value',
+  'rawValue',
+  'raw_score',
+  'rawScore',
+  'raw',
+  'raw_count',
+  'rawCount',
+  'original_value',
+  'originalValue',
+  'original',
+  'baseline_value',
+  'baselineValue',
+  'baseline',
+  'value_raw',
+  'valueRaw',
+  'source_value',
+  'sourceValue',
+  'actual',
+  'actual_value',
+  'actualValue',
+  'count',
+  'total',
+  'pending',
+  'live_value',
+  'cache_value',
+];
+const METRIC_RAW_NESTED_KEYS = ['raw', 'original', 'baseline', 'live', 'cache', 'fallback', 'source', 'details', 'detail', 'context', 'metadata', 'meta', 'extra'];
 
 const els = {
   stages: {

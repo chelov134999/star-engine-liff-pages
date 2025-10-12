@@ -1697,6 +1697,40 @@ function triggerTimeout(context = {}) {
   logEvent('analysis_timeout', { lead_id: state.leadId, reason: context.reason || context.stage || 'timeout' });
 }
 
+const STAGE_PRIORITY_MAP = {
+  s0: 0,
+  scheduled: 0,
+  s1: 1,
+  collecting: 1,
+  s2: 2,
+  processing: 2,
+  analyzing: 2,
+  s3: 3,
+  partial: 3,
+  ready_partial: 3,
+  partial_ready: 3,
+  s4: 4,
+  ready: 4,
+  complete: 4,
+  completed: 4,
+  s5: 5,
+  timeout: 5,
+};
+
+function resolveStagePriority(value) {
+  if (value === undefined || value === null) return -1;
+  const text = String(value).trim().toLowerCase();
+  if (!text) return -1;
+  if (Object.prototype.hasOwnProperty.call(STAGE_PRIORITY_MAP, text)) {
+    return STAGE_PRIORITY_MAP[text];
+  }
+  const fallback = text.startsWith('s') ? text : `s${text}`;
+  if (Object.prototype.hasOwnProperty.call(STAGE_PRIORITY_MAP, fallback)) {
+    return STAGE_PRIORITY_MAP[fallback];
+  }
+  return -1;
+}
+
 function handleStatusResponse(payload) {
   if (!payload || typeof payload !== 'object') return;
   if (payload.lead_id && payload.lead_id !== state.leadId) return;
@@ -1771,6 +1805,19 @@ function handleStatusResponse(payload) {
 
   const statusValue = String(payload.status || payload.state || '').toLowerCase();
   const stageValue = String(payload.stage || '').toLowerCase();
+  const incomingStageKey = stageValue || statusValue;
+  const incomingPriority = resolveStagePriority(incomingStageKey);
+  const currentPriority = resolveStagePriority(state.stage);
+  if (incomingPriority >= 0 && currentPriority >= 0 && incomingPriority < currentPriority) {
+    logEvent('stage_guard_skip', {
+      lead_id: state.leadId || '',
+      current_stage: state.stage,
+      incoming_stage: incomingStageKey,
+      current_priority: currentPriority,
+      incoming_priority: incomingPriority,
+    });
+    return;
+  }
   const shouldActivateAnalysis = ['collecting', 'processing', 'analyzing'].includes(stageValue) || statusValue === 'pending';
 
   if (shouldActivateAnalysis) {

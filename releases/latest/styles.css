@@ -334,15 +334,31 @@ body:not(.page--info) {
 .metric-card__source {
   font-size: 0.78rem;
   color: rgba(15, 23, 42, 0.48);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.metric-card__raw {
+  font-size: 0.78rem;
+  color: rgba(15, 23, 42, 0.56);
   letter-spacing: 0.02em;
 }
 
+.metric-card--source-serpapi .metric-card__source,
 .metric-card--source-live .metric-card__source {
   color: #047857;
 }
 
-.metric-card--source-fallback .metric-card__source {
+.metric-card--source-cache {
+  border-color: rgba(185, 28, 28, 0.32);
+  box-shadow: 0 26px 48px -32px rgba(185, 28, 28, 0.32);
+}
+
+.metric-card--source-cache .metric-card__source,
+.metric-card--source-cache .metric-card__raw {
   color: var(--danger-strong);
+  font-weight: 700;
 }
 
 .metric-card__hint {

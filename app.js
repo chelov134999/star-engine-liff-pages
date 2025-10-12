@@ -12,10 +12,11 @@ const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
 
-const ANALYSIS_COUNTDOWN_SECONDS = 30;
+const ANALYSIS_COUNTDOWN_SECONDS = 15;
 const TRANSITION_SECONDS = 3;
 const TRANSITION_COMPLETE_DELAY_MS = 1200;
-const TRANSITION_COMPLETE_MESSAGE = '完整報告約 15 分鐘送達';
+const TRANSITION_COMPLETE_MESSAGE = '守護專家已收到速查結果；完整報告約 15 分鐘送達';
+const POST_COUNTDOWN_MESSAGE = '守護專家已收到速查結果；完整報告約 15 分鐘送達';
 const ANALYSIS_TIMEOUT_MS = 10 * 60 * 1000;
 const POLL_INTERVAL_MS = 5000;
 const ANALYSIS_TIPS = [
@@ -228,6 +229,8 @@ const state = {
   analysisTipIndex: 0,
   analysisCountdownActive: false,
   analysisCountdownCompleted: false,
+  postCountdownNotified: false,
+  resultActivatedFromCountdown: false,
   warnings: [],
   reportUrlOverride: '',
   isPartialResult: false,
@@ -351,7 +354,7 @@ function gatherSourceCandidates(target, depth = 0, collected = [], visited = new
     if (!Object.prototype.hasOwnProperty.call(target, key)) return;
     const raw = target[key];
     if (raw === true || (typeof raw === 'string' && raw.toLowerCase() === 'true')) {
-      collected.push('fallback');
+      collected.push('cache');
     }
   });
 
@@ -379,12 +382,15 @@ function normalizeSourceToken(value) {
       return hint.token;
     }
   }
+  if (normalized.includes('fallback') || normalized.includes('cache')) {
+    return 'cache';
+  }
   return null;
 }
 
 function resolveMetricSourceInfo(metricId, metricData = {}) {
   if (!metricData || typeof metricData !== 'object') {
-    return { text: '', classNames: [] };
+    return { text: '', classNames: [], tokens: [], hasCache: false };
   }
   const collected = gatherSourceCandidates(metricData);
   const tokens = [];
@@ -397,12 +403,12 @@ function resolveMetricSourceInfo(metricId, metricData = {}) {
 
   if (!tokens.length && metricId === 'ai_visibility') {
     if (metricData.fallback === true || String(metricData.fallback).toLowerCase() === 'true') {
-      tokens.push('fallback');
+      tokens.push('cache');
     }
   }
 
   if (!tokens.length) {
-    return { text: '', classNames: [] };
+    return { text: '', classNames: [], tokens: [], hasCache: false };
   }
 
   const prioritized = METRIC_SOURCE_PRIORITY.filter((token) => tokens.includes(token));
@@ -426,10 +432,6 @@ function resolveMetricSourceInfo(metricId, metricData = {}) {
     })
     .filter(Boolean);
 
-  if (!labels.length) {
-    return { text: '', classNames: [] };
-  }
-
   const classNames = deduped
     .map((token) => {
       const hint = METRIC_SOURCE_HINTS.find((item) => item.token === token);
@@ -437,11 +439,188 @@ function resolveMetricSourceInfo(metricId, metricData = {}) {
     })
     .filter(Boolean);
 
+  if (!labels.length) {
+    return { text: '', classNames: [], tokens: deduped, hasCache: deduped.includes('cache') };
+  }
+
   return {
-    text: `資料來源：${labels.join(' · ')}`,
+    text: labels.join(' / '),
     classNames: Array.from(new Set(classNames)),
+    tokens: deduped,
+    hasCache: deduped.includes('cache'),
   };
 }
+
+function formatRawValueDisplay(value, unit = '') {
+  if (value == null || value === '') return '';
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) return String(value);
+    const abs = Math.abs(value);
+    let formatted;
+    if (abs >= 100) {
+      formatted = Math.round(value).toString();
+    } else if (abs >= 10) {
+      formatted = value.toFixed(1);
+    } else if (abs >= 1) {
+      formatted = value.toFixed(2);
+    } else {
+      formatted = value.toFixed(3);
+    }
+    formatted = formatted.replace(/\.?0+$/, '');
+    if (formatted === '-0') {
+      formatted = '0';
+    }
+    return unit ? `${formatted} ${unit}`.trim() : formatted;
+  }
+  const text = String(value).trim();
+  if (!text) return '';
+  return unit ? `${text} ${unit}`.trim() : text;
+}
+
+function normalizeRawCandidate(input, contextLabel = '', contextUnit = '') {
+  if (input == null) return null;
+  if (typeof input === 'number') {
+    return { value: input, label: contextLabel, unit: contextUnit };
+  }
+  if (typeof input === 'string') {
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    const numeric = Number(trimmed);
+    if (!Number.isNaN(numeric)) {
+      return { value: numeric, label: contextLabel, unit: contextUnit };
+    }
+    return { value: trimmed, label: contextLabel, unit: contextUnit };
+  }
+  if (Array.isArray(input)) {
+    for (const entry of input) {
+      const normalized = normalizeRawCandidate(entry, contextLabel, contextUnit);
+      if (normalized) return normalized;
+    }
+    return null;
+  }
+  if (typeof input === 'object') {
+    const nestedLabel =
+      METRIC_RAW_LABEL_KEYS.map((key) => input[key]).find((value) => value != null && value !== '')
+      || input.label
+      || input.title
+      || input.name
+      || contextLabel;
+    const nestedUnit =
+      METRIC_RAW_UNIT_KEYS.map((key) => input[key]).find((value) => value != null && value !== '')
+      || input.unit
+      || input.unit_label
+      || contextUnit;
+    const valueKeys = ['value', 'score', 'raw', 'count', 'total', 'amount', 'current', 'actual', 'number'];
+    for (const key of valueKeys) {
+      if (Object.prototype.hasOwnProperty.call(input, key) && input[key] != null && input[key] !== '') {
+        return { value: input[key], label: nestedLabel, unit: nestedUnit };
+      }
+    }
+    if (typeof input.toString === 'function') {
+      const textValue = input.toString();
+      if (textValue && textValue !== '[object Object]') {
+        return { value: textValue, label: nestedLabel, unit: nestedUnit };
+      }
+    }
+  }
+  return null;
+}
+
+function resolveMetricRawInfo(metricId, metricData = {}, scoreRaw) {
+  if (!metricData || typeof metricData !== 'object') {
+    return { text: '', value: null, unit: '', label: '' };
+  }
+
+  const visited = new WeakSet();
+  const queue = [metricData];
+  const fallbackLabel =
+    METRIC_RAW_LABEL_KEYS.map((key) => metricData[key]).find((value) => value != null && value !== '') || '';
+  const fallbackUnit =
+    METRIC_RAW_UNIT_KEYS.map((key) => metricData[key]).find((value) => value != null && value !== '') || '';
+
+  while (queue.length) {
+    const current = queue.shift();
+    if (!current || typeof current !== 'object') continue;
+    if (visited.has(current)) continue;
+    visited.add(current);
+
+    const currentLabel =
+      METRIC_RAW_LABEL_KEYS.map((key) => current[key]).find((value) => value != null && value !== '') || fallbackLabel;
+    const currentUnit =
+      METRIC_RAW_UNIT_KEYS.map((key) => current[key]).find((value) => value != null && value !== '') || fallbackUnit;
+
+    for (const key of METRIC_RAW_VALUE_KEYS) {
+      if (!Object.prototype.hasOwnProperty.call(current, key)) continue;
+      const candidate = current[key];
+      const normalized = normalizeRawCandidate(candidate, currentLabel, currentUnit);
+      if (!normalized) continue;
+
+      const rawValue = normalized.value;
+      if (scoreRaw != null) {
+        const scoreNumber = Number(scoreRaw);
+        const rawNumber = Number(rawValue);
+        if (Number.isFinite(scoreNumber) && Number.isFinite(rawNumber) && Math.abs(scoreNumber - rawNumber) < 1e-6) {
+          continue;
+        }
+      }
+
+      const labelText = (normalized.label || currentLabel || fallbackLabel || '原始值').toString().replace(/[：:]\s*$/, '');
+      const unitText = normalized.unit || currentUnit || fallbackUnit || '';
+      const display = formatRawValueDisplay(rawValue, unitText);
+      if (!display) continue;
+
+      return {
+        text: `${labelText}：${display}`,
+        value: rawValue,
+        unit: unitText,
+        label: labelText,
+      };
+    }
+
+    METRIC_RAW_NESTED_KEYS.forEach((nestedKey) => {
+      if (!Object.prototype.hasOwnProperty.call(current, nestedKey)) return;
+      const nestedValue = current[nestedKey];
+      if (Array.isArray(nestedValue)) {
+        nestedValue.forEach((entry) => queue.push(entry));
+      } else if (nestedValue != null) {
+        queue.push(nestedValue);
+      }
+    });
+  }
+
+  return { text: '', value: null, unit: '', label: '' };
+}
+
+function prepareMetricDisplay(metricId, metricData = null) {
+  const definition = resolveMetricDefinition(metricId);
+  const scoreRaw = parseMetricScore(metricData);
+  const stateKey = scoreRaw != null ? determineMetricState(scoreRaw) : null;
+  const definitionState = stateKey && definition.states ? definition.states[stateKey] : null;
+  const preset = stateKey ? METRIC_STATE_PRESETS[stateKey] : null;
+  const label = metricData?.label || definition.label;
+  const hintText = metricData?.hint || metricData?.description || definitionState?.hint || preset?.hint || definition.defaultHint;
+  const stateLabel = metricData?.state_label || definitionState?.label || preset?.label || (stateKey ? stateKey.toUpperCase() : '整理中');
+  const iconMap = definition.icons || {};
+  const iconValue = metricData?.icon || definitionState?.icon || preset?.icon || iconMap[stateKey] || iconMap.default;
+  const unit = metricData?.unit || definition.unit || '';
+  const scoreDisplay = metricData?.display_score || formatMetricScore(scoreRaw, unit);
+  const sourceInfo = resolveMetricSourceInfo(metricId, metricData);
+  const rawInfo = resolveMetricRawInfo(metricId, metricData, scoreRaw);
+
+  return {
+    label,
+    hintText,
+    stateLabel,
+    iconValue,
+    unit,
+    scoreDisplay,
+    scoreRaw,
+    stateKey,
+    sourceInfo,
+    rawInfo,
+  };
+}
+
 
 function resolveMetricDefinition(metricId) {
   return METRIC_DEFINITIONS[metricId] || {
@@ -548,68 +727,73 @@ function getMetricTimestamp(metricId, metricData) {
 }
 
 function renderMetricCard(metricId, metricData = null) {
-  const definition = resolveMetricDefinition(metricId);
   const cards = document.querySelectorAll(`.metric-card[data-metric="${metricId}"]`);
   if (!cards.length) return;
 
-  const scoreRaw = parseMetricScore(metricData);
-  const stateKey = scoreRaw != null ? determineMetricState(scoreRaw) : null;
-  const definitionState = stateKey && definition.states ? definition.states[stateKey] : null;
-  const preset = stateKey ? METRIC_STATE_PRESETS[stateKey] : null;
-  const label = definition.label;
-  const hintText = metricData?.hint || metricData?.description || definitionState?.hint || preset?.hint || definition.defaultHint;
-  const stateLabel = metricData?.state_label || definitionState?.label || preset?.label || (stateKey ? stateKey.toUpperCase() : '整理中');
-  const iconMap = definition.icons || {};
-  const iconValue = metricData?.icon || definitionState?.icon || preset?.icon || iconMap[stateKey] || iconMap.default;
-  const unit = metricData?.unit || definition.unit || '';
-  const scoreDisplay = metricData?.display_score || formatMetricScore(scoreRaw, unit);
-  const sourceInfo = resolveMetricSourceInfo(metricId, metricData);
+  const presentation = prepareMetricDisplay(metricId, metricData);
+  const timestamp = getMetricTimestamp(metricId, metricData);
 
   cards.forEach((card) => {
-    card.classList.remove('metric-card--source-live', 'metric-card--source-fallback');
-    applyMetricStateClass(card, stateKey);
+    card.classList.remove('metric-card--source-serpapi', 'metric-card--source-live', 'metric-card--source-cache');
+    applyMetricStateClass(card, presentation.stateKey);
     const iconEl = card.querySelector('.metric-card__icon');
-    if (iconEl && iconValue) {
-      iconEl.textContent = iconValue;
+    if (iconEl && presentation.iconValue) {
+      iconEl.textContent = presentation.iconValue;
     }
     const labelEl = card.querySelector('.metric-card__label');
     if (labelEl) {
-      labelEl.textContent = metricData?.label || label;
+      labelEl.textContent = presentation.label;
     }
     const scoreEl = card.querySelector('[data-role="score"]');
     if (scoreEl) {
-      scoreEl.textContent = scoreDisplay;
+      scoreEl.textContent = presentation.scoreDisplay;
     }
     const stateEl = card.querySelector('[data-role="state"]');
     if (stateEl) {
-      stateEl.textContent = scoreRaw == null ? '整理中' : stateLabel;
+      stateEl.textContent = presentation.scoreRaw == null ? '整理中' : presentation.stateLabel;
     }
     const hintEl = card.querySelector('[data-role="hint"]');
     if (hintEl) {
-      hintEl.textContent = hintText;
+      hintEl.textContent = presentation.hintText;
     }
     const sourceEl = card.querySelector('[data-role="source"]');
     if (sourceEl) {
-      if (sourceInfo.text) {
-        sourceEl.textContent = sourceInfo.text;
+      if (presentation.sourceInfo.text) {
+        sourceEl.textContent = presentation.sourceInfo.text;
         sourceEl.hidden = false;
       } else {
         sourceEl.hidden = true;
       }
     }
+    const rawEl = card.querySelector('[data-role="raw"]');
+    if (rawEl) {
+      if (presentation.rawInfo.text) {
+        rawEl.textContent = presentation.rawInfo.text;
+        rawEl.hidden = false;
+      } else {
+        rawEl.hidden = true;
+      }
+    }
     const updatedEl = card.querySelector('[data-role="updated"]');
     if (updatedEl) {
-      const timestamp = getMetricTimestamp(metricId, metricData);
-      const relative = timestamp ? formatRelativeTimestamp(timestamp) : '';
-      if (relative) {
-        updatedEl.textContent = relative;
-        updatedEl.hidden = false;
+      if (timestamp) {
+        const relative = formatRelativeTimestamp(timestamp);
+        if (relative) {
+          updatedEl.textContent = relative;
+          updatedEl.hidden = false;
+        } else {
+          updatedEl.hidden = true;
+        }
       } else {
         updatedEl.hidden = true;
       }
     }
-    if (Array.isArray(sourceInfo.classNames) && sourceInfo.classNames.length) {
-      sourceInfo.classNames.forEach((className) => card.classList.add(className));
+    if (Array.isArray(presentation.sourceInfo.classNames) && presentation.sourceInfo.classNames.length) {
+      presentation.sourceInfo.classNames.forEach((className) => {
+        if (className) {
+          card.classList.add(className);
+        }
+      });
     }
   });
 }
@@ -1133,7 +1317,9 @@ function startAnalysisCountdown() {
   state.analysisTipIndex = 0;
   state.analysisCountdownActive = true;
   state.analysisCountdownCompleted = false;
-  const deadline = Date.now() + (ANALYSIS_COUNTDOWN_SECONDS * 1000);
+  state.postCountdownNotified = false;
+  state.resultActivatedFromCountdown = false;
+  const deadline = Date.now() + ANALYSIS_COUNTDOWN_SECONDS * 1000;
   if (els.analysisTimer) {
     els.analysisTimer.hidden = false;
   }
@@ -1142,17 +1328,21 @@ function startAnalysisCountdown() {
   }
   updateAnalysisCountdown();
 
+  const finalize = () => {
+    state.analysisRemaining = 0;
+    updateAnalysisCountdown();
+    stopAnalysisCountdown();
+    state.analysisCountdownActive = false;
+    state.analysisCountdownFrameId = null;
+    finalizeAnalysisCountdown('timer');
+  };
+
   const tick = () => {
     const remainingMs = Math.max(0, deadline - Date.now());
     state.analysisRemaining = Math.ceil(remainingMs / 1000);
     updateAnalysisCountdown();
     if (remainingMs <= 0) {
-      state.analysisRemaining = 0;
-      updateAnalysisCountdown();
-      stopAnalysisCountdown();
-      state.analysisCountdownActive = false;
-      state.analysisCountdownCompleted = true;
-      state.analysisCountdownFrameId = null;
+      finalize();
       return;
     }
     state.analysisCountdownFrameId = requestAnimationFrame(tick);
@@ -1162,14 +1352,12 @@ function startAnalysisCountdown() {
     state.analysisCountdownFrameId = requestAnimationFrame(tick);
   } else {
     state.analysisCountdownId = setInterval(() => {
-      state.analysisRemaining -= 1;
+      state.analysisRemaining = Math.max(0, state.analysisRemaining - 1);
       updateAnalysisCountdown();
       if (state.analysisRemaining <= 0) {
-        state.analysisRemaining = 0;
-        updateAnalysisCountdown();
-        stopAnalysisCountdown();
-        state.analysisCountdownActive = false;
-        state.analysisCountdownCompleted = true;
+        clearInterval(state.analysisCountdownId);
+        state.analysisCountdownId = null;
+        finalize();
       }
     }, 1000);
   }
@@ -1178,6 +1366,50 @@ function startAnalysisCountdown() {
     state.analysisTipId = setInterval(() => {
       rotateAnalysisTip();
     }, 9000);
+  }
+}
+
+
+function showPostCountdownMessage() {
+  if (state.postCountdownNotified) return;
+  state.postCountdownNotified = true;
+  if (els.analysisDescription) {
+    els.analysisDescription.textContent = POST_COUNTDOWN_MESSAGE;
+  }
+  if (!state.partialNotice) {
+    state.partialNotice = POST_COUNTDOWN_MESSAGE;
+  }
+  if (state.isPartialResult) {
+    setPartialResultMode(true, {
+      warnings: state.warnings,
+      notice: state.partialNotice,
+      partialCards: state.partialCards,
+    });
+  }
+}
+
+function activateResultStageFromCountdown() {
+  if (state.stage !== 's2') return;
+  setStage('s4');
+  state.resultActivatedFromCountdown = true;
+  const notice = state.partialNotice || POST_COUNTDOWN_MESSAGE;
+  setPartialResultMode(true, {
+    warnings: state.warnings,
+    notice,
+    partialCards: state.partialCards,
+  });
+  updateResultWarning(state.warnings);
+  const metricsDataset = state.metricsRaw ?? state.metricsList ?? [];
+  renderMetricsCards(metricsDataset);
+  renderTasks(state.tasks);
+}
+
+function finalizeAnalysisCountdown(reason = 'timer') {
+  if (state.analysisCountdownCompleted) return;
+  state.analysisCountdownCompleted = true;
+  showPostCountdownMessage();
+  if (reason === 'timer' && state.stage === 's2') {
+    activateResultStageFromCountdown();
   }
 }
 
@@ -1251,7 +1483,9 @@ function setStage(nextStage) {
     startAnalysisCountdown();
   } else if (previousStage === 's2') {
     stopAnalysisCountdown();
-    state.analysisCountdownCompleted = false;
+    if (!state.resultActivatedFromCountdown) {
+      state.analysisCountdownCompleted = false;
+    }
   }
 
   if (nextStage !== 's1') {
@@ -1336,6 +1570,8 @@ async function handleLeadSubmit(event) {
   state.metricTimestamps = {};
   state.analysisCountdownActive = false;
   state.analysisCountdownCompleted = false;
+  state.postCountdownNotified = false;
+  state.resultActivatedFromCountdown = false;
   setPartialResultMode(false);
   renderMetricsCards([]);
   renderTasks({});
@@ -1368,11 +1604,13 @@ async function handleLeadSubmit(event) {
 
 function applyStatusHints(stage = '') {
   const hint = STATUS_HINTS[stage] || STATUS_HINTS.collecting;
-  if (els.analysisDescription) {
+  if (!state.postCountdownNotified && els.analysisDescription) {
     els.analysisDescription.textContent = hint;
   }
-  if (stage && els.analysisTip && els.analysisTip.textContent.includes('AI 正在')) {
-    els.analysisTip.textContent = hint;
+  if (stage && els.analysisTip) {
+    if (!state.postCountdownNotified || els.analysisTip.textContent.includes('AI 正在')) {
+      els.analysisTip.textContent = hint;
+    }
   }
 }
 
@@ -1380,14 +1618,28 @@ function handleAnalysisCompleted(context = {}) {
   const isPartial = Boolean(context.partial);
   state.submitLocked = false;
   stopAnalysisCountdown();
-  if (isPartial) {
-    clearAnalysisTimeout();
-  } else {
+  finalizeAnalysisCountdown('analysis_completed');
+  clearAnalysisTimeout();
+  if (!isPartial) {
     stopPolling();
   }
+
+  const noticeInput = typeof context.notice === 'string' ? context.notice : '';
+  const mergedNotice = noticeInput || state.partialNotice || (isPartial ? POST_COUNTDOWN_MESSAGE : '');
+  const mergedWarnings = context.warnings || state.warnings;
+  const mergedContext = {
+    ...context,
+    warnings: mergedWarnings,
+    notice: mergedNotice,
+  };
+  if (context.partialCards === undefined && state.partialCards) {
+    mergedContext.partialCards = state.partialCards;
+  }
+
   setStage('s4');
-  setPartialResultMode(isPartial, context);
-  updateResultWarning(context.warnings || state.warnings);
+  setPartialResultMode(isPartial, mergedContext);
+  showPostCountdownMessage();
+  updateResultWarning(mergedWarnings);
   renderMetricsCards(state.metricsRaw);
   renderTasks(state.tasks);
   if (context.report_url) {
@@ -1538,6 +1790,23 @@ async function handleAssistantEntry() {
     els.ctaSecondary.disabled = true;
     els.ctaSecondary.classList.add('btn--loading');
   }
+  const resolveFallbackLink = (result) =>
+    result?.fallback_url
+    || config.guardianFallbackUrl
+    || config.assistantFallbackUrl
+    || config.trialUrl
+    || config.checkoutPrimaryUrl
+    || config.checkoutSecondaryUrl
+    || '';
+  const openAssistantLink = (url, message, appendLeadId = true) => {
+    if (!url) return false;
+    const target = appendLeadId ? buildUrlWithParams(url, { lead_id: state.leadId || undefined }) : url;
+    if (message) {
+      showToast(message, 2000);
+    }
+    window.open(target, '_blank', 'noopener');
+    return true;
+  };
   try {
     const payload = {
       lead_id: state.leadId,
@@ -1552,6 +1821,8 @@ async function handleAssistantEntry() {
     if (result && result.ok === false) {
       const message = result.message || '同步守護專家失敗，請稍後再試。';
       showToast(message);
+      const fallbackLink = resolveFallbackLink(result);
+      openAssistantLink(fallbackLink, '改用 LINE 守護專家入口…');
       return;
     }
     const assistantLink =
@@ -1563,21 +1834,12 @@ async function handleAssistantEntry() {
       || result?.lineUrl
       || result?.url
       || '';
-    const fallbackAssistantLink =
-      result?.fallback_url
-      || config.trialUrl
-      || config.checkoutPrimaryUrl
-      || config.checkoutSecondaryUrl
-      || '';
     if (assistantLink) {
-      showToast('已同步守護專家，開啟對話中…', 1600);
-      window.open(assistantLink, '_blank', 'noopener');
+      openAssistantLink(assistantLink, '已同步守護專家，開啟對話中…', false);
       return;
     }
-    if (fallbackAssistantLink) {
-      const target = buildUrlWithParams(fallbackAssistantLink, { lead_id: state.leadId || undefined });
-      showToast('已同步守護專家，使用 LINE 專家入口…', 2000);
-      window.open(target, '_blank', 'noopener');
+    const fallbackAssistantLink = resolveFallbackLink(result);
+    if (openAssistantLink(fallbackAssistantLink, '已同步守護專家，使用 LINE 守護專家入口…')) {
       return;
     }
     if (result?.report_url || state.reportUrlOverride || reportUrlBase) {
@@ -1589,6 +1851,8 @@ async function handleAssistantEntry() {
   } catch (error) {
     console.error('[assistant-entry]', error);
     showToast(`同步失敗：${error.message}`);
+    const fallbackLink = resolveFallbackLink();
+    openAssistantLink(fallbackLink, '改用 LINE 守護專家入口…');
   } finally {
     if (els.ctaSecondary) {
       els.ctaSecondary.disabled = false;

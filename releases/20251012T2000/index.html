@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?ts=20251011T1700" />
+  <link rel="stylesheet" href="styles.css?ts=20251012T2000" />
 </head>
 <body>
   <main class="page" id="app">
@@ -77,6 +77,7 @@
               <span class="metric-card__score" data-role="score">—</span>
               <span class="metric-card__state" data-role="state">檢測中</span>
               <span class="metric-card__source" data-role="source" hidden>資料來源：—</span>
+              <span class="metric-card__raw" data-role="raw" hidden>原始值 —</span>
               <p class="metric-card__hint" data-role="hint">AI 正在分析評論與回覆速度。</p>
             </div>
           </article>
@@ -87,6 +88,7 @@
               <span class="metric-card__score" data-role="score">—</span>
               <span class="metric-card__state" data-role="state">檢測中</span>
               <span class="metric-card__source" data-role="source" hidden>資料來源：—</span>
+              <span class="metric-card__raw" data-role="raw" hidden>原始值 —</span>
               <p class="metric-card__hint" data-role="hint">AI 正在比對曝光與搜尋表現。</p>
             </div>
           </article>
@@ -97,6 +99,7 @@
               <span class="metric-card__score" data-role="score">—</span>
               <span class="metric-card__state" data-role="state">檢測中</span>
               <span class="metric-card__source" data-role="source" hidden>資料來源：—</span>
+              <span class="metric-card__raw" data-role="raw" hidden>原始值 —</span>
               <p class="metric-card__hint" data-role="hint">AI 正在整理緊急評論與補件清單。</p>
             </div>
           </article>
@@ -114,12 +117,12 @@
         </div>
         <header class="stage-panel__header stage-panel__header--compact">
           <h2>免費檢測進行中</h2>
-          <p class="muted" id="analysis-description">AI 30 秒內生成速查版，完整報告約 15 分鐘內自動送達。</p>
+          <p class="muted" id="analysis-description">AI 15 秒內生成速查版，完整報告約 15 分鐘內自動送達。</p>
         </header>
 
         <div class="analysis-timer" id="analysis-timer" aria-live="polite" hidden>
           <div class="analysis-timer__clock">
-            <span id="analysis-countdown-number" class="analysis-timer__number">30</span>
+            <span id="analysis-countdown-number" class="analysis-timer__number">15</span>
             <small class="analysis-timer__unit">秒</small>
           </div>
           <p id="analysis-tip" class="analysis-tip">AI 正在建立守護任務清單…</p>
@@ -133,6 +136,7 @@
               <span class="metric-card__score" data-role="score">—</span>
               <span class="metric-card__state" data-role="state">整理中</span>
               <span class="metric-card__source" data-role="source" hidden>資料來源：—</span>
+              <span class="metric-card__raw" data-role="raw" hidden>原始值 —</span>
               <p class="metric-card__hint" data-role="hint">AI 正在檢查低星評論與回覆節奏。</p>
             </div>
           </article>
@@ -143,6 +147,7 @@
               <span class="metric-card__score" data-role="score">—</span>
               <span class="metric-card__state" data-role="state">整理中</span>
               <span class="metric-card__source" data-role="source" hidden>資料來源：—</span>
+              <span class="metric-card__raw" data-role="raw" hidden>原始值 —</span>
               <p class="metric-card__hint" data-role="hint">AI 正在比對關鍵字與曝光差距。</p>
             </div>
           </article>
@@ -153,6 +158,7 @@
               <span class="metric-card__score" data-role="score">—</span>
               <span class="metric-card__state" data-role="state">整理中</span>
               <span class="metric-card__source" data-role="source" hidden>資料來源：—</span>
+              <span class="metric-card__raw" data-role="raw" hidden>原始值 —</span>
               <p class="metric-card__hint" data-role="hint">AI 正在優先排序守護任務。</p>
             </div>
           </article>
@@ -276,7 +282,7 @@
         </div>
 
         <div class="result-actions">
-          <button id="cta-secondary" type="button" class="btn btn--primary btn--cta-expert">與守護專家對話</button>
+          <button id="cta-secondary" type="button" class="btn btn--primary btn--cta-expert">立即與守護專家連線</button>
           <button id="cta-report" type="button" class="btn btn--secondary">查看速查詳情</button>
           <a id="cta-plan" class="btn btn--outline" href="plans.html" target="_blank" rel="noopener">了解守護方案</a>
           <button id="return-home" type="button" class="btn btn--ghost">返回主畫面</button>
@@ -299,7 +305,7 @@
 
         <p class="timeout-note" id="timeout-note">資料較多，我會在完成後發送通知。</p>
         <div class="timeout-actions">
-          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?ts=20251011T1700" target="_blank" rel="noopener">查看樣本入場券</a>
+          <a id="timeout-sample" class="btn btn--primary" href="sample-report.html?ts=20251012T2000" target="_blank" rel="noopener">查看樣本入場券</a>
           <button id="timeout-weekly" type="button" class="btn btn--outline">先拿守護任務試算</button>
           <button id="timeout-report" type="button" class="btn btn--ghost" hidden>回到完整報表</button>
         </div>
@@ -310,16 +316,16 @@
   </main>
 
   <footer class="footer-link">
-    <a href="about.html?ts=20251011T1700" id="about-link">關於我們</a>
+    <a href="about.html?ts=20251012T2000" id="about-link">關於我們</a>
   </footer>
 
   <div class="toast" id="toast" hidden></div>
 
   <script src="https://static.line-scdn.net/liff/edge/versions/2.21.2/sdk.js"></script>
-  <script src="config.runtime.js?ts=20251011T1700"></script>
-  <script src="config.js?ts=20251011T1700"></script>
-  <script src="report-utils.js?ts=20251011T1700"></script>
-  <script src="analytics.js?ts=20251011T1700"></script>
-  <script src="app.js?ts=20251011T1700"></script>
+  <script src="config.runtime.js?ts=20251012T2000"></script>
+  <script src="config.js?ts=20251012T2000"></script>
+  <script src="report-utils.js?ts=20251012T2000"></script>
+  <script src="analytics.js?ts=20251012T2000"></script>
+  <script src="app.js?ts=20251012T2000"></script>
 </body>
 </html>

@@ -7,7 +7,12 @@ const endpoints = {
   assistantEntry: config.assistantEntryUrl || config.assistant_entry_url || '',
 };
 
-const reportUrlBase = config.reportUrl || config.report_url || 'report.html';
+const reportUrlBase =
+  config.serpReportUrl
+  || config.serpDetailUrl
+  || config.reportUrl
+  || config.report_url
+  || 'report-serp.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
@@ -37,7 +42,8 @@ const STATUS_HINTS = {
 
 const PARTIAL_NOTICE_TEXT = '目前是速查版，資料補齊中，完整資料生成後自動更新';
 const PARTIAL_LIVE_FALLBACK_TEXT = '目前以 Live fallback 顯示重點，資料補齊中，完整報告稍後自動更新';
-const REPORT_CTA_PARTIAL_TEXT = '資料補齊中…';
+const REPORT_CTA_READY_TEXT = '點下去看即時報告';
+const REPORT_CTA_PARTIAL_TEXT = '點下去看即時報告（速查版）';
 const DEFAULT_PARTIAL_CARDS = [
   {
     id: 'structured_site',
@@ -265,7 +271,7 @@ const state = {
   warnings: [],
   reportUrlOverride: '',
   isPartialResult: false,
-  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || '查看速查詳情',
+  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || REPORT_CTA_READY_TEXT,
   partialCards: [],
   partialNotice: '',
 };
@@ -1222,16 +1228,12 @@ function setPartialResultMode(enabled, context = {}) {
   }
 
   if (els.ctaReport) {
-    if (state.defaultReportCtaText == null && els.ctaReport.textContent) {
-      state.defaultReportCtaText = els.ctaReport.textContent;
+    if (state.defaultReportCtaText == null) {
+      const resolvedText = els.ctaReport.textContent && els.ctaReport.textContent.trim();
+      state.defaultReportCtaText = resolvedText || REPORT_CTA_READY_TEXT;
     }
-    if (enabled) {
-      els.ctaReport.disabled = true;
-      els.ctaReport.textContent = REPORT_CTA_PARTIAL_TEXT;
-    } else {
-      els.ctaReport.disabled = false;
-      els.ctaReport.textContent = state.defaultReportCtaText || '查看預審報表';
-    }
+    els.ctaReport.disabled = false;
+    els.ctaReport.textContent = enabled ? REPORT_CTA_PARTIAL_TEXT : state.defaultReportCtaText || REPORT_CTA_READY_TEXT;
   }
 
   if (enabled) {
@@ -1940,10 +1942,6 @@ async function handleAssistantEntry() {
 }
 
 function openReport(customUrl) {
-  if (state.isPartialResult && !customUrl) {
-    showToast('資料補齊中，完整報告稍後自動更新。');
-    return;
-  }
   const base = customUrl || state.reportUrlOverride || reportUrlBase;
   if (!base) {
     showToast('報告尚未生成，請稍後再試。');
@@ -1953,12 +1951,35 @@ function openReport(customUrl) {
     lead_id: state.leadId,
     token: state.reportToken,
   });
-  window.open(target, '_blank');
+  if (state.isPartialResult) {
+    showToast('速查版報告已備妥，完整資料將持續更新。', 3200);
+  }
+  const opened = window.open(target, '_blank');
+  if (!opened) {
+    window.location.assign(target);
+  }
 }
 
 function returnHome() {
   window.location.href = formUrl;
   state.submitLocked = false;
+}
+
+function handleReportButtonClick(event) {
+  if (event) {
+    event.preventDefault();
+  }
+  const stagePriority = resolveStagePriority(state.stage);
+  const readyPriority = resolveStagePriority('s4');
+  if (stagePriority < readyPriority && !state.reportUrlOverride) {
+    focusOnDetails();
+    return;
+  }
+  if (!state.leadId && !state.reportToken) {
+    focusOnDetails();
+    return;
+  }
+  openReport();
 }
 
 function focusOnDetails() {
@@ -2018,7 +2039,7 @@ function bindEvents() {
     els.ctaSecondary.addEventListener('click', handleAssistantEntry);
   }
   if (els.ctaReport) {
-    els.ctaReport.addEventListener('click', focusOnDetails);
+    els.ctaReport.addEventListener('click', handleReportButtonClick);
   }
   if (els.returnHome) {
     els.returnHome.addEventListener('click', returnHome);

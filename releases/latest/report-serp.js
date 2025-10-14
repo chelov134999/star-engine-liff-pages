@@ -212,32 +212,66 @@
     const headers = { 'Content-Type': 'application/json' };
     const perform = (targetUrl, fetchOptions) => requestJSON(targetUrl, fetchOptions);
     if (state.token) {
-      try {
-        const target = new URL(endpoints.report);
-        target.searchParams.set('token', state.token);
-        url = target.toString();
-      } catch (error) {
-        url = `${endpoints.report}?token=${encodeURIComponent(state.token)}`;
+      const candidates = [];
+      const appendCandidate = (base) => {
+        if (!base) return;
+        let normalizedBase;
+        try {
+          normalizedBase = new URL(base, window.location.origin).toString();
+        } catch (error) {
+          normalizedBase = base;
+        }
+        if (candidates.some((item) => item.base === normalizedBase)) return;
+        let tokenUrl;
+        try {
+          const target = new URL(normalizedBase);
+          target.searchParams.set('token', state.token);
+          tokenUrl = target.toString();
+        } catch (error) {
+          const separator = normalizedBase.includes('?') ? '&' : '?';
+          tokenUrl = `${normalizedBase}${separator}token=${encodeURIComponent(state.token)}`;
+        }
+        candidates.push({ base: normalizedBase, tokenUrl });
+      };
+
+      appendCandidate(endpoints.report);
+      appendCandidate('/webhook/report-data');
+
+      let lastError = null;
+      for (const candidate of candidates) {
+        try {
+          return await perform(candidate.tokenUrl, { method: 'GET', headers });
+        } catch (error) {
+          lastError = error;
+        }
       }
-      const fallback = () => perform(endpoints.report, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ action: 'getbytoken', token: state.token }),
-      });
-      try {
-        return await perform(url, { method: 'GET', headers });
-      } catch (error) {
-        return fallback();
+
+      const fallbackPayload = JSON.stringify({ action: 'getbytoken', token: state.token });
+      for (const candidate of candidates) {
+        try {
+          return await perform(candidate.base, {
+            method: 'POST',
+            headers,
+            body: fallbackPayload,
+          });
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      if (lastError) {
+        throw lastError;
       }
     }
 
     if (state.leadId) {
       try {
-        const target = new URL(endpoints.report);
+        const target = new URL(endpoints.report, window.location.origin);
         target.searchParams.set('lead_id', state.leadId);
         url = target.toString();
       } catch (error) {
-        url = `${endpoints.report}?lead_id=${encodeURIComponent(state.leadId)}`;
+        const separator = endpoints.report && endpoints.report.includes('?') ? '&' : '?';
+        url = `${endpoints.report}${separator}lead_id=${encodeURIComponent(state.leadId)}`;
       }
     }
 

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SERP 即時守護｜星級引擎</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?ts=20251012T2359" />
+</head>
+<body class="page--info page--report-serp">
+  <main class="serp-shell" id="serp-app">
+    <section class="serp-hero" id="serp-hero" aria-live="polite">
+      <div class="brand-line">
+        <img class="brand-line__logo" src="logo.png" alt="星級引擎 logo" width="22" height="22" />
+        <span class="brand-line__text">星級引擎｜脈動智匯</span>
+      </div>
+      <div class="serp-hero__headline">
+        <div class="serp-hero__eyebrow" id="serp-hero-stage">SerpAPI 守護中</div>
+        <h1 class="serp-hero__title" id="serp-hero-title">倒數 15 秒，鎖定搜尋曝光危機</h1>
+        <p class="serp-hero__subtitle" id="serp-hero-subtitle">
+          我們即將同步 <strong>搜尋曝光</strong>、<strong>推薦熱度</strong>、<strong>搜尋危機</strong> 三大指標，倒數結束立即給你行動方案。
+        </p>
+      </div>
+      <div class="serp-hero__footer">
+        <div class="serp-countdown">
+          <span class="serp-countdown__label">即時更新</span>
+          <time class="serp-countdown__value" id="serp-countdown" datetime="">00:15</time>
+          <p class="serp-countdown__hint" id="serp-countdown-hint">倒數結束立即顯示真實數據。</p>
+        </div>
+        <ul class="serp-hero__commitment" id="serp-hero-commitment">
+          <li>Tonight 02:00 自動補齊評論與回覆。</li>
+          <li>每日比對競品曝光差距與熱門關鍵字。</li>
+          <li>偵測最新差評，推送危機守護提示。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="serp-section serp-section--kpi" id="serp-kpis">
+      <header class="serp-section__header">
+        <h2>三大 KPI</h2>
+        <p class="muted">倒數結束後即時呈現搜尋曝光、推薦熱度與危機警示。</p>
+      </header>
+      <div class="serp-kpi-grid">
+        <article class="serp-kpi-card" data-kpi="exposure">
+          <span class="serp-kpi-card__icon serp-kpi-card__icon--exposure" aria-hidden="true">🔎</span>
+          <header class="serp-kpi-card__header">
+            <span class="serp-kpi-card__eyebrow">搜尋曝光</span>
+            <h3 class="serp-kpi-card__title" id="serp-exposure-title">等待同步中</h3>
+            <span class="serp-kpi-card__badge" hidden></span>
+          </header>
+          <p class="serp-kpi-card__metric" id="serp-exposure-metric">—</p>
+          <ul class="serp-kpi-card__list" id="serp-exposure-list">
+            <li>SerpAPI 正在比對 Local Pack 與品牌曝光。</li>
+          </ul>
+          <footer class="serp-kpi-card__footer">
+            <span class="serp-kpi-card__source" id="serp-exposure-source">資料補齊中</span>
+          </footer>
+        </article>
+        <article class="serp-kpi-card" data-kpi="recommendation">
+          <span class="serp-kpi-card__icon serp-kpi-card__icon--recommendation" aria-hidden="true">✨</span>
+          <header class="serp-kpi-card__header">
+            <span class="serp-kpi-card__eyebrow">推薦熱度</span>
+            <h3 class="serp-kpi-card__title" id="serp-recommendation-title">等待同步中</h3>
+            <span class="serp-kpi-card__badge" hidden></span>
+          </header>
+          <p class="serp-kpi-card__metric" id="serp-recommendation-metric">—</p>
+          <ul class="serp-kpi-card__list" id="serp-recommendation-list">
+            <li>SerpAPI 正在擷取熱門摘要與網站展示。</li>
+          </ul>
+          <footer class="serp-kpi-card__footer">
+            <span class="serp-kpi-card__source" id="serp-recommendation-source">資料補齊中</span>
+          </footer>
+        </article>
+        <article class="serp-kpi-card serp-kpi-card--alert" data-kpi="alert">
+          <span class="serp-kpi-card__icon serp-kpi-card__icon--alert" aria-hidden="true">🚨</span>
+          <header class="serp-kpi-card__header">
+            <span class="serp-kpi-card__eyebrow">危機警示</span>
+            <h3 class="serp-kpi-card__title" id="serp-alert-title">等待同步中</h3>
+            <span class="serp-kpi-card__badge" hidden></span>
+          </header>
+          <p class="serp-kpi-card__metric" id="serp-alert-metric">—</p>
+          <ul class="serp-kpi-card__list" id="serp-alert-list">
+            <li>AI 正在解析最新差評與搜尋缺口。</li>
+          </ul>
+          <footer class="serp-kpi-card__footer">
+            <span class="serp-kpi-card__source" id="serp-alert-source">資料補齊中</span>
+          </footer>
+        </article>
+      </div>
+    </section>
+
+    <section class="serp-section serp-section--tasks" id="serp-tasks">
+      <header class="serp-section__header">
+        <h2>守護任務</h2>
+        <p class="muted">AI 依據 SerpAPI 風險與警示，提供立即補救、下一步與自助指引。</p>
+      </header>
+      <div class="serp-task-grid">
+        <article class="serp-task-card" data-task="immediate">
+          <header class="serp-task-card__header">
+            <h3>立即補救</h3>
+            <span class="serp-task-card__badge" id="serp-task-immediate-count" hidden></span>
+          </header>
+          <ol class="serp-task-card__list" id="serp-task-immediate-list">
+            <li>資料整理中，稍後會列出優先補救項目。</li>
+          </ol>
+        </article>
+        <article class="serp-task-card" data-task="next">
+          <header class="serp-task-card__header">
+            <h3>下一步</h3>
+            <span class="serp-task-card__badge" id="serp-task-next-count" hidden></span>
+          </header>
+          <ol class="serp-task-card__list" id="serp-task-next-list">
+            <li>資料整理中，稍後會建議下一步守護行動。</li>
+          </ol>
+        </article>
+        <article class="serp-task-card" data-task="self">
+          <header class="serp-task-card__header">
+            <h3>自助引導</h3>
+            <span class="serp-task-card__badge" id="serp-task-self-count" hidden></span>
+          </header>
+          <ol class="serp-task-card__list" id="serp-task-self-list">
+            <li>資料整理中，稍後會提供自助守護指引。</li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
+    <section class="serp-section serp-section--guardian" id="serp-guardian">
+      <header class="serp-section__header">
+        <h2>會員級守護狀態</h2>
+        <p class="muted">確認 nightly 守護是否就緒，並掌握 DataForSEO 同步時間。</p>
+      </header>
+      <article class="serp-guardian-card">
+        <div class="serp-guardian-card__status">
+          <span class="serp-guardian-card__badge" id="serp-guardian-status">守護排程確認中</span>
+          <h3 class="serp-guardian-card__title" id="serp-guardian-title">等待排程同步</h3>
+          <p class="serp-guardian-card__description" id="serp-guardian-description">
+            DataForSEO 正在串接，完成後會自動補齊 SERP 與競品差距。
+          </p>
+        </div>
+        <dl class="serp-guardian-card__meta">
+          <div>
+            <dt>下一次 DataForSEO 同步</dt>
+            <dd id="serp-next-sync">尚無排程</dd>
+          </div>
+          <div>
+            <dt>自動守護</dt>
+            <dd id="serp-guardian-automation">每日 02:00 自動更新</dd>
+          </div>
+          <div>
+            <dt>資料狀態</dt>
+            <dd id="serp-guardian-stub">等待正式資料</dd>
+          </div>
+        </dl>
+        <ul class="serp-guardian-card__tasks" id="serp-guardian-list">
+          <li>補齊今日所有新評論並標註差評。</li>
+          <li>比對競品曝光與關鍵字缺口。</li>
+          <li>產出危機提醒與守護訪談腳本。</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="serp-section serp-section--cta" id="serp-cta">
+      <header class="serp-section__header">
+        <h2>下一步行動</h2>
+        <p class="muted">立即與守護專家對接，或查看完整 SERP 報告。</p>
+      </header>
+      <div class="serp-cta-group">
+        <button class="btn btn--primary serp-cta__primary" id="serp-cta-primary" type="button">
+          <span class="btn__title">立即讓守護專家協助搶救曝光</span>
+          <span class="btn__subtitle" id="serp-cta-primary-note">第一步：同步搜尋敘事與官網</span>
+        </button>
+        <a class="btn btn--ghost serp-cta__secondary" id="serp-cta-secondary" href="#serp-details">
+          <span class="btn__title">查看搜尋細節</span>
+        </a>
+        <a class="btn btn--outline serp-cta__upgrade" id="serp-cta-upgrade" href="plans.html">
+          <span class="btn__title">升級守護方案</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="serp-section serp-section--details" id="serp-details">
+      <details class="serp-accordion" id="serp-accordion-exposure">
+        <summary>搜尋細節</summary>
+        <div class="serp-accordion__body" id="serp-detail-exposure">AI 正在整理 SERP 明細。</div>
+      </details>
+      <details class="serp-accordion" id="serp-accordion-recommendation">
+        <summary>推薦熱度來源</summary>
+        <div class="serp-accordion__body" id="serp-detail-recommendation">AI 正在擷取熱門摘要。</div>
+      </details>
+      <details class="serp-accordion" id="serp-accordion-alerts">
+        <summary>危機與警示列表</summary>
+        <div class="serp-accordion__body" id="serp-detail-alerts">AI 正在彙整危機清單。</div>
+      </details>
+    </section>
+  </main>
+
+  <section class="serp-loading" id="serp-loading" hidden>
+    <div class="loading-indicator">
+      <span class="loading-indicator__dot"></span>
+      <span class="loading-indicator__dot"></span>
+      <span class="loading-indicator__dot"></span>
+    </div>
+    <p class="loading-copy">正在同步 SerpAPI 結果…</p>
+  </section>
+
+  <section class="serp-error" id="serp-error" hidden role="alert">
+    <div class="serp-error__badge">SERP 守護通知</div>
+    <h2 id="serp-error-title">暫時無法取得 SERP 報告</h2>
+    <p id="serp-error-message">AI 重新整理資料時發生錯誤，請稍後再試或回到 LINE。</p>
+    <div class="serp-error__actions">
+      <button id="serp-error-retry" type="button" class="btn btn--primary">重新整理</button>
+      <a id="serp-error-home" class="btn btn--ghost" href="index.html">返回申請頁</a>
+    </div>
+  </section>
+
+  <div class="toast" id="serp-toast" hidden></div>
+
+  <script src="config.runtime.js?ts=20251012T2359"></script>
+  <script src="config.js?ts=20251012T2359"></script>
+  <script src="analytics.js?ts=20251012T2359"></script>
+  <script src="report-utils.js?ts=20251012T2359"></script>
+  <script src="report-serp.js?ts=20251012T2359"></script>
+</body>
+</html>

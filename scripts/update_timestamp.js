@@ -41,6 +41,7 @@ const filesToUpdate = [
   'about.html',
   'plans.html',
   'report.html',
+  'report-serp.html',
   'sample-report.html',
 ];
 
@@ -50,6 +51,7 @@ const copyPairs = [
   ['plans.html', path.join('releases', timestamp, 'plans.html')],
   ['sample-report.html', path.join('releases', timestamp, 'sample-report.html')],
   ['report.html', path.join('releases', timestamp, 'report.html')],
+  ['report-serp.html', path.join('releases', timestamp, 'report-serp.html')],
   ['config.js', path.join('releases', timestamp, 'config.js')],
   ['config.runtime.js', path.join('releases', timestamp, 'config.runtime.js')],
   ['analytics.js', path.join('releases', timestamp, 'analytics.js')],
@@ -57,6 +59,7 @@ const copyPairs = [
   ['cognos-avatar.svg', path.join('releases', timestamp, 'cognos-avatar.svg')],
   ['logo.png', path.join('releases', timestamp, 'logo.png')],
   ['report.js', path.join('releases', timestamp, 'report.js')],
+  ['report-serp.js', path.join('releases', timestamp, 'report-serp.js')],
   ['report-utils.js', path.join('releases', timestamp, 'report-utils.js')],
   ['styles.css', path.join('releases', timestamp, 'styles.css')],
 ];

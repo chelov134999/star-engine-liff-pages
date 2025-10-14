@@ -2,12 +2,15 @@ window.__STAR_ENGINE_CONFIG__ = {
   "formUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251012T2359/index.html?ts=20251012T2359",
   "formLiffId": "2008215846-5LwXlWVN",
   "reportLiffId": "2008215846-5LwXlWVN",
-  "webhookUrl": "https://chelov134999.app.n8n.cloud/webhook/lead-entry",
-  "quizUrl": "https://chelov134999.app.n8n.cloud/webhook/lead-entry",
-  "analysisStatusUrl": "https://chelov134999.app.n8n.cloud/webhook/analysis-status",
+  "webhookUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/lead-entry",
+  "quizUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/lead-entry",
+  "analysisStatusUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/analysis-status",
   "weeklyDraftUrl": "https://chelov134999.app.n8n.cloud/webhook/weekly-draft",
-  "reportEndpoint": "https://chelov134999.app.n8n.cloud/webhook/report-data",
-  "reportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251012T2359/report.html?ts=20251012T2359",
+  "reportEndpoint": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/report-data",
+  "serpEndpoint": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/report-data",
+  "reportUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/report.html",
+  "serpReportUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/report-serp.html",
+  "serpDetailUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/report-serp.html",
   "trialUrl": "https://line.me/ti/p/@star-up",
   "plansPageUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251012T2359/plans.html?ts=20251012T2359",
   "aboutUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251012T2359/about.html?ts=20251012T2359",
@@ -17,5 +20,5 @@ window.__STAR_ENGINE_CONFIG__ = {
   "scraperApiKey": "5b62aa6ae725da5b1162a4674a3ea49e",
   "sampleReportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251012T2359/sample-report.html?ts=20251012T2359",
   "assistantLabel": "生成正式入場券",
-  "assistantEntryUrl": "https://chelov134999.app.n8n.cloud/webhook/assistant-entry"
+  "assistantEntryUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/assistant-entry"
 };

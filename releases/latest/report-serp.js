@@ -208,7 +208,7 @@
   }
 
   async function fetchReport() {
-    let url = endpoints.report;
+    let url = endpoints.report || '/webhook/report-data';
     const headers = { 'Content-Type': 'application/json' };
     const perform = (targetUrl, fetchOptions) => requestJSON(targetUrl, fetchOptions);
     if (state.token) {
@@ -266,12 +266,13 @@
 
     if (state.leadId) {
       try {
-        const target = new URL(endpoints.report, window.location.origin);
+        const target = new URL(endpoints.report || '/webhook/report-data', window.location.origin);
         target.searchParams.set('lead_id', state.leadId);
         url = target.toString();
       } catch (error) {
-        const separator = endpoints.report && endpoints.report.includes('?') ? '&' : '?';
-        url = `${endpoints.report}${separator}lead_id=${encodeURIComponent(state.leadId)}`;
+        const base = endpoints.report || '/webhook/report-data';
+        const separator = base.includes('?') ? '&' : '?';
+        url = `${base}${separator}lead_id=${encodeURIComponent(state.leadId)}`;
       }
     }
 

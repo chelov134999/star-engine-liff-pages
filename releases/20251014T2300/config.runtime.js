@@ -1,5 +1,5 @@
 window.__STAR_ENGINE_CONFIG__ = {
-  "formUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2000/index.html?ts=20251014T2000",
+  "formUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2300/index.html?ts=20251014T2300",
   "formLiffId": "2008215846-5LwXlWVN",
   "reportLiffId": "2008215846-5LwXlWVN",
   "webhookUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/lead-entry",
@@ -12,13 +12,13 @@ window.__STAR_ENGINE_CONFIG__ = {
   "serpReportUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/report-serp.html",
   "serpDetailUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/report-serp.html",
   "trialUrl": "https://line.me/ti/p/@star-up",
-  "plansPageUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2000/plans.html?ts=20251014T2000",
-  "aboutUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2000/about.html?ts=20251014T2000",
+  "plansPageUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2300/plans.html?ts=20251014T2300",
+  "aboutUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2300/about.html?ts=20251014T2300",
   "checkoutPrimaryUrl": "https://chelov134999.app.n8n.cloud/pay/star-guard-4980",
   "checkoutSecondaryUrl": "https://chelov134999.app.n8n.cloud/pay/star-cabin-2980",
   "googlePlacesApiKey": "AIzaSyCRy2IFDTjfA0co5EBggpPTcZG323YPaNY",
   "scraperApiKey": "5b62aa6ae725da5b1162a4674a3ea49e",
-  "sampleReportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2000/sample-report.html?ts=20251014T2000",
+  "sampleReportUrl": "https://chelov134999.github.io/star-engine-liff-pages/releases/20251014T2300/sample-report.html?ts=20251014T2300",
   "assistantLabel": "生成正式入場券",
   "assistantEntryUrl": "https://mycologic-arielle-warriorlike.ngrok-free.dev/webhook/assistant-entry"
 };

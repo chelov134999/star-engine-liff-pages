@@ -1746,6 +1746,15 @@ body.page--info {
   padding: clamp(28px, 7vw, 64px);
 }
 
+body.page--report-serp {
+  flex-direction: column;
+  align-items: center;
+}
+
+body.page--report-serp > * {
+  width: min(960px, 100%);
+}
+
 .info-shell {
   width: min(960px, 100%);
   margin: 0 auto;
@@ -3872,6 +3881,11 @@ body.page--info {
   text-align: center;
   display: grid;
   gap: 16px;
+}
+
+.serp-loading[hidden],
+.serp-error[hidden] {
+  display: none !important;
 }
 
 .serp-error h2 {

@@ -7,7 +7,12 @@ const endpoints = {
   assistantEntry: config.assistantEntryUrl || config.assistant_entry_url || '',
 };
 
-const reportUrlBase = config.reportUrl || config.report_url || 'report.html';
+const reportUrlBase =
+  config.serpReportUrl
+  || config.serpDetailUrl
+  || config.reportUrl
+  || config.report_url
+  || 'report-serp.html';
 const formUrl = config.formUrl || config.form_url || window.location.href;
 const plansPageUrl = config.plansPageUrl || config.planPageUrl || 'plans.html';
 const sampleReportUrl = config.sampleReportUrl || 'sample-report.html';
@@ -266,7 +271,7 @@ const state = {
   warnings: [],
   reportUrlOverride: '',
   isPartialResult: false,
-  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || '查看速查詳情',
+  defaultReportCtaText: (els.ctaReport && els.ctaReport.textContent) || REPORT_CTA_READY_TEXT,
   partialCards: [],
   partialNotice: '',
 };

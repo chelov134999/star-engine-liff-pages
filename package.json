@@ -20,5 +20,8 @@
   "homepage": "https://github.com/chelov134999/star-engine-liff-pages#readme",
   "dependencies": {
     "jsdom": "^23.0.1"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
   }
 }

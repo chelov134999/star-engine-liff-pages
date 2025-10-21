@@ -12,6 +12,7 @@
     />
     <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
     <link rel="stylesheet" href="styles.css?ts=20251018T0000" />
+    <link rel="stylesheet" href="styles/mobile-fixes.css" />
   </head>
   <body class="onboarding-page page-onboarding">
     <header id="global-header" class="gh" aria-label="星級引擎導覽">
@@ -257,37 +258,59 @@
             <p class="card-lead">用表格清楚列出差距與每月損失，知道該追回什麼。</p>
           </header>
           <div class="card-body compare-table">
-            <table class="comparison-table" aria-describedby="s4-title">
-              <caption class="visually-hidden">AI 預估競品差距與損失表</caption>
-              <thead>
-                <tr>
-                  <th scope="col">指標</th>
-                  <th scope="col">你的店</th>
-                  <th scope="col">競品均值</th>
-                  <th scope="col">估計損失</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th scope="row">搜尋曝光</th>
-                  <td>72%</td>
-                  <td>88%</td>
-                  <td>每月少 1,200 名搜尋客</td>
-                </tr>
-                <tr>
-                  <th scope="row">回覆速度</th>
-                  <td>2 小時</td>
-                  <td>45 分</td>
-                  <td>平均星等可能低 0.4★</td>
-                </tr>
-                <tr>
-                  <th scope="row">AI 推薦率</th>
-                  <td>42%</td>
-                  <td>68%</td>
-                  <td>每月少被推薦 38 次</td>
-                </tr>
-              </tbody>
-            </table>
+            <div id="s4-table" class="table-wrap" role="region" aria-live="polite" aria-label="競品對比表">
+              <div class="table-edge table-edge--left" aria-hidden="true"></div>
+              <div class="table-edge table-edge--right" aria-hidden="true"></div>
+              <table class="comparison-table table" aria-describedby="s4-title">
+                <caption class="visually-hidden">AI 預估競品差距與損失表</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">指標</th>
+                    <th scope="col">你的店</th>
+                    <th scope="col">競品均值</th>
+                    <th scope="col">估計損失</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">搜尋曝光</th>
+                    <td>72%</td>
+                    <td>88%</td>
+                    <td class="loss">每月少 1,200 名搜尋客</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">回覆速度</th>
+                    <td>2 小時</td>
+                    <td>45 分</td>
+                    <td class="loss">平均星等可能低 0.4★</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">AI 推薦率</th>
+                    <td>42%</td>
+                    <td>68%</td>
+                    <td class="loss">每月少被推薦 38 次</td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="metric-card" data-metric-card="search-visibility">
+                <div class="metric-card__title">搜尋曝光</div>
+                <div><strong>你的店</strong> 72%</div>
+                <div><strong>競品均值</strong> 88%</div>
+                <div class="metric-card__loss">每月少 1,200 名搜尋客</div>
+              </div>
+              <div class="metric-card" data-metric-card="response-speed">
+                <div class="metric-card__title">回覆速度</div>
+                <div><strong>你的店</strong> 2 小時</div>
+                <div><strong>競品均值</strong> 45 分</div>
+                <div class="metric-card__loss">平均星等可能低 0.4★</div>
+              </div>
+              <div class="metric-card" data-metric-card="ai-recommendation">
+                <div class="metric-card__title">AI 推薦率</div>
+                <div><strong>你的店</strong> 42%</div>
+                <div><strong>競品均值</strong> 68%</div>
+                <div class="metric-card__loss">每月少被推薦 38 次</div>
+              </div>
+            </div>
           </div>
           <footer class="card-actions">
             <button type="button" class="btn btn-primary" data-next data-analytics-event="card4_cta">
@@ -487,5 +510,6 @@
     <script src="config.runtime.js?ts=20251018T0000" defer></script>
     <script src="analytics.js?ts=20251018T0000" defer></script>
     <script src="app.js?ts=20251018T0000" defer></script>
+    <script src="scripts/layout-guards.js" defer></script>
   </body>
 </html>

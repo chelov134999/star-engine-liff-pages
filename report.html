@@ -12,13 +12,14 @@
     />
     <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
     <link rel="stylesheet" href="styles.css?ts=20251018T0000" />
+    <link rel="stylesheet" href="styles/mobile-fixes.css" />
     <script src="config.runtime.js?ts=20251018T0000" defer></script>
     <script src="analytics.js?ts=20251018T0000" defer></script>
     <script src="app.js?ts=20251018T0000" defer></script>
     <script src="report.js?ts=20251018T0000" defer></script>
   </head>
   <body class="page-report">
-    <header class="app-header" aria-label="星級引擎導覽">
+    <header class="app-header header" aria-label="星級引擎導覽">
       <a class="app-brand" href="index.html">
         <img src="assets/brand/logo.png" alt="星級引擎 Star Engine" width="32" height="32" />
         <span class="app-brand__name">星級引擎｜STAR ENGINE</span>
@@ -29,7 +30,7 @@
       </nav>
     </header>
 
-    <main id="report-stage" class="report-shell">
+    <main id="report-stage" class="report-shell page">
       <section class="report-hero card" aria-labelledby="report-title">
         <div class="report-hero__chip">S7 · AI 初檢報告</div>
         <div class="report-hero__content">
@@ -255,7 +256,7 @@
       </section>
     </main>
 
-    <footer class="cta-footer" data-cta-footer>
+    <footer class="cta-footer cta-dock" data-cta-footer>
       <button
         type="button"
         class="btn btn-primary"
@@ -290,5 +291,6 @@
         <p>正在生成你的專屬報告…</p>
       </div>
     </div>
+    <script src="scripts/layout-guards.js" defer></script>
   </body>
 </html>

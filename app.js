@@ -408,16 +408,7 @@
     if (!context) return 'report.html';
     const params = new URLSearchParams();
     if (context.leadId) params.set('lead_id', context.leadId);
-    if (context.token) {
-      params.set('token', context.token);
-    } else {
-      /**
-       * ⚠️ 後端暫時還沒回傳 token，為了讓 report-data API 能命中，
-       * 先使用 sample token 作為 fallback；後續後端接上正式 token 後，
-       * 這段可以拿掉或改成讀取回傳值。
-       */
-      params.set('token', 'optional-jwt');
-    }
+    if (context.token) params.set('token', context.token);
     const query = params.toString();
     return query ? `report.html?${query}` : 'report.html';
   }

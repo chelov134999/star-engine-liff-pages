@@ -6,12 +6,22 @@
   const dock = document.querySelector('.cta-dock');
   const page = document.querySelector('.page');
 
-  if (dock && page) {
-    const setDockPadding = () => {
+  const updateDockState = () => {
+    if (!dock || !page) return;
+    const isSticky = window.getComputedStyle(dock).position === 'fixed';
+    if (isSticky) {
       document.documentElement.style.setProperty('--dock-h', `${dock.offsetHeight}px`);
-    };
-    window.addEventListener('resize', setDockPadding, { passive: true });
-    setDockPadding();
+      page.dataset.stickyDock = 'true';
+    } else {
+      document.documentElement.style.removeProperty('--dock-h');
+      page.removeAttribute('data-sticky-dock');
+      dock.style.transform = '';
+    }
+  };
+
+  if (dock && page) {
+    window.addEventListener('resize', updateDockState, { passive: true });
+    updateDockState();
   }
 
   /* 捲動收合 Header（下捲縮，上捲張） */
@@ -33,6 +43,11 @@
   const vv = window.visualViewport;
   if (vv && dock) {
     const onVV = () => {
+      const isSticky = window.getComputedStyle(dock).position === 'fixed';
+      if (!isSticky) {
+        dock.style.transform = '';
+        return;
+      }
       const shrink = vv.height < window.innerHeight - 80;
       dock.style.transform = shrink ? 'translateY(110%)' : 'translateY(0)';
     };

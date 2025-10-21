@@ -156,10 +156,34 @@ body::before {
 }
 
 .page {
+  padding-bottom: 24px;
+}
+
+.page[data-sticky-dock="true"] {
   padding-bottom: calc(var(--dock-h) + env(safe-area-inset-bottom));
 }
 
-.cta-dock {
+@media (max-width: 768px) {
+  .cta-footer.cta-dock {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin: 24px 16px 32px;
+    padding: 20px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 12px 32px rgba(0, 64, 128, 0.12);
+    backdrop-filter: blur(8px);
+  }
+
+  .cta-footer.cta-dock .btn {
+    height: 48px;
+    border-radius: var(--radius-btn);
+  }
+}
+
+.cta-dock[data-sticky='true'] {
   position: fixed;
   left: 0;
   right: 0;
@@ -171,7 +195,7 @@ body::before {
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
 }
 
-.cta-dock .btn {
+.cta-dock[data-sticky='true'] .btn {
   height: 48px;
   border-radius: var(--radius-btn);
 }

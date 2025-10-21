@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>星級引擎｜S1～S6 Onboarding</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.runtime.js" defer></script>
+    <script src="analytics.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body class="page-onboarding">
+    <main class="layout">
+      <header class="page-header">
+        <div class="page-header-title">
+          <span class="badge">S1～S6 Onboarding</span>
+          <h1>AI 正在替你建立品牌指紋</h1>
+          <p>守護團隊已啟動 SerpAPI、Google Places 與 DataForSEO 作業，S7 初檢報告生成後會通知你。</p>
+        </div>
+        <a
+          class="btn btn-outline"
+          href="report.html"
+          data-report-link
+          data-analytics-event="cta_report_from_onboarding"
+        >
+          查看初步報告
+        </a>
+      </header>
+
+      <div class="onboarding-meta">
+        <span>入場券 ID：<strong data-lead-id>尚未建立</strong></span>
+        <span>建立時間：<strong data-lead-created>--</strong></span>
+        <span class="chip" data-stage-chip>等待 AI 排程</span>
+      </div>
+
+      <p class="report-status" data-onboarding-status>填完 S0 表單後，AI 需要約 3 分鐘完成第一次掃描。</p>
+
+      <section class="section">
+        <h2>S1～S6 進度</h2>
+        <div class="stage-grid">
+          <article class="stage-card" data-stage="S1" id="S1">
+            <span class="stage-step">S1</span>
+            <h3>AI 看得到你嗎？</h3>
+            <p>當客人問 AI「這區哪家最好吃？」若沒你，你每天都在流失新客。AI 正在比對你的可見度。</p>
+            <span class="stage-status" data-stage-status>S1 等待排程</span>
+            <button class="btn btn-outline" type="button" data-analytics-event="card1_cta">
+              讓 AI 立刻檢測我
+            </button>
+          </article>
+
+          <article class="stage-card" data-stage="S2" id="S2">
+            <span class="stage-step">S2</span>
+            <h3>我們每天幫你做的事</h3>
+            <p>AI 會顧評論、看對手，讓 AI 可以讀懂你的品牌。這些任務會記錄在守護面板。</p>
+            <span class="stage-status" data-stage-status>S2 等待掃描完成</span>
+            <button class="btn btn-outline" type="button" data-analytics-event="card2_cta">
+              開始 AI 偵測
+            </button>
+          </article>
+
+          <article class="stage-card" data-stage="S3" id="S3">
+            <span class="stage-step">S3</span>
+            <h3>AI 正在建立你的品牌指紋</h3>
+            <p>AI 會把曝光、評論、結構化資料組合成「品牌指紋」，為下一步的網站部署做準備。</p>
+            <span class="stage-status" data-stage-status>S3 等待資料彙整</span>
+            <button class="btn btn-outline" type="button" data-analytics-event="card3_cta">
+              預覽 AI 指紋
+            </button>
+          </article>
+
+          <article class="stage-card" data-stage="S4" id="S4">
+            <span class="stage-step">S4</span>
+            <h3>你被看到，也被比較了</h3>
+            <p>AI 會把你和附近 3 家競品一起推薦，並分析誰是你下一個要超越的對手。</p>
+            <span class="stage-status" data-stage-status>S4 等待競品比對</span>
+            <button class="btn btn-outline" type="button" data-analytics-event="card4_cta">
+              我要搶回前 3 名
+            </button>
+          </article>
+
+          <article class="stage-card" data-stage="S5" id="S5">
+            <span class="stage-step">S5</span>
+            <h3>AI 守護機制</h3>
+            <p>AI 每天 15 分鐘巡邏一次，低星立刻通知；同時準備回覆草稿，讓你放心落地。</p>
+            <span class="stage-status" data-stage-status>S5 等待守護啟動</span>
+            <button class="btn btn-outline" type="button" data-analytics-event="card5_cta">
+              開啟我的 AI 守護模式
+            </button>
+          </article>
+
+          <article class="stage-card" data-stage="S6" id="S6">
+            <span class="stage-step">S6</span>
+            <h3>AI 初步掃描完成</h3>
+            <p>AI 找到 3 個關鍵風險項目，準備 S7 初檢報告，帶你做下一步決策。</p>
+            <span class="stage-status" data-stage-status>S6 等待報告完成</span>
+            <div class="cta-stack">
+              <a
+                class="btn btn-primary"
+                href="report.html"
+                data-report-link
+                data-analytics-event="card6_cta_report"
+              >
+                查看我的初步報告
+              </a>
+              <a
+                class="btn btn-outline"
+                href="#"
+                data-chatkit-link
+                data-analytics-event="card6_cta_chatkit"
+              >
+                請守護專家帶我升星
+              </a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="upgrade">
+        <h2>下一步：選擇守護等級</h2>
+        <p>報告完成後，你可以選擇守望塔（1980/月）或領航艦（5800/月），AI 專家會幫你設計升星路線。</p>
+        <div class="cta-stack" style="margin-top: 24px;">
+          <a
+            class="btn btn-primary"
+            href="#upgrade-sentry"
+            data-analytics-event="cta_upgrade_sentry"
+          >
+            立即啟動 AI 守護
+          </a>
+          <p class="cta-note">低星 15 分通知｜每日統計｜24h 上線網站</p>
+          <a
+            class="btn btn-outline"
+            href="#upgrade-navigator"
+            data-analytics-event="cta_upgrade_navigator"
+          >
+            開啟升星計畫
+          </a>
+          <p class="cta-note">每週三件事｜Top10 競品｜AI Summary + FAQ</p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

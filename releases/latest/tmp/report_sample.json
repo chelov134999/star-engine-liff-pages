@@ -1,0 +1,70 @@
+{
+  "lead_id": "se_20251017_demo",
+  "token": "optional-jwt",
+  "sync": {
+    "last_updated": "2025-10-17T20:01:30+08:00",
+    "next_sync": "2025-10-18T02:00:00+08:00"
+  },
+  "kpis": {
+    "search_visibility": {
+      "value": 72,
+      "unit": "%",
+      "source": "SERPAPI",
+      "note": "Local Pack 命中 5 次"
+    },
+    "ai_visibility": {
+      "value": 61,
+      "unit": "%",
+      "source": "DataForSEO",
+      "note": "AI 推薦摘要覆蓋率"
+    },
+    "crisis_alert": {
+      "value": "安全",
+      "source": "LINE Reviews",
+      "note": "最近 7 天 0 則低星"
+    },
+    "recommendation_heat": {
+      "value": 3,
+      "unit": "/5",
+      "source": "SERPAPI",
+      "note": "Top3 出現 3 次"
+    }
+  },
+  "competitors": [
+    {
+      "name": "郁香飯糰",
+      "rating": 4.7,
+      "response_time": "2 小時",
+      "ai_recommendation": "78%"
+    },
+    {
+      "name": "燒餅油條專賣",
+      "rating": 4.6,
+      "response_time": "6 小時",
+      "ai_recommendation": "65%"
+    },
+    {
+      "name": "151 早餐",
+      "rating": 4.4,
+      "response_time": "1 天",
+      "ai_recommendation": "48%"
+    }
+  ],
+  "tasks": {
+    "immediate": [
+      { "title": "回覆 2 則低星", "detail": "使用 AI 草稿 #A351" },
+      "確認 Google 店名與門牌是否一致"
+    ],
+    "next": [
+      { "title": "補齊推薦摘要要點", "detail": "提供早餐品項與營業時間" }
+    ],
+    "self": [
+      { "title": "設定夜間巡邏", "detail": "開啟 21:00 自動比對" }
+    ]
+  },
+  "member_status": {
+    "plan": "守望塔（試用）",
+    "status": "啟用中",
+    "synced_at": "2025-10-17T19:45:02+08:00"
+  }
+}

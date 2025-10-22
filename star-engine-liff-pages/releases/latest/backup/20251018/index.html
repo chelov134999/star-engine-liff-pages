@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>星級引擎｜AI 品牌守護報到</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.runtime.js" defer></script>
+    <script src="analytics.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body class="page-index">
+    <main class="layout">
+      <section class="hero" id="hero">
+        <div class="hero-copy">
+          <span class="badge">S0 · 申請 AI 入場券</span>
+          <h1>AI 地圖正在更新，你站在新客動線上嗎？</h1>
+          <p class="hero-subtitle">填完 4 個欄位，星級引擎 AI 立刻為你建檔：掃描曝光、比對競品、建立 AI 可讀網站，3 分鐘掌握品牌風險與進場機會。</p>
+          <ul class="hero-bullets">
+            <li>Google 搜尋 &amp; AI 摘要同步掃描</li>
+            <li>競品排行、評價健康一次掌握</li>
+            <li>守護團隊 24/7 代值班，低星立刻通知</li>
+          </ul>
+          <p class="signal" id="realtime-signal">AI 即時連線 SerpAPI / DataForSEO / LINE 守護</p>
+        </div>
+        <section class="hero-form" aria-labelledby="lead-form-title">
+          <h2 id="lead-form-title" class="form-title">立即申請 AI 入場券</h2>
+          <p class="muted">你的資料僅用於 AI 初步掃描，結果會寄回 LINE / Email。</p>
+          <form id="lead-form" novalidate>
+            <div class="form-grid">
+              <label class="field">
+                <span class="field-label">商家名稱</span>
+                <input type="text" name="name" autocomplete="organization" data-error-empty="請填寫商家名稱" required>
+                <span class="field-error" aria-live="polite"></span>
+              </label>
+              <label class="field">
+                <span class="field-label">所在城市</span>
+                <input type="text" name="city" autocomplete="address-level2" data-error-empty="請填寫城市" required>
+                <span class="field-error" aria-live="polite"></span>
+              </label>
+              <label class="field">
+                <span class="field-label">主要道路 / 商圈</span>
+                <input type="text" name="route" autocomplete="address-line1" placeholder="例：台中市西區美村路" data-error-empty="請填寫主要道路或商圈" required>
+                <span class="field-error" aria-live="polite"></span>
+              </label>
+              <label class="field">
+                <span class="field-label">門牌號碼</span>
+                <input type="text" name="number" autocomplete="address-line2" placeholder="例：636 號" data-error-empty="請填寫門牌號碼" required>
+                <span class="field-error" aria-live="polite"></span>
+              </label>
+              <label class="field">
+                <span class="field-label">你是如何知道星級引擎？</span>
+                <select name="source">
+                  <option value="landing-page" selected>官方頁面</option>
+                  <option value="line">LINE 官方帳號</option>
+                  <option value="referral">朋友推薦</option>
+                  <option value="search">Google / 社群搜尋</option>
+                </select>
+                <span class="field-error" aria-live="polite"></span>
+              </label>
+            </div>
+            <p class="form-status" role="alert" aria-live="polite"></p>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" data-loading-text="AI 正在建立品牌檔案…">
+                <span class="btn-label">申請 AI 入場券</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </button>
+              <a class="btn btn-link" href="onboarding.html">先了解流程</a>
+            </div>
+          </form>
+          <p class="cta-note">提交後立即帶你進入 S1～S6 Onboarding，看 AI 如何一步步為你建檔。</p>
+        </section>
+      </section>
+
+      <section class="section" id="flow-preview">
+        <h2>S1～S6：AI 為你做的每一步</h2>
+        <p>完成 S0 後，星級引擎 AI 會在背景啟動掃描、比對、守護。登入 Onboarding 馬上可以看到最新進度。</p>
+        <div class="stage-grid">
+          <article class="stage-card" data-stage="S1-preview">
+            <span class="stage-step">S1</span>
+            <h3>AI 看得到你嗎？</h3>
+            <p>AI 立即嘗試在地圖、AI 摘要中找到你。如果沒找到，表示你每天都在流失新客。</p>
+            <span class="stage-status">AI 已排程偵測</span>
+            <a class="btn btn-outline" href="onboarding.html#S1">進入 Onboarding</a>
+          </article>
+          <article class="stage-card" data-stage="S3-preview">
+            <span class="stage-step">S3</span>
+            <h3>建立品牌指紋</h3>
+            <p>把你的評價、曝光、結構化資料寫入星級引擎，生成 AI 可讀的品牌身分。</p>
+            <span class="stage-status">AI 正在彙整資料</span>
+            <a class="btn btn-outline" href="onboarding.html#S3">查看掃描進度</a>
+          </article>
+          <article class="stage-card" data-stage="S5-preview">
+            <span class="stage-step">S5</span>
+            <h3>AI 守護機制</h3>
+            <p>守護團隊設定每日巡邏，低星 15 分鐘通知，並準備回覆草稿。</p>
+            <span class="stage-status">守護流程就緒</span>
+            <a class="btn btn-outline" href="onboarding.html#S5">啟動守護模式</a>
+          </article>
+          <article class="stage-card" data-stage="S7-preview">
+            <span class="stage-step">S7</span>
+            <h3>AI 初檢報告</h3>
+            <p>AI 給出可見度、競品排行、風險與下一步 CTA，帶你做出決策。</p>
+            <span class="stage-status">報告生成後將通知你</span>
+            <a class="btn btn-primary" href="report.html">查看我的初步報告</a>
+          </article>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

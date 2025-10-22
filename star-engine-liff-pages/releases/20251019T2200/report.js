@@ -2,6 +2,9 @@
   const engine = window.starEngine || {};
   const CONFIG = window.__STAR_ENGINE_CONFIG__ || {};
   const REPORT_CACHE_KEY = 'star-engine/report-cache';
+  const FETCH_TIMEOUT_MS = 10000;
+  const MAX_FETCH_DURATION_MS = 15000;
+  const RETRY_DELAY_MS = 1200;
   let latestReport = null;
 
   const DEFAULT_SUMMARY =
@@ -34,33 +37,67 @@
     fetchLatestReport(context);
   }
 
-  function fetchLatestReport(context) {
-    setStatus('AI 正在生成你的專屬報告…', { state: 'neutral' });
-    setLoader(true);
+  function fetchLatestReport(context, attemptState = {}) {
+    const attempt = Number(attemptState.attempt || 1);
+    const startedAt = attemptState.startedAt || Date.now();
+    const elapsed = Date.now() - startedAt;
+    const remainingBudget = Math.max(MAX_FETCH_DURATION_MS - elapsed, 3000);
+    const statusMessage =
+      attempt === 1
+        ? 'AI 正在生成你的專屬報告…'
+        : '資料整理中，正在為你再次同步…';
+
+    setStatus(statusMessage, { state: 'neutral' });
+    if (attempt === 1) {
+      setLoader(true);
+    }
 
     const controller = new AbortController();
-    const timer = window.setTimeout(() => controller.abort(), 10000);
+    const timeoutMs =
+      attempt === 1 ? Math.min(FETCH_TIMEOUT_MS, remainingBudget) : remainingBudget;
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
 
     engine
       .fetchReportData(context, { signal: controller.signal })
       .then((data) => {
         window.clearTimeout(timer);
-        if (!data || !data.kpis) {
-          throw new Error('invalid_payload');
+
+        if (isGeneratingReport(data)) {
+          if (attempt < 2 && Date.now() - startedAt < MAX_FETCH_DURATION_MS) {
+            window.setTimeout(() => {
+              fetchLatestReport(context, { attempt: attempt + 1, startedAt });
+            }, RETRY_DELAY_MS);
+            return;
+          }
+          showGeneratingState(context);
+          return;
         }
-        renderReport(data, { fromCache: false });
+
+        const leadId = data.lead_id || context.leadId || '';
+        const isPartial = isPartialReport(data);
+        renderReport(data, { fromCache: false, partial: isPartial });
         engine.trackEvent('s7_view_report', {
           ok: true,
-          lead_id: data.lead_id || context.leadId || null,
+          lead_id: leadId || null,
+          status: isPartial ? 'ready_partial' : 'ready',
         });
-        engine.cacheReportData(data.lead_id || context.leadId || '', data);
+        if (leadId) {
+          engine.cacheReportData(leadId, data);
+        }
       })
       .catch((error) => {
         window.clearTimeout(timer);
+        const isTimeout = error?.name === 'AbortError';
+        if (isTimeout && attempt < 2 && Date.now() - startedAt < MAX_FETCH_DURATION_MS) {
+          window.setTimeout(() => {
+            fetchLatestReport(context, { attempt: attempt + 1, startedAt });
+          }, RETRY_DELAY_MS);
+          return;
+        }
         engine.trackEvent('s7_view_report', {
           ok: false,
           lead_id: context.leadId || null,
-          message: error?.name === 'AbortError' ? 'timeout' : error?.message || 'error',
+          message: isTimeout ? 'timeout' : error?.message || 'error',
         });
         showFallback();
       });
@@ -71,9 +108,19 @@
     toggleFallback(false);
 
     const fromCache = Boolean(options.fromCache);
-    setStatus(fromCache ? '顯示離線快取資料。' : 'AI 報告已更新。', {
-      state: fromCache ? 'neutral' : 'success',
-    });
+    const isPartial = Boolean(options.partial);
+    const shell = document.querySelector('.report-shell');
+    if (shell) {
+      shell.dataset.reportState = isPartial ? 'partial' : 'ready';
+    }
+
+    if (isPartial) {
+      setStatus('資料更新中（partial），剩餘指標即將補齊。', { state: 'neutral' });
+    } else {
+      setStatus(fromCache ? '顯示離線快取資料。' : 'AI 報告已更新。', {
+        state: fromCache ? 'neutral' : 'success',
+      });
+    }
 
     const leadEl = document.querySelector('[data-report-lead]');
     if (leadEl) leadEl.textContent = data.lead_id || data.leadId || leadEl.textContent;
@@ -182,6 +229,83 @@
           descEl.textContent = defaults[key] || '';
         }
       }
+    });
+  }
+
+  function normalizeStatusToken(data) {
+    const token = data?.status || data?.sync?.status;
+    return typeof token === 'string' ? token.toLowerCase() : '';
+  }
+
+  function isPartialReport(data) {
+    const token = normalizeStatusToken(data);
+    return token === 'ready_partial' || token === 'partial';
+  }
+
+  function isGeneratingReport(data) {
+    if (!data) return true;
+    if (data.ok === false) return true;
+    const token = normalizeStatusToken(data);
+    if (token === 'generating' || token === 'pending' || token === 'queued') {
+      return true;
+    }
+    return !data.kpis;
+  }
+
+  function showGeneratingState(context) {
+    toggleFallback(false);
+    const shell = document.querySelector('.report-shell');
+    if (shell) {
+      shell.dataset.reportState = 'generating';
+    }
+
+    const summaryEl = document.querySelector('[data-report-summary]');
+    if (summaryEl) summaryEl.textContent = 'AI 報告正在整理，請稍候…';
+
+    const nextEl = document.querySelector('[data-report-next-step]');
+    if (nextEl) nextEl.textContent = 'AI 正在補齊 KPI，完成後會立即通知你。';
+
+    renderPendingKpis();
+    renderPendingCompetitors();
+    renderPendingTasks();
+    setStatus('資料生成中，真實 KPI 即將送達。', { state: 'neutral' });
+    setLoader(true);
+
+    engine.trackEvent?.('s7_view_report', {
+      ok: false,
+      lead_id: context?.leadId || null,
+      message: 'generating',
+    });
+  }
+
+  function renderPendingKpis() {
+    document.querySelectorAll('.kpi-card').forEach((card) => {
+      const valueEl = card.querySelector('.kpi-card__value');
+      const noteEl = card.querySelector('.kpi-card__note');
+      const sourceEl = card.querySelector('.source-chip');
+      if (valueEl) valueEl.textContent = '—';
+      if (noteEl) noteEl.textContent = '資料生成中…';
+      if (sourceEl) sourceEl.textContent = '來源：—';
+    });
+  }
+
+  function renderPendingCompetitors() {
+    const tbody = document.querySelector('.competitor-table tbody');
+    if (tbody) {
+      tbody.innerHTML =
+        '<tr class="skeleton-row"><td colspan="4">AI 正在整理競品資料…</td></tr>';
+    }
+    const lossPanel = document.querySelector('[data-loss-panel]');
+    if (lossPanel) {
+      lossPanel.hidden = true;
+      const list = lossPanel.querySelector('ul');
+      if (list) list.innerHTML = '';
+    }
+  }
+
+  function renderPendingTasks() {
+    document.querySelectorAll('.guard-card [data-task-desc]').forEach((descEl) => {
+      descEl.textContent = 'AI 正在計算守護任務，稍後會提供精準建議。';
     });
   }
 

@@ -7,6 +7,6 @@ window.__STAR_ENGINE_CONFIG__ = {
   SERP_DETAIL_URL: 'report-serp.html',
   REPORT_URL: 'report.html',
   FORM_URL: 'index.html',
-  BUILD_TIMESTAMP: '20251021T2030',
+  BUILD_TIMESTAMP: '20251019T2200',
   REDUCED_MOTION: window.matchMedia('(prefers-reduced-motion: reduce)').matches
 };

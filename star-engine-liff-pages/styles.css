@@ -318,8 +318,6 @@ body.sheet-open { overflow: hidden; }
 .token-toggle[aria-expanded='true'] + .token-value { filter: blur(0); }
 
 .report-status { margin: -12px 0 clamp(12px, 3vw, 24px); font-size: 0.95rem; color: var(--color-text-secondary); text-align: left; }
-.report-status.is-partial { color: var(--color-primary); font-weight: 600; }
-.report-status.is-pending { color: var(--color-text-secondary); font-style: italic; }
 
 .section-header { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 20px; }
 .section-header h2 { font-size: clamp(1.3rem, 3.6vw, 1.6rem); font-weight: 700; color: var(--color-text-primary); }
@@ -429,3 +427,4 @@ body.sheet-open { overflow: hidden; }
   .lead-actions .btn { width: 100%; }
   .plan-card .btn, .guard-card .btn { min-width: 100%; }
 }
+

@@ -16,6 +16,7 @@
     populateLeadInfo(shell, context);
     setupChatkitCta(shell, context);
     setupBackupLink(shell, context);
+    notifyChatkitContext(context);
   });
 
   function resolveContext() {
@@ -51,22 +52,30 @@
     const button = root.querySelector('[data-chatkit-cta]');
     if (!button) return;
 
-    const url = buildChatkitUrl(context);
-    if (url) {
-      button.setAttribute('href', url);
-      button.setAttribute('target', '_blank');
-      button.setAttribute('rel', 'noopener noreferrer');
+    const fallbackUrl = buildChatkitUrl(context);
+    prepareChatkitFallback(fallbackUrl);
+
+    if (context.leadId) {
       button.classList.remove('is-disabled');
       button.removeAttribute('aria-disabled');
       button.removeAttribute('tabindex');
-      button.addEventListener('click', () => {
+      button.addEventListener('click', (event) => {
+        event.preventDefault();
+        logLeadEvent('s7_deeplink_clicked', {
+          lead_id: context.leadId || null,
+          channel: 'chatkit',
+        });
         if (engine.trackEvent && typeof engine.trackEvent === 'function') {
           engine.trackEvent('s7_deeplink_clicked', { lead_id: context.leadId || null });
+        }
+        if (window.starChatKit && typeof window.starChatKit.showChat === 'function') {
+          window.starChatKit.showChat();
+        } else if (fallbackUrl) {
+          window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
         }
       });
     } else {
       button.classList.add('is-disabled');
-      button.setAttribute('href', '#');
       button.setAttribute('aria-disabled', 'true');
       button.setAttribute('tabindex', '-1');
       button.addEventListener('click', (event) => event.preventDefault());
@@ -81,10 +90,42 @@
     if (context.leadId && template) {
       const resolved = template.replace('{{lead_id}}', encodeURIComponent(context.leadId));
       fallbackLink.setAttribute('href', resolved);
+      fallbackLink.addEventListener('click', () => {
+        logLeadEvent('s7_email_fallback_clicked', {
+          lead_id: context.leadId || null,
+          channel: 'email',
+        });
+        if (engine.trackEvent && typeof engine.trackEvent === 'function') {
+          engine.trackEvent('s7_email_fallback_clicked', { lead_id: context.leadId || null });
+        }
+      });
     } else if (!context.leadId) {
       fallbackLink.setAttribute('aria-disabled', 'true');
       fallbackLink.setAttribute('tabindex', '-1');
       fallbackLink.addEventListener('click', (event) => event.preventDefault());
+    }
+  }
+
+  function logLeadEvent(eventName, payload = {}) {
+    const base = window.__STAR_ENGINE_CONFIG__?.API_BASE;
+    if (!eventName || !base) return;
+    const endpoint = `${base.replace(/\/$/, '')}/ai/log_event`;
+    const body = JSON.stringify({
+      ev: eventName,
+      ts: new Date().toISOString(),
+      ...payload,
+    });
+
+    if (navigator.sendBeacon) {
+      const blob = new Blob([body], { type: 'application/json' });
+      navigator.sendBeacon(endpoint, blob);
+    } else {
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true,
+      }).catch(() => {});
     }
   }
 
@@ -102,6 +143,24 @@
     } catch {
       const separator = base.includes('?') ? '&' : '?';
       return `${base}${separator}lead_id=${encodeURIComponent(context.leadId)}`;
+    }
+  }
+
+  function prepareChatkitFallback(fallbackUrl) {
+    const fallback = document.querySelector('[data-chatkit-fallback]');
+    const fallbackLink = document.querySelector('[data-chatkit-fallback-link]');
+    if (fallbackLink && fallbackUrl) {
+      fallbackLink.setAttribute('href', fallbackUrl);
+    }
+    window.__STAR_CHATKIT_FALLBACK__ = { element: fallback, link: fallbackLink, url: fallbackUrl || null };
+  }
+
+  function notifyChatkitContext(context) {
+    window.__STAR_CHATKIT_CONTEXT__ = context;
+    const event = new CustomEvent('star-chatkit:context', { detail: { context } });
+    window.dispatchEvent(event);
+    if (window.starChatKit && typeof window.starChatKit.setContext === 'function') {
+      window.starChatKit.setContext(context);
     }
   }
 })();

@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
     <title>星級引擎｜S7 守護接力</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,6 +19,9 @@
     <script src="analytics.js?ts=20251022T1400" defer></script>
     <script src="app.js?ts=20251022T1400" defer></script>
     <script src="report.js?ts=20251022T1400" defer></script>
+    <script src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js" defer></script>
+    <script src="chatkit-config.js?ts=20251022T1400" defer></script>
+    <script src="chatkit-init.js?ts=20251022T1400" defer></script>
   </head>
   <body class="page-report page-s7-handoff">
     <header class="app-header header" aria-label="星級引擎導覽">
@@ -62,7 +66,7 @@
         </div>
 
         <div class="s7-cta">
-          <a class="btn btn-primary s7-button" data-chatkit-cta href="#">
+          <a class="btn btn-primary s7-button" data-chatkit-cta href="#chatkit-root">
             與守護專家聊聊
           </a>
           <p class="s7-cta__note">由 OpenAI ChatKit 對話引擎支援，我們全程陪同。</p>
@@ -74,6 +78,23 @@
           >
             不方便使用 LINE？寄 Email 摘要給我
           </a>
+        </div>
+      </section>
+
+      <section class="s7-card s7-chat" aria-labelledby="s7-chat-title">
+        <div class="s7-chat__header">
+          <h2 id="s7-chat-title">星級引擎守護專家（ChatKit）</h2>
+          <p class="s7-chat__note">這裡會顯示守護專家的即時對話與工具操作。</p>
+        </div>
+        <div id="chatkit-root">
+          <div id="chatkit-container" role="region" aria-live="polite"></div>
+        </div>
+        <div class="s7-chat__fallback" data-chatkit-fallback hidden>
+          <p>
+            ChatKit 尚未載入，請
+            <a data-chatkit-fallback-link href="#">改用 LINE 聯繫守護專家</a>
+            或寫信至 <a href="mailto:ai@mdzh.io">ai@mdzh.io</a>。
+          </p>
         </div>
       </section>
 

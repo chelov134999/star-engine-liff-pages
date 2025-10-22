@@ -10,12 +10,10 @@
     const hasLead = Boolean(context.leadId);
 
     toggleStates(hasLead);
-
-    if (!hasLead) return;
-
     populateLeadInfo(shell, context);
     setupChatkitCta(shell, context);
     setupBackupLink(shell, context);
+    initChatkitFooter(context);
   });
 
   function resolveContext() {
@@ -51,33 +49,29 @@
     const button = root.querySelector('[data-chatkit-cta]');
     if (!button) return;
 
-    if (context.leadId) {
+    const chatUrl = buildChatkitIntentUrl(context, null, { entry: 'cta' });
+    const hasLead = Boolean(context.leadId);
+
+    if (chatUrl && hasLead) {
       button.classList.remove('is-disabled');
       button.removeAttribute('aria-disabled');
       button.removeAttribute('tabindex');
+      button.setAttribute('href', chatUrl);
       button.addEventListener('click', (event) => {
         event.preventDefault();
+        const leadId = context.leadId || null;
         logLeadEvent('s7_deeplink_clicked', {
-          lead_id: context.leadId || null,
+          lead_id: leadId,
           channel: 'chatkit',
+          source: 'cta',
         });
         if (engine.trackEvent && typeof engine.trackEvent === 'function') {
-          engine.trackEvent('s7_deeplink_clicked', { lead_id: context.leadId || null });
+          engine.trackEvent('s7_deeplink_clicked', { lead_id: leadId, source: 'cta' });
         }
-        if (window.starChatKit?.focusChat) {
-          window.starChatKit.focusChat();
-        } else {
-          const deepLink = buildChatkitUrl(context);
-          if (deepLink) {
-            window.open(deepLink, '_blank', 'noopener,noreferrer');
-          }
-        }
+        navigateToChatkit(context, { entry: 'cta' });
       });
     } else {
-      button.classList.add('is-disabled');
-      button.setAttribute('aria-disabled', 'true');
-      button.setAttribute('tabindex', '-1');
-      button.addEventListener('click', (event) => event.preventDefault());
+      disableAction(button);
     }
   }
 
@@ -93,15 +87,118 @@
         logLeadEvent('s7_email_fallback_clicked', {
           lead_id: context.leadId || null,
           channel: 'email',
+          source: 'cta_backup',
         });
         if (engine.trackEvent && typeof engine.trackEvent === 'function') {
-          engine.trackEvent('s7_email_fallback_clicked', { lead_id: context.leadId || null });
+          engine.trackEvent('s7_email_fallback_clicked', {
+            lead_id: context.leadId || null,
+            source: 'cta_backup',
+          });
         }
       });
-    } else if (!context.leadId) {
-      fallbackLink.setAttribute('aria-disabled', 'true');
-      fallbackLink.setAttribute('tabindex', '-1');
-      fallbackLink.addEventListener('click', (event) => event.preventDefault());
+    } else {
+      disableAction(fallbackLink);
+    }
+  }
+
+  function initChatkitFooter(context) {
+    const footer = document.querySelector('[data-chatkit-footer]');
+    if (!footer) return;
+
+    const resolvedContext = { ...context };
+    try {
+      const storedLead = window.localStorage?.getItem('se_lead_id');
+      if (!resolvedContext.leadId && storedLead) {
+        resolvedContext.leadId = storedLead;
+      } else if (resolvedContext.leadId) {
+        window.localStorage?.setItem('se_lead_id', resolvedContext.leadId);
+      }
+    } catch {
+      // storage may be disabled
+    }
+
+    const leadId = resolvedContext.leadId || '';
+    const cta = footer.querySelector('[data-chatkit-footer-cta]');
+    const quickLinks = footer.querySelectorAll('[data-chatkit-intent]');
+    const emailLink = footer.querySelector('[data-chatkit-email]');
+    const chatUrl = buildChatkitIntentUrl(resolvedContext, null, { entry: 'footer' });
+
+    if (cta) {
+      if (chatUrl && leadId) {
+        cta.setAttribute('href', chatUrl);
+        cta.classList.remove('is-disabled');
+        cta.removeAttribute('aria-disabled');
+        cta.removeAttribute('tabindex');
+        cta.addEventListener('click', (event) => {
+          event.preventDefault();
+          logLeadEvent('s7_deeplink_clicked', {
+            lead_id: leadId,
+            channel: 'chatkit_footer',
+            source: 'footer',
+          });
+          if (engine.trackEvent && typeof engine.trackEvent === 'function') {
+            engine.trackEvent('s7_deeplink_clicked', { lead_id: leadId, source: 'footer' });
+          }
+          navigateToChatkit(resolvedContext, { entry: 'footer' });
+        });
+      } else {
+        disableAction(cta);
+      }
+    }
+
+    quickLinks.forEach((link) => {
+      const intent = link.getAttribute('data-chatkit-intent');
+      const intentUrl = intent ? buildChatkitIntentUrl(resolvedContext, intent, { entry: 'footer' }) : null;
+      if (!intentUrl || !leadId) {
+        disableAction(link);
+        return;
+      }
+      link.setAttribute('href', intentUrl);
+      link.classList.remove('is-disabled');
+      link.removeAttribute('aria-disabled');
+      link.removeAttribute('tabindex');
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        logLeadEvent('task_selected', {
+          lead_id: leadId,
+          source: 'footer',
+          payload: { intent },
+        });
+        if (engine.trackEvent && typeof engine.trackEvent === 'function') {
+          engine.trackEvent('task_selected', { lead_id: leadId, intent, source: 'footer' });
+        }
+        navigateToChatkit(resolvedContext, { intent, entry: 'footer' });
+      });
+    });
+
+    if (emailLink) {
+      if (leadId) {
+        try {
+          const mailto = new URL(emailLink.getAttribute('href') || '', window.location.href);
+          mailto.searchParams.set(
+            'body',
+            `請在此留下您的入場券編號：${leadId}\n\n（我們會在 24 小時內寄出摘要）`,
+          );
+          emailLink.setAttribute('href', mailto.toString());
+        } catch {
+          // ignore invalid mailto
+        }
+        emailLink.classList.remove('is-disabled');
+        emailLink.removeAttribute('aria-disabled');
+        emailLink.removeAttribute('tabindex');
+        emailLink.addEventListener('click', () => {
+          logLeadEvent('s7_email_fallback_clicked', {
+            lead_id: leadId,
+            channel: 'email',
+            source: 'footer',
+          });
+          if (engine.trackEvent && typeof engine.trackEvent === 'function') {
+            engine.trackEvent('s7_email_fallback_clicked', { lead_id: leadId, source: 'footer' });
+          }
+        });
+      } else {
+        disableAction(emailLink);
+      }
     }
   }
 
@@ -126,8 +223,8 @@
         const blob = new Blob([body], { type: 'application/json' });
         navigator.sendBeacon(endpoint, blob);
         return;
-      } catch (error) {
-        // ignore and fallback to fetch
+      } catch {
+        // ignore and fallback
       }
     }
 
@@ -156,4 +253,39 @@
     }
   }
 
+  function buildChatkitIntentUrl(context, intent, options = {}) {
+    const baseUrl = buildChatkitUrl(context);
+    if (!baseUrl) return null;
+    try {
+      const url = new URL(baseUrl);
+      if (options.entry) url.searchParams.set('entry', options.entry);
+      if (intent) url.searchParams.set('intent', intent);
+      return url.toString();
+    } catch {
+      return baseUrl;
+    }
+  }
+
+  function navigateToChatkit(context, { intent, entry } = {}) {
+    const targetUrl = buildChatkitIntentUrl(context, intent, { entry });
+    if (window.starChatKit?.focusChat) {
+      window.starChatKit.focusChat();
+      return;
+    }
+    if (window.starChatKit?.showChat) {
+      window.starChatKit.showChat();
+      return;
+    }
+    if (targetUrl) {
+      window.location.href = targetUrl;
+    }
+  }
+
+  function disableAction(element) {
+    if (!element) return;
+    element.classList.add('is-disabled');
+    element.setAttribute('aria-disabled', 'true');
+    element.setAttribute('tabindex', '-1');
+    element.addEventListener('click', (event) => event.preventDefault());
+  }
 })();

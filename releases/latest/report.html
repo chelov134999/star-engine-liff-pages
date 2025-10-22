@@ -12,13 +12,13 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
-    <link rel="stylesheet" href="styles.css?ts=20251022T1400" />
-    <link rel="stylesheet" href="styles/s7-chatkit.css?ts=20251022T1400" />
+    <link rel="stylesheet" href="styles.css?ts=20251022T2350" />
+    <link rel="stylesheet" href="styles/s7-chatkit.css?ts=20251022T2350" />
     <link rel="stylesheet" href="styles/mobile-fixes.css" />
-    <script src="config.runtime.js?ts=20251022T1400" defer></script>
-    <script src="analytics.js?ts=20251022T1400" defer></script>
-    <script src="app.js?ts=20251022T1400" defer></script>
-    <script src="report.js?ts=20251022T1400" defer></script>
+    <script src="config.runtime.js?ts=20251022T2350" defer></script>
+    <script src="analytics.js?ts=20251022T2350" defer></script>
+    <script src="app.js?ts=20251022T2350" defer></script>
+    <script src="report.js?ts=20251022T2350" defer></script>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
     <script type="module" src="chatkit-init.js?ts=20251022T1500" defer></script>
     <script src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js" defer></script>
@@ -124,5 +124,41 @@
         </div>
       </div>
     </section>
+
+    <div
+      class="se-chatkit-footer"
+      data-chatkit-footer
+      role="contentinfo"
+      aria-label="STAR ENGINE｜智能守護專家"
+    >
+      <div class="se-chatkit-footer__header">
+        <span>STAR ENGINE</span>
+        <span class="se-chatkit-footer__divider" aria-hidden="true">│</span>
+        <span>智能守護專家</span>
+      </div>
+      <p class="se-chatkit-footer__desc">你的 AI 品牌顧問，24 小時守護每一顆星。</p>
+      <a
+        class="se-chatkit-footer__btn"
+        data-chatkit-footer-cta
+        data-analytics-event="se_chatkit_open"
+        href="#"
+        rel="noopener noreferrer"
+      >
+        與守護專家聊聊
+      </a>
+      <div class="se-chatkit-footer__links" aria-label="更多操作">
+        <a class="se-chatkit-footer__link" href="#" data-chatkit-intent="see_report">查看報告結果</a>
+        <span aria-hidden="true">｜</span>
+        <a class="se-chatkit-footer__link" href="#" data-chatkit-intent="price">升級守護方案</a>
+        <span aria-hidden="true">｜</span>
+        <a
+          class="se-chatkit-footer__link"
+          href="mailto:ai@mdzh.io?subject=[星級引擎] 初檢摘要申請&body=請在此留下您的入場券編號："
+          data-chatkit-email
+        >
+          改用 Email 取得摘要
+        </a>
+      </div>
+    </div>
   </body>
 </html>

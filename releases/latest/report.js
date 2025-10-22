@@ -57,7 +57,6 @@
       button.removeAttribute('tabindex');
       button.addEventListener('click', (event) => {
         event.preventDefault();
-        const deepLink = buildChatkitUrl(context);
         logLeadEvent('s7_deeplink_clicked', {
           lead_id: context.leadId || null,
           channel: 'chatkit',
@@ -65,8 +64,13 @@
         if (engine.trackEvent && typeof engine.trackEvent === 'function') {
           engine.trackEvent('s7_deeplink_clicked', { lead_id: context.leadId || null });
         }
-        if (deepLink) {
-          window.open(deepLink, '_blank', 'noopener,noreferrer');
+        if (window.starChatKit?.focusChat) {
+          window.starChatKit.focusChat();
+        } else {
+          const deepLink = buildChatkitUrl(context);
+          if (deepLink) {
+            window.open(deepLink, '_blank', 'noopener,noreferrer');
+          }
         }
       });
     } else {
@@ -104,6 +108,12 @@
   function logLeadEvent(eventName, payload = {}) {
     const base = window.__STAR_ENGINE_CONFIG__?.API_BASE;
     if (!eventName || !base) return;
+
+    if (window.starChatKit?.logS7Event) {
+      window.starChatKit.logS7Event(eventName, payload).catch(() => {});
+      return;
+    }
+
     const endpoint = `${base.replace(/\/$/, '')}/ai/log_event`;
     const body = JSON.stringify({
       ev: eventName,
@@ -112,16 +122,21 @@
     });
 
     if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: 'application/json' });
-      navigator.sendBeacon(endpoint, blob);
-    } else {
-      fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body,
-        keepalive: true,
-      }).catch(() => {});
+      try {
+        const blob = new Blob([body], { type: 'application/json' });
+        navigator.sendBeacon(endpoint, blob);
+        return;
+      } catch (error) {
+        // ignore and fallback to fetch
+      }
     }
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {});
   }
 
   function buildChatkitUrl(context) {

@@ -19,6 +19,8 @@
     <script src="analytics.js?ts=20251022T1400" defer></script>
     <script src="app.js?ts=20251022T1400" defer></script>
     <script src="report.js?ts=20251022T1400" defer></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+    <script type="module" src="chatkit-init.js?ts=20251022T1500" defer></script>
     <script src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js" defer></script>
     <script src="chatkit-config.js?ts=20251022T1400" defer></script>
     <script src="chatkit-init.js?ts=20251022T1400" defer></script>
@@ -79,6 +81,14 @@
             不方便使用 LINE？寄 Email 摘要給我
           </a>
         </div>
+      </section>
+
+      <section class="s7-card s7-chat" aria-labelledby="s7-chat-title">
+        <div class="s7-chat__header">
+          <h2 id="s7-chat-title">星級引擎守護專家（ChatKit）</h2>
+          <p class="s7-chat__note">這裡會顯示守護專家的即時對話與工具操作，也可以直接輸入想詢問的重點。</p>
+        </div>
+        <div id="chatkit-root" aria-live="polite"></div>
       </section>
 
       <section class="s7-card s7-companion" aria-labelledby="s7-companion-title">

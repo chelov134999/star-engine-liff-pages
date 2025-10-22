@@ -7,7 +7,6 @@
 
   const STORAGE_KEYS = {
     lead: 'star-engine/lead-context',
-    report: 'star-engine/report-cache',
   };
 
   const STAGE_FLOW = [
@@ -97,18 +96,6 @@
     });
   }
 
-  function cacheReportData(leadId, data) {
-    if (!leadId || !data) return;
-    const payload = {
-      leadId,
-      cachedAt: new Date().toISOString(),
-      data,
-    };
-    safeLocalStorage(() => {
-      window.localStorage.setItem(STORAGE_KEYS.report, JSON.stringify(payload));
-    });
-  }
-
   function parseQueryContext() {
     const params = new URLSearchParams(window.location.search);
     return {
@@ -128,32 +115,6 @@
       setStoredLead(context);
     }
     return context;
-  }
-
-  async function fetchReportData(context, options = {}) {
-    if (!API_BASE) {
-      throw new Error('missing_api_base');
-    }
-    const params = new URLSearchParams();
-    if (context.token) {
-      params.set('token', context.token);
-    } else if (context.leadId) {
-      params.set('lead_id', context.leadId);
-    } else {
-      throw new Error('missing_context');
-    }
-
-    const response = await fetch(`${API_BASE}/report-data?${params.toString()}`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      cache: options.cache ?? 'no-cache',
-      signal: options.signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`report_data_${response.status}`);
-    }
-    return response.json();
   }
 
   function submitLead(payload) {
@@ -418,10 +379,27 @@
     window.location.href = url;
   }
 
-  function openChatKit() {
-    if (!CONFIG.CHATKIT_URL) return;
+  function buildChatkitUrl(context = {}) {
+    const base = CONFIG.CHATKIT_URL;
+    if (!base) return null;
     try {
-      window.open(CONFIG.CHATKIT_URL, '_blank', 'noopener');
+      const url = new URL(base, window.location.href);
+      if (context.leadId) {
+        url.searchParams.set('lead_id', context.leadId);
+      }
+      return url.toString();
+    } catch (error) {
+      if (!context.leadId) return base;
+      const separator = base.includes('?') ? '&' : '?';
+      return `${base}${separator}lead_id=${encodeURIComponent(context.leadId)}`;
+    }
+  }
+
+  function openChatKit(url, context = {}) {
+    const targetUrl = url || buildChatkitUrl(context);
+    if (!targetUrl) return;
+    try {
+      window.open(targetUrl, '_blank', 'noopener');
     } catch (error) {
       // ignore opener restrictions
     }
@@ -877,6 +855,8 @@
     const cards = Array.from(document.querySelectorAll('.narrative-card'));
     const hasStageCards = document.querySelectorAll('.stage-card').length > 0;
 
+    const chatkitUrl = buildChatkitUrl(context);
+
     if (chatkitLink) {
       const analyticsEvent =
         chatkitLink.dataset.analyticsEvent ||
@@ -891,12 +871,12 @@
             step: cards.length,
           });
         }
-        openChatKit();
+        openChatKit(chatkitUrl, context);
       };
-      if (CONFIG.CHATKIT_URL) {
+      if (chatkitUrl) {
         chatkitLink.addEventListener('click', handler);
         if (chatkitLink.tagName === 'A') {
-          chatkitLink.setAttribute('href', CONFIG.CHATKIT_URL);
+          chatkitLink.setAttribute('href', chatkitUrl);
           chatkitLink.setAttribute('target', '_blank');
           chatkitLink.setAttribute('rel', 'noopener noreferrer');
         }
@@ -956,75 +936,24 @@
       initialiseStagePlaceholders();
     }
 
-    if (chipEl) chipEl.textContent = 'AI 正在排程掃描';
+    if (chipEl) chipEl.textContent = 'AI 初檢資料已交付 ChatKit';
     if (statusEl && !statusEl.textContent) {
-      statusEl.textContent = 'AI 正在排程掃描，通常 1～3 分鐘完成。';
+      statusEl.textContent = 'ChatKit 會在 15 秒內送出首訊，請於 LINE 與守護專家接續對話。';
       statusEl.classList.remove('is-error');
     }
 
-    let attempt = 0;
-    const maxAttempts = 6;
-
-    const attemptFetch = async () => {
-      if (attempt >= maxAttempts) {
-        if (statusEl) {
-          statusEl.textContent = 'AI 正在整理資料，請稍後再試或連絡守護團隊。';
-          statusEl.classList.add('is-error');
-        }
-        if (chipEl) chipEl.textContent = 'AI 同步暫停';
-        return;
-      }
-
-      const stage = STAGE_FLOW[Math.min(attempt, STAGE_FLOW.length - 1)];
-      if (hasStageCards) {
-        applyStageState(stage.id, 'active', stage.active);
-      }
-      if (chipEl) {
-        chipEl.textContent = `AI 正在執行第 ${attempt + 1} 次資料同步`;
-      }
-      if (statusEl) {
-        statusEl.textContent = 'AI 正在取得最新資料，這通常需要 1～3 分鐘。';
-        statusEl.classList.remove('is-error');
-      }
-
-      attempt += 1;
-
-      try {
-        const controller = new AbortController();
-        const timer = window.setTimeout(() => controller.abort(), 8500);
-        const data = await fetchReportData(context, { signal: controller.signal });
-        window.clearTimeout(timer);
-
-        if (data && data.kpis) {
-          if (hasStageCards) {
-            STAGE_FLOW.forEach((stageItem) =>
-              applyStageState(stageItem.id, 'complete', stageItem.complete),
-            );
-          }
-          if (chipEl) chipEl.textContent = 'AI 初檢報告已就緒';
-          if (statusEl) {
-            statusEl.textContent = 'AI 初檢報告準備完成，立即前往 S7 查看細節。';
-            statusEl.classList.remove('is-error');
-          }
-          cacheReportData(data.lead_id || context.leadId, data);
-          return;
-        }
-      } catch (error) {
-        // ignore and continue polling
-      }
-
-      window.setTimeout(attemptFetch, 6000);
-    };
-
-    attemptFetch();
+    if (hasStageCards) {
+      STAGE_FLOW.forEach((stage) => {
+        applyStageState(stage.id, 'complete', stage.complete);
+      });
+    }
   }
 
   window.starEngine = {
     trackEvent,
     formatTimestamp,
     getLeadContext,
-    fetchReportData,
-    cacheReportData,
+    buildChatkitUrl,
   };
 
   const body = document.body;

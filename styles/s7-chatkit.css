@@ -80,6 +80,8 @@
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .s7-info__divider {
@@ -90,6 +92,8 @@
 .s7-info__note {
   font-size: 0.82rem;
   color: #64748b;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .s7-cta {

@@ -11,6 +11,7 @@
       : '';
   const CHATKIT_FALLBACK_URL =
     CONFIG.CHATKIT_FALLBACK_URL || CONFIG.ENTRY_LIFF_URL || 'https://liff.line.me/STAR_ENGINE_INDEX';
+  const CHATKIT_REDIRECT_PAGE = 'guardian-chat.html';
   const CHATKIT_BASE = resolveChatkitBase();
 
   const STORAGE_KEYS = {
@@ -424,22 +425,28 @@
   }
 
   function buildChatkitUrl(context = {}, options = {}) {
-    if (!CHATKIT_BASE) return null;
+    const entryBase = CHATKIT_REDIRECT_PAGE || CHATKIT_BASE;
+    if (!entryBase) return null;
     const intent = options.intent || 'see_report';
     const source = options.source || 'footer';
     const fallback = options.fallback || CHATKIT_FALLBACK_URL;
     try {
-      const url = new URL(CHATKIT_BASE);
-      if (context.leadId) {
-        url.searchParams.set('lead_id', context.leadId);
+      const url = new URL(entryBase, window.location.href);
+      if (entryBase === CHATKIT_REDIRECT_PAGE) {
+        if (context.leadId) url.searchParams.set('lead_id', context.leadId);
+        if (intent) url.searchParams.set('intent', intent);
+        if (fallback) url.searchParams.set('fallback', fallback);
+        if (source) url.searchParams.set('source', source);
+      } else {
+        if (context.leadId) url.searchParams.set('lead_id', context.leadId);
+        if (intent) url.searchParams.set('intent', intent);
+        if (fallback) url.searchParams.set('fallback', fallback);
+        if (source) url.searchParams.set('source', source);
       }
-      if (intent) url.searchParams.set('intent', intent);
-      if (fallback) url.searchParams.set('fallback', fallback);
-      if (source) url.searchParams.set('source', source);
       return url.toString();
     } catch (error) {
       console.warn('[chatkit] failed to build deeplink', error);
-      return CHATKIT_BASE;
+      return entryBase;
     }
   }
 

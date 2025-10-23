@@ -6,7 +6,9 @@
 
   const API_BASE = (config.API_BASE || '').replace(/\/$/, '');
   const CHATKIT_BASE = resolveChatkitBase();
-  const CHATKIT_REDIRECT_PAGE = 'guardian-chat.html';
+  const CHATKIT_REDIRECT_PAGE =
+    (typeof config.CHATKIT_REDIRECT_URL === 'string' && config.CHATKIT_REDIRECT_URL.trim()) ||
+    'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
   const CHATKIT_ENTRY = resolveChatkitEntry();
   const CHATKIT_FALLBACK =
     config.CHATKIT_FALLBACK_URL || config.ENTRY_LIFF_URL || 'https://liff.line.me/STAR_ENGINE_INDEX';

@@ -133,6 +133,7 @@
     if (!form) return;
 
     trackEvent('s0_view', { page: 'index' });
+    initChatkitFooter(getLeadContext());
 
     const statusEl = form.querySelector('.form-status');
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -395,6 +396,19 @@
     }
   }
 
+  function buildChatkitIntentUrl(context = {}, intent, extras = {}) {
+    const baseUrl = buildChatkitUrl(context);
+    if (!baseUrl) return null;
+    try {
+      const url = new URL(baseUrl);
+      if (extras.entry) url.searchParams.set('entry', extras.entry);
+      if (intent) url.searchParams.set('intent', intent);
+      return url.toString();
+    } catch {
+      return baseUrl;
+    }
+  }
+
   function openChatKit(url, context = {}) {
     const targetUrl = url || buildChatkitUrl(context);
     if (!targetUrl) return;
@@ -402,6 +416,146 @@
       window.open(targetUrl, '_blank', 'noopener');
     } catch (error) {
       // ignore opener restrictions
+    }
+  }
+
+  function navigateToChatkit(context = {}, { intent, entry } = {}) {
+    const targetUrl = buildChatkitIntentUrl(context, intent, { entry });
+    if (targetUrl) {
+      openChatKit(targetUrl, context);
+    }
+  }
+
+  function logFooterEvent(eventName, payload = {}) {
+    if (!eventName || !API_BASE) return;
+    const endpoint = `${API_BASE}/ai/log_event`;
+    const body = JSON.stringify({
+      ev: eventName,
+      ts: new Date().toISOString(),
+      ...payload,
+    });
+
+    if (navigator.sendBeacon) {
+      try {
+        const blob = new Blob([body], { type: 'application/json' });
+        navigator.sendBeacon(endpoint, blob);
+        return;
+      } catch {
+        // ignore and fallback
+      }
+    }
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body,
+      keepalive: true,
+    }).catch(() => {});
+  }
+
+  function disableFooterAction(element) {
+    if (!element) return;
+    element.classList.add('is-disabled');
+    element.setAttribute('aria-disabled', 'true');
+    element.setAttribute('tabindex', '-1');
+    element.addEventListener('click', (event) => event.preventDefault());
+  }
+
+  function initChatkitFooter(context = {}) {
+    const footer = document.querySelector('[data-chatkit-footer]');
+    if (!footer) return;
+
+    let leadId = context.leadId || '';
+    try {
+      const storedLead = window.localStorage?.getItem('se_lead_id');
+      if (!leadId && storedLead) {
+        leadId = storedLead;
+      } else if (leadId) {
+        window.localStorage?.setItem('se_lead_id', leadId);
+      }
+    } catch {
+      // storage may not be available
+    }
+
+    const baseContext = { ...context, leadId };
+    const cta = footer.querySelector('[data-chatkit-footer-cta]');
+    const quickLinks = footer.querySelectorAll('[data-chatkit-intent]');
+    const emailLink = footer.querySelector('[data-chatkit-email]');
+    const chatUrl = buildChatkitIntentUrl(baseContext, null, { entry: 'footer' });
+
+    if (cta) {
+      if (leadId && chatUrl) {
+        cta.setAttribute('href', chatUrl);
+        cta.classList.remove('is-disabled');
+        cta.removeAttribute('aria-disabled');
+        cta.removeAttribute('tabindex');
+        cta.addEventListener('click', (event) => {
+          event.preventDefault();
+          logFooterEvent('s7_deeplink_clicked', {
+            lead_id: leadId,
+            channel: 'chatkit_footer',
+            source: 'footer',
+          });
+          trackEvent(cta.dataset.analyticsEvent || 'se_chatkit_open', {
+            lead_id: leadId,
+            source: 'footer',
+          });
+          navigateToChatkit(baseContext, { entry: 'footer' });
+        });
+      } else {
+        disableFooterAction(cta);
+      }
+    }
+
+    quickLinks.forEach((link) => {
+      const intent = link.getAttribute('data-chatkit-intent');
+      const intentUrl = intent ? buildChatkitIntentUrl(baseContext, intent, { entry: 'footer' }) : null;
+      if (!leadId || !intentUrl) {
+        disableFooterAction(link);
+        return;
+      }
+      link.setAttribute('href', intentUrl);
+      link.classList.remove('is-disabled');
+      link.removeAttribute('aria-disabled');
+      link.removeAttribute('tabindex');
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        logFooterEvent('task_selected', {
+          lead_id: leadId,
+          source: 'footer',
+          payload: { intent },
+        });
+        trackEvent('se_quick_intent_clicked', { lead_id: leadId, intent, source: 'footer' });
+        navigateToChatkit(baseContext, { intent, entry: 'footer' });
+      });
+    });
+
+    if (emailLink) {
+      if (leadId) {
+        try {
+          const mailto = new URL(emailLink.getAttribute('href') || '', window.location.href);
+          mailto.searchParams.set(
+            'body',
+            `請在此留下您的入場券編號：${leadId}\n\n（我們會在 24 小時內寄出摘要）`,
+          );
+          emailLink.setAttribute('href', mailto.toString());
+        } catch {
+          // ignore invalid mailto
+        }
+        emailLink.classList.remove('is-disabled');
+        emailLink.removeAttribute('aria-disabled');
+        emailLink.removeAttribute('tabindex');
+        emailLink.addEventListener('click', () => {
+          logFooterEvent('s7_email_fallback_clicked', {
+            lead_id: leadId,
+            channel: 'email',
+            source: 'footer',
+          });
+          trackEvent('se_email_fallback_clicked', { lead_id: leadId, source: 'footer' });
+        });
+      } else {
+        disableFooterAction(emailLink);
+      }
     }
   }
 
@@ -844,6 +998,7 @@
 
   function initOnboarding() {
     const context = getLeadContext();
+    initChatkitFooter(context);
     const leadIdEl = document.querySelector('[data-lead-id]');
     const createdEl = document.querySelector('[data-lead-created]');
     const statusEl = document.querySelector('[data-onboarding-status]');

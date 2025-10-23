@@ -4,6 +4,14 @@
     typeof CONFIG.API_BASE === 'string' && CONFIG.API_BASE.trim().length > 0
       ? CONFIG.API_BASE.replace(/\/$/, '')
       : '';
+  const CHATKIT_APP_ID = CONFIG.CHATKIT_APP_ID || '';
+  const CHATKIT_URL =
+    typeof CONFIG.CHATKIT_URL === 'string' && CONFIG.CHATKIT_URL.trim().length > 0
+      ? CONFIG.CHATKIT_URL
+      : '';
+  const CHATKIT_FALLBACK_URL =
+    CONFIG.CHATKIT_FALLBACK_URL || CONFIG.ENTRY_LIFF_URL || 'https://liff.line.me/STAR_ENGINE_INDEX';
+  const CHATKIT_BASE = resolveChatkitBase();
 
   const STORAGE_KEYS = {
     lead: 'star-engine/lead-context',
@@ -94,6 +102,24 @@
     safeLocalStorage(() => {
       window.localStorage.setItem(STORAGE_KEYS.lead, JSON.stringify(context));
     });
+  }
+
+  function resolveStoredLead(context = {}) {
+    const stored = getStoredLead() || {};
+    const resolved = {
+      ...stored,
+      ...context,
+    };
+
+    if (!resolved.createdAt && (resolved.leadId || resolved.token)) {
+      resolved.createdAt = stored.createdAt || new Date().toISOString();
+    }
+
+    if (resolved.leadId || resolved.token) {
+      setStoredLead(resolved);
+    }
+
+    return resolved;
   }
 
   function parseQueryContext() {
@@ -380,50 +406,47 @@
     window.location.href = url;
   }
 
-  function buildChatkitUrl(context = {}) {
-    const base = CONFIG.CHATKIT_URL;
-    if (!base) return null;
+  function resolveChatkitBase() {
+    if (CHATKIT_APP_ID) {
+      return `https://liff.line.me/${CHATKIT_APP_ID}`;
+    }
+    if (CHATKIT_URL) {
+      try {
+        const url = new URL(CHATKIT_URL, window.location.href);
+        url.search = '';
+        url.hash = '';
+        return url.toString();
+      } catch (error) {
+        console.warn('[chatkit] invalid CHATKIT_URL', error);
+      }
+    }
+    return '';
+  }
+
+  function buildChatkitUrl(context = {}, options = {}) {
+    if (!CHATKIT_BASE) return null;
+    const intent = options.intent || 'see_report';
+    const source = options.source || 'footer';
+    const fallback = options.fallback || CHATKIT_FALLBACK_URL;
     try {
-      const url = new URL(base, window.location.href);
+      const url = new URL(CHATKIT_BASE);
       if (context.leadId) {
         url.searchParams.set('lead_id', context.leadId);
       }
+      if (intent) url.searchParams.set('intent', intent);
+      if (fallback) url.searchParams.set('fallback', fallback);
+      if (source) url.searchParams.set('source', source);
       return url.toString();
     } catch (error) {
-      if (!context.leadId) return base;
-      const separator = base.includes('?') ? '&' : '?';
-      return `${base}${separator}lead_id=${encodeURIComponent(context.leadId)}`;
+      console.warn('[chatkit] failed to build deeplink', error);
+      return CHATKIT_BASE;
     }
   }
 
   function buildChatkitIntentUrl(context = {}, intent, extras = {}) {
-    const baseUrl = buildChatkitUrl(context);
-    if (!baseUrl) return null;
-    try {
-      const url = new URL(baseUrl);
-      if (extras.entry) url.searchParams.set('entry', extras.entry);
-      if (intent) url.searchParams.set('intent', intent);
-      return url.toString();
-    } catch {
-      return baseUrl;
-    }
-  }
-
-  function openChatKit(url, context = {}) {
-    const targetUrl = url || buildChatkitUrl(context);
-    if (!targetUrl) return;
-    try {
-      window.open(targetUrl, '_blank', 'noopener');
-    } catch (error) {
-      // ignore opener restrictions
-    }
-  }
-
-  function navigateToChatkit(context = {}, { intent, entry } = {}) {
-    const targetUrl = buildChatkitIntentUrl(context, intent, { entry });
-    if (targetUrl) {
-      openChatKit(targetUrl, context);
-    }
+    const source = extras.entry || extras.source || 'footer';
+    const fallback = extras.fallback;
+    return buildChatkitUrl(context, { intent, source, fallback });
   }
 
   function logFooterEvent(eventName, payload = {}) {
@@ -465,78 +488,74 @@
     const footer = document.querySelector('[data-chatkit-footer]');
     if (!footer) return;
 
-    let leadId = context.leadId || '';
-    try {
-      const storedLead = window.localStorage?.getItem('se_lead_id');
-      if (!leadId && storedLead) {
-        leadId = storedLead;
-      } else if (leadId) {
-        window.localStorage?.setItem('se_lead_id', leadId);
-      }
-    } catch {
-      // storage may not be available
-    }
-
-    const baseContext = { ...context, leadId };
+    const baseContext = resolveStoredLead(context);
     const cta = footer.querySelector('[data-chatkit-footer-cta]');
     const quickLinks = footer.querySelectorAll('[data-chatkit-intent]');
     const emailLink = footer.querySelector('[data-chatkit-email]');
-    const chatUrl = buildChatkitIntentUrl(baseContext, null, { entry: 'footer' });
 
     if (cta) {
-      if (leadId && chatUrl) {
+      const chatUrl = buildChatkitUrl(baseContext, { intent: 'see_report', source: 'footer' });
+      if (!chatUrl) {
+        disableFooterAction(cta);
+      } else {
         cta.setAttribute('href', chatUrl);
+        cta.setAttribute('rel', 'noopener noreferrer');
         cta.classList.remove('is-disabled');
         cta.removeAttribute('aria-disabled');
         cta.removeAttribute('tabindex');
-        cta.addEventListener('click', (event) => {
-          event.preventDefault();
+        cta.addEventListener('click', () => {
+          const payload = {
+            lead_id: baseContext.leadId || null,
+            source: 'footer',
+            intent: 'see_report',
+          };
+          trackEvent(cta.dataset.analyticsEvent || 'se_chatkit_open', payload);
+          trackEvent('chat_cta_click', payload);
+          trackEvent('chat_dl_attempt', payload);
           logFooterEvent('s7_deeplink_clicked', {
-            lead_id: leadId,
+            lead_id: baseContext.leadId || null,
             channel: 'chatkit_footer',
             source: 'footer',
           });
-          trackEvent(cta.dataset.analyticsEvent || 'se_chatkit_open', {
-            lead_id: leadId,
-            source: 'footer',
-          });
-          navigateToChatkit(baseContext, { entry: 'footer' });
         });
-      } else {
-        disableFooterAction(cta);
       }
     }
 
     quickLinks.forEach((link) => {
-      const intent = link.getAttribute('data-chatkit-intent');
-      const intentUrl = intent ? buildChatkitIntentUrl(baseContext, intent, { entry: 'footer' }) : null;
-      if (!leadId || !intentUrl) {
+      const intent = link.getAttribute('data-chatkit-intent') || 'see_report';
+      const intentUrl = buildChatkitUrl(baseContext, { intent, source: 'footer_chip' });
+      if (!intentUrl) {
         disableFooterAction(link);
         return;
       }
       link.setAttribute('href', intentUrl);
+      link.setAttribute('rel', 'noopener noreferrer');
       link.classList.remove('is-disabled');
       link.removeAttribute('aria-disabled');
       link.removeAttribute('tabindex');
-      link.addEventListener('click', (event) => {
-        event.preventDefault();
+      link.addEventListener('click', () => {
+        const payload = {
+          lead_id: baseContext.leadId || null,
+          source: 'footer_chip',
+          intent,
+        };
         logFooterEvent('task_selected', {
-          lead_id: leadId,
+          lead_id: baseContext.leadId || null,
           source: 'footer',
           payload: { intent },
         });
-        trackEvent('se_quick_intent_clicked', { lead_id: leadId, intent, source: 'footer' });
-        navigateToChatkit(baseContext, { intent, entry: 'footer' });
+        trackEvent('chat_cta_click', payload);
+        trackEvent('chat_dl_attempt', payload);
       });
     });
 
     if (emailLink) {
-      if (leadId) {
+      if (baseContext.leadId) {
         try {
           const mailto = new URL(emailLink.getAttribute('href') || '', window.location.href);
           mailto.searchParams.set(
             'body',
-            `請在此留下您的入場券編號：${leadId}\n\n（我們會在 24 小時內寄出摘要）`,
+            `請在此留下您的入場券編號：${baseContext.leadId}\n\n（我們會在 24 小時內寄出摘要）`,
           );
           emailLink.setAttribute('href', mailto.toString());
         } catch {
@@ -546,12 +565,14 @@
         emailLink.removeAttribute('aria-disabled');
         emailLink.removeAttribute('tabindex');
         emailLink.addEventListener('click', () => {
-          logFooterEvent('s7_email_fallback_clicked', {
-            lead_id: leadId,
-            channel: 'email',
-            source: 'footer',
+          trackEvent('chat_fallback_click', {
+            source: 'footer_email',
+            lead_id: baseContext.leadId || null,
           });
-          trackEvent('se_email_fallback_clicked', { lead_id: leadId, source: 'footer' });
+          logFooterEvent('need_time', {
+            lead_id: baseContext.leadId || null,
+            payload: { reason: 'email_fallback', source: 'footer' },
+          });
         });
       } else {
         disableFooterAction(emailLink);
@@ -997,7 +1018,7 @@
   }
 
   function initOnboarding() {
-    const context = getLeadContext();
+    const context = resolveStoredLead(getLeadContext());
     initChatkitFooter(context);
     const leadIdEl = document.querySelector('[data-lead-id]');
     const createdEl = document.querySelector('[data-lead-created]');
@@ -1010,31 +1031,40 @@
     const cards = Array.from(document.querySelectorAll('.narrative-card'));
     const hasStageCards = document.querySelectorAll('.stage-card').length > 0;
 
-    const chatkitUrl = buildChatkitUrl(context);
+    const chatkitUrl = buildChatkitUrl(context, { intent: 'see_report', source: 'onboarding_nav' });
 
     if (chatkitLink) {
       const analyticsEvent =
         chatkitLink.dataset.analyticsEvent ||
         chatkitLink.dataset.event ||
         'card6_cta_chatkit';
-      const handler = (event) => {
-        event.preventDefault();
-        if (analyticsEvent) {
-          trackEvent(analyticsEvent, {
-            lead_id: context.leadId,
-            token: context.token,
-            step: cards.length,
-          });
-        }
-        openChatKit(chatkitUrl, context);
-      };
       if (chatkitUrl) {
-        chatkitLink.addEventListener('click', handler);
         if (chatkitLink.tagName === 'A') {
           chatkitLink.setAttribute('href', chatkitUrl);
           chatkitLink.setAttribute('target', '_blank');
           chatkitLink.setAttribute('rel', 'noopener noreferrer');
         }
+        chatkitLink.classList.remove('is-disabled');
+        chatkitLink.removeAttribute('aria-disabled');
+        chatkitLink.removeAttribute('tabindex');
+        chatkitLink.addEventListener('click', () => {
+          const payload = {
+            lead_id: context.leadId || null,
+            source: 'onboarding_nav',
+            intent: 'see_report',
+            step: cards.length,
+          };
+          if (analyticsEvent) {
+            trackEvent(analyticsEvent, payload);
+          }
+          trackEvent('chat_cta_click', payload);
+          trackEvent('chat_dl_attempt', payload);
+          logFooterEvent('s7_deeplink_clicked', {
+            lead_id: context.leadId || null,
+            channel: 'chatkit_onboarding',
+            source: 'onboarding_nav',
+          });
+        });
       } else if (chatkitLink.tagName === 'A') {
         chatkitLink.setAttribute('href', '#');
         chatkitLink.setAttribute('aria-disabled', 'true');

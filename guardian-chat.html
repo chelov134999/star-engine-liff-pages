@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>守護專家｜Star Engine</title>
+    <style>
+      :root {
+        --bg1: #0f1622;
+        --bg2: #0b111b;
+        --txt: #eaf0fa;
+        --sub: #b6c2d2;
+        --blue: #007bff;
+      }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, 'PingFang TC', 'Noto Sans TC', sans-serif;
+        background: linear-gradient(180deg, var(--bg1), var(--bg2));
+        color: var(--txt);
+      }
+      .sheet {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .card {
+        max-width: 560px;
+        width: 100%;
+        padding: 24px 22px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        text-align: center;
+      }
+      .title {
+        font-weight: 700;
+        font-size: 20px;
+        letter-spacing: 0.3px;
+        margin-bottom: 6px;
+      }
+      .sub {
+        color: var(--sub);
+        font-size: 14px;
+        margin: 0 0 14px;
+      }
+      .btn {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 12px 18px;
+        border-radius: 12px;
+        text-decoration: none;
+        background: var(--blue);
+        color: #fff;
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.2);
+        font-weight: 700;
+      }
+      .hide {
+        display: none;
+      }
+    </style>
+    <script src="config.runtime.js" defer></script>
+    <script src="analytics.js" defer></script>
+  </head>
+  <body>
+    <div class="sheet">
+      <div id="loading" class="card">
+        <div class="title">正在連接守護專家…</div>
+        <p class="sub">若 1 秒內沒有開啟對話，將顯示替代選項。</p>
+      </div>
+      <div id="fallback" class="card hide">
+        <div class="title">需要先申請 AI 入場券</div>
+        <p class="sub">完成後我就能幫你分析並提出建議。</p>
+        <a id="toS0" class="btn" href="#">前往 AI 入場券</a>
+      </div>
+    </div>
+    <script>
+      (function () {
+        const cfg = window.__STAR_ENGINE_CONFIG__ || {};
+        const apiBase = (cfg.API_BASE || '').replace(/\/$/, '');
+        const params = new URLSearchParams(window.location.search);
+        const source = params.get('source') || 'guardian_chat';
+        const intent = params.get('intent') || 'see_report';
+        const fallbackDefault = cfg.CHATKIT_FALLBACK_URL || cfg.ENTRY_LIFF_URL || 'https://liff.line.me/STAR_ENGINE_INDEX';
+        const fallback = params.get('fallback') || fallbackDefault;
+        let leadId = params.get('lead_id') || '';
+
+        try {
+          const storedLead = window.localStorage?.getItem('se_lead_id');
+          if (!leadId && storedLead) {
+            leadId = storedLead;
+          } else if (leadId) {
+            window.localStorage?.setItem('se_lead_id', leadId);
+          }
+        } catch {
+          // ignore storage errors
+        }
+
+        const chatBase = resolveChatkitBase(cfg);
+        const deepLink = chatBase ? buildChatLink(chatBase, { leadId, intent, fallback, source }) : '';
+        const payload = { source, intent, lead_id: leadId || null };
+
+        track('chat_page_open', payload);
+
+        if (deepLink) {
+          track('chat_dl_attempt', payload);
+          window.location.href = deepLink;
+        }
+
+        let left = false;
+        window.addEventListener('pagehide', () => {
+          left = true;
+        });
+        window.addEventListener('blur', () => {
+          left = true;
+        });
+
+        setTimeout(() => {
+          if (!left) {
+            document.getElementById('loading').classList.add('hide');
+            const fallbackCard = document.getElementById('fallback');
+            fallbackCard.classList.remove('hide');
+            const toS0 = document.getElementById('toS0');
+            toS0.setAttribute('href', fallback);
+            toS0.addEventListener('click', () => {
+              track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
+              logEvent('need_time', {
+                lead_id: leadId || null,
+                payload: { reason: 'redirect_to_fallback', source },
+              });
+            });
+          }
+        }, 1200);
+
+        function resolveChatkitBase(cfg) {
+          if (cfg.CHATKIT_APP_ID) {
+            return `https://liff.line.me/${cfg.CHATKIT_APP_ID}`;
+          }
+          if (cfg.CHATKIT_URL) {
+            try {
+              const url = new URL(cfg.CHATKIT_URL, window.location.href);
+              url.search = '';
+              url.hash = '';
+              return url.toString();
+            } catch (error) {
+              console.warn('[guardian-chat] invalid CHATKIT_URL', error);
+            }
+          }
+          return '';
+        }
+
+        function buildChatLink(base, { leadId, intent, fallback, source }) {
+          try {
+            const url = new URL(base);
+            if (leadId) url.searchParams.set('lead_id', leadId);
+            if (intent) url.searchParams.set('intent', intent);
+            if (fallback) url.searchParams.set('fallback', fallback);
+            if (source) url.searchParams.set('source', source);
+            return url.toString();
+          } catch (error) {
+            console.warn('[guardian-chat] failed to build deeplink', error);
+            return '';
+          }
+        }
+
+        function track(eventName, payload) {
+          if (!eventName) return;
+          if (window.starAnalytics && typeof window.starAnalytics.track === 'function') {
+            window.starAnalytics.track(eventName, payload);
+            return;
+          }
+          if (!apiBase) return;
+          const endpoint = `${apiBase}/analytics`;
+          const body = JSON.stringify({ ev: eventName, ts: Date.now(), ...payload });
+          try {
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon(endpoint, blob);
+          } catch (error) {
+            fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body,
+              keepalive: true,
+            }).catch(() => {});
+          }
+        }
+
+        function logEvent(eventName, payload) {
+          if (!eventName || !apiBase) return;
+          const endpoint = `${apiBase}/ai/log_event`;
+          const body = JSON.stringify({ ev: eventName, ts: new Date().toISOString(), ...payload });
+          try {
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon(endpoint, blob);
+          } catch (error) {
+            fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body,
+              keepalive: true,
+            }).catch(() => {});
+          }
+        }
+      })();
+    </script>
+  </body>
+</html>

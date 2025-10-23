@@ -70,12 +70,15 @@
     <div class="sheet">
       <div id="loading" class="card">
         <div class="title">正在連接守護專家…</div>
-        <p class="sub">若 1 秒內沒有開啟對話，將顯示替代選項。</p>
+        <p class="sub">若幾秒內沒有跳轉，我們會提供重試與備援選項。</p>
       </div>
-      <div id="fallback" class="card hide">
-        <div class="title">需要先申請 AI 入場券</div>
-        <p class="sub">完成後我就能幫你分析並提出建議。</p>
-        <a id="toS0" class="btn" href="#">前往 AI 入場券</a>
+      <div id="fallback" class="card hide" aria-live="polite">
+        <div class="title">守護專家暫時忙線</div>
+        <p class="sub">你仍可直接重新開啟守護專家對話，或改走 AI 入場券備援流程。</p>
+        <div class="actions" style="display:grid;gap:12px;margin-top:12px;">
+          <a id="retryChat" class="btn" href="#">重新連線守護專家</a>
+          <a id="toS0" class="btn" href="#" style="background:#2f3847;">改用 AI 入場券備援</a>
+        </div>
       </div>
     </div>
     <script>
@@ -108,7 +111,7 @@
 
         if (deepLink) {
           track('chat_dl_attempt', payload);
-          window.location.href = deepLink;
+          openChat();
         }
 
         let left = false;
@@ -118,23 +121,39 @@
         window.addEventListener('blur', () => {
           left = true;
         });
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') left = true;
+        });
 
         setTimeout(() => {
           if (!left) {
             document.getElementById('loading').classList.add('hide');
             const fallbackCard = document.getElementById('fallback');
             fallbackCard.classList.remove('hide');
-            const toS0 = document.getElementById('toS0');
-            toS0.setAttribute('href', fallback);
-            toS0.addEventListener('click', () => {
-              track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
-              logEvent('need_time', {
-                lead_id: leadId || null,
-                payload: { reason: 'redirect_to_fallback', source },
+            track('chat_retry_shown', { source, fallback, lead_id: leadId || null });
+            const retry = document.getElementById('retryChat');
+            if (retry) {
+              retry.addEventListener('click', (event) => {
+                event.preventDefault();
+                track('chat_manual_retry', { source, lead_id: leadId || null });
+                openChat();
               });
-            });
+            }
+            const toS0 = document.getElementById('toS0');
+            if (toS0) {
+              toS0.setAttribute('href', fallback);
+              toS0.addEventListener('click', (event) => {
+                event.preventDefault();
+                track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
+                logEvent('need_time', {
+                  lead_id: leadId || null,
+                  payload: { reason: 'redirect_to_fallback', source },
+                });
+                if (fallback) window.location.href = fallback;
+              });
+            }
           }
-        }, 1200);
+        }, 2200);
 
         function resolveChatkitBase(cfg) {
           if (cfg.CHATKIT_APP_ID) {
@@ -151,6 +170,11 @@
             }
           }
           return '';
+        }
+
+        function openChat() {
+          if (!deepLink) return;
+          window.location.href = deepLink;
         }
 
         function buildChatLink(base, { leadId, intent, fallback, source }) {

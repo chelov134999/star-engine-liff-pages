@@ -107,17 +107,20 @@
 
         const chatBase = resolveChatkitBase(cfg);
         const deepLink = chatBase ? buildChatLink(chatBase, { leadId, intent, fallback, source }) : '';
+        const skipAutoRedirect = params.get('skip_redirect') === '1';
         const payload = { source, intent, lead_id: leadId || null };
 
         track('chat_page_open', payload).catch((error) => {
           console.warn('[guardian-chat] track chat_page_open failed', error);
         });
 
-        if (deepLink) {
+        if (deepLink && !skipAutoRedirect) {
           track('chat_dl_attempt', payload).catch((error) => {
             console.warn('[guardian-chat] track chat_dl_attempt failed', error);
           });
           openChat();
+        } else if (deepLink && skipAutoRedirect) {
+          console.log('[guardian-chat] debug skip_redirect active, not auto-opening chat');
         }
 
         let left = false;

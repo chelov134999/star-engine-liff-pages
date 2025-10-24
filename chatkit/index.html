@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>星級引擎守護專家｜ChatKit 入口</title>
+    <link rel="icon" type="image/png" href="../assets/brand/favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=Noto+Sans+TC:wght@500;700&display=swap"
+    />
+    <link rel="stylesheet" href="../styles/s7-chatkit.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --se-background: radial-gradient(circle at 20% 20%, #1d2533, #0f1622);
+        --se-card: rgba(18, 24, 36, 0.82);
+        --se-border: rgba(255, 255, 255, 0.08);
+        --se-text: #e6ecf7;
+        --se-subtext: #a9b7d1;
+        --se-accent: #58a6ff;
+      }
+      body.chatkit-page {
+        margin: 0;
+        min-height: 100dvh;
+        font-family: 'Inter', 'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--se-background);
+        color: var(--se-text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .chatkit-shell {
+        width: min(960px, 100%);
+        display: grid;
+        gap: 18px;
+      }
+      .chatkit-card {
+        background: var(--se-card);
+        border: 1px solid var(--se-border);
+        border-radius: 24px;
+        padding: 22px 26px;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 22px 44px rgba(9, 12, 20, 0.45);
+      }
+      .chatkit-header {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .chatkit-header__badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(88, 166, 255, 0.15);
+        color: var(--se-accent);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .chatkit-header h1 {
+        margin: 0;
+        font-size: clamp(24px, 4vw, 30px);
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+      .chatkit-header p {
+        margin: 0;
+        color: var(--se-subtext);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      .chatkit-panel {
+        padding: 0;
+        overflow: hidden;
+        min-height: min(640px, 75dvh);
+      }
+      #chatkit-root {
+        min-height: inherit;
+      }
+      .chatkit-placeholder {
+        min-height: inherit;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: var(--se-subtext);
+        text-align: center;
+        padding: 32px;
+      }
+      .chatkit-placeholder__spinner {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 3px solid rgba(88, 166, 255, 0.18);
+        border-top-color: var(--se-accent);
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (max-width: 680px) {
+        body.chatkit-page {
+          padding: 16px;
+        }
+        .chatkit-card {
+          padding: 18px 20px;
+        }
+        .chatkit-panel {
+          border-radius: 20px;
+        }
+      }
+    </style>
+    <script src="../config.runtime.js" defer></script>
+    <script src="../analytics.js" defer></script>
+    <script type="module" src="../chatkit-init.js"></script>
+  </head>
+  <body class="chatkit-page">
+    <main class="chatkit-shell" aria-labelledby="chatkit-title">
+      <section class="chatkit-card chatkit-header">
+        <span class="chatkit-header__badge">OpenAI ChatKit</span>
+        <h1 id="chatkit-title">星級引擎守護專家</h1>
+        <p>
+          Lead ID 與 LINE 身分在此同步，守護專家會依照你的報告狀態提供建議。若需要人工協助，請寫信至
+          <a href="mailto:ai@mdzh.io" style="color: inherit;">ai@mdzh.io</a>。
+        </p>
+      </section>
+      <section class="chatkit-card chatkit-panel" aria-live="polite">
+        <div id="chatkit-root">
+          <div class="chatkit-placeholder">
+            <span class="chatkit-placeholder__spinner" aria-hidden="true"></span>
+            <div>正在連接守護專家…</div>
+            <div style="font-size:13px;">
+              若停留過久，可重新整理頁面或回到星級引擎入口再試一次。
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

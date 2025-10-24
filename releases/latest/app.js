@@ -10,7 +10,7 @@
       ? CONFIG.CHATKIT_URL
       : '';
   const CHATKIT_FALLBACK_URL =
-    CONFIG.CHATKIT_FALLBACK_URL || CONFIG.ENTRY_LIFF_URL || 'https://liff.line.me/STAR_ENGINE_INDEX';
+    CONFIG.CHATKIT_FALLBACK_URL || CONFIG.ENTRY_LIFF_URL || 'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_REDIRECT_PAGE =
     (typeof CONFIG.CHATKIT_REDIRECT_URL === 'string' && CONFIG.CHATKIT_REDIRECT_URL.trim()) ||
     'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
@@ -148,7 +148,9 @@
 
   function submitLead(payload) {
     if (!API_BASE) {
-      throw new Error('missing_api_base');
+      const error = new Error('missing_api_base');
+      console.error('[landing] submitLead failed: missing API_BASE configuration');
+      return Promise.reject(error);
     }
     return fetch(`${API_BASE}/lead-entry`, {
       method: 'POST',
@@ -347,7 +349,9 @@
         }, 820);
       } catch (error) {
         hideHandoff();
-        setStatus('伺服器忙線，請稍後再試。資料已保留。', 'error');
+        console.error('[landing] lead submission error', error);
+        const message = resolveLeadErrorMessage(error);
+        setStatus(message, 'error');
       } finally {
         submitBtn?.classList.remove('is-loading');
         submitBtn?.removeAttribute('disabled');
@@ -1155,5 +1159,22 @@
     initLeadForm();
   } else if (body.classList.contains('page-onboarding')) {
     initOnboarding();
+  }
+
+  function resolveLeadErrorMessage(error) {
+    const message = typeof error?.message === 'string' ? error.message : '';
+    if (message === 'missing_api_base') {
+      return '系統設定尚未完成，請稍後再試或聯絡守護團隊。';
+    }
+    if (message === 'missing_lead_id') {
+      return '資料同步中，請稍後重新整理或查看 LINE 提醒。';
+    }
+    if (/lead_entry_400/.test(message)) {
+      return '資料未通過檢查，請確認欄位內容後再送出。';
+    }
+    if (/lead_entry_42[0-9]/.test(message)) {
+      return '守護專家暫時忙線，我們會優先處理並請你稍候重試。';
+    }
+    return '伺服器忙線，請稍後再試或寫信 ai@mdzh.io。';
   }
 })();

@@ -11,7 +11,7 @@
     'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
   const CHATKIT_ENTRY = resolveChatkitEntry();
   const CHATKIT_FALLBACK =
-    config.CHATKIT_FALLBACK_URL || config.ENTRY_LIFF_URL || 'https://liff.line.me/STAR_ENGINE_INDEX';
+    config.CHATKIT_FALLBACK_URL || config.ENTRY_LIFF_URL || 'https://liff.line.me/2008215846-5LwXlWVN';
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;

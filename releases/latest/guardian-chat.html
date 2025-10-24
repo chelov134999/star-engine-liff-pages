@@ -176,8 +176,11 @@
         function track(eventName, payload) {
           if (!eventName) return;
           if (window.starAnalytics && typeof window.starAnalytics.track === 'function') {
-            window.starAnalytics.track(eventName, payload);
-            return;
+            try {
+              window.starAnalytics.track(eventName, payload);
+            } catch (error) {
+              console.warn('[guardian-chat] starAnalytics.track failed', error);
+            }
           }
           if (!apiBase) return;
           const endpoint = `${apiBase}/analytics`;

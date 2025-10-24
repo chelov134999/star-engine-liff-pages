@@ -146,6 +146,15 @@
               toS0.setAttribute('href', fallback);
               toS0.addEventListener('click', (event) => {
                 event.preventDefault();
+                try {
+                  console.log('[guardian-chat] fallback click', Date.now(), {
+                    source,
+                    fallback,
+                    leadId: leadId || null,
+                  });
+                } catch {
+                  // ignore log failures
+                }
                 track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
                 logEvent('need_time', {
                   lead_id: leadId || null,
@@ -153,7 +162,7 @@
                 });
                 setTimeout(() => {
                   if (fallback) window.location.href = fallback;
-                }, 400);
+                }, 1000);
               });
             }
           }
@@ -197,6 +206,11 @@
 
         function track(eventName, payload) {
           if (!eventName) return;
+          try {
+            console.log('[guardian-chat] track invoked', eventName, payload);
+          } catch {
+            // ignore
+          }
           if (window.starAnalytics && typeof window.starAnalytics.track === 'function') {
             try {
               window.starAnalytics.track(eventName, payload);

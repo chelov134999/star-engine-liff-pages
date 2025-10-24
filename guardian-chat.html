@@ -109,10 +109,14 @@
         const deepLink = chatBase ? buildChatLink(chatBase, { leadId, intent, fallback, source }) : '';
         const payload = { source, intent, lead_id: leadId || null };
 
-        track('chat_page_open', payload);
+        track('chat_page_open', payload).catch((error) => {
+          console.warn('[guardian-chat] track chat_page_open failed', error);
+        });
 
         if (deepLink) {
-          track('chat_dl_attempt', payload);
+          track('chat_dl_attempt', payload).catch((error) => {
+            console.warn('[guardian-chat] track chat_dl_attempt failed', error);
+          });
           openChat();
         }
 
@@ -132,19 +136,23 @@
             document.getElementById('loading').classList.add('hide');
             const fallbackCard = document.getElementById('fallback');
             fallbackCard.classList.remove('hide');
-            track('chat_retry_shown', { source, fallback, lead_id: leadId || null });
+            track('chat_retry_shown', { source, fallback, lead_id: leadId || null }).catch((error) => {
+              console.warn('[guardian-chat] track chat_retry_shown failed', error);
+            });
             const retry = document.getElementById('retryChat');
             if (retry) {
               retry.addEventListener('click', (event) => {
                 event.preventDefault();
-                track('chat_manual_retry', { source, lead_id: leadId || null });
+                track('chat_manual_retry', { source, lead_id: leadId || null }).catch((error) => {
+                  console.warn('[guardian-chat] track chat_manual_retry failed', error);
+                });
                 openChat();
               });
             }
             const toS0 = document.getElementById('toS0');
             if (toS0) {
               toS0.setAttribute('href', fallback);
-              toS0.addEventListener('click', (event) => {
+              toS0.addEventListener('click', async (event) => {
                 event.preventDefault();
                 try {
                   console.log('[guardian-chat] fallback click', Date.now(), {
@@ -155,14 +163,17 @@
                 } catch {
                   // ignore log failures
                 }
-                track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
-                logEvent('need_time', {
-                  lead_id: leadId || null,
-                  payload: { reason: 'redirect_to_fallback', source, fallback },
-                });
-                setTimeout(() => {
-                  if (fallback) window.location.href = fallback;
-                }, 1000);
+                try {
+                  await track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
+                  await logEvent('need_time', {
+                    lead_id: leadId || null,
+                    payload: { reason: 'redirect_to_fallback', source, fallback },
+                  });
+                } catch (error) {
+                  console.warn('[guardian-chat] fallback events failed before redirect', error);
+                }
+                await delay(1000);
+                if (fallback) window.location.href = fallback;
               });
             }
           }
@@ -204,8 +215,12 @@
           }
         }
 
-        function track(eventName, payload) {
-          if (!eventName) return;
+        function delay(ms) {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        async function track(eventName, payload) {
+          if (!eventName) return false;
           try {
             console.log('[guardian-chat] track invoked', eventName, payload);
           } catch {
@@ -218,9 +233,10 @@
               console.warn('[guardian-chat] starAnalytics.track failed', error);
             }
           }
-          if (!apiBase) return;
+          if (!apiBase) return false;
           const endpoint = `${apiBase}/analytics`;
           const body = JSON.stringify({ ev: eventName, ts: Date.now(), ...payload });
+          let beaconSent = false;
           try {
             console.log('[guardian-chat] analytics payload', endpoint, payload);
           } catch {
@@ -228,27 +244,32 @@
           }
           try {
             const blob = new Blob([body], { type: 'application/json' });
-            const ok = navigator.sendBeacon(endpoint, blob);
-            if (ok) {
+            beaconSent = navigator.sendBeacon(endpoint, blob);
+            if (beaconSent) {
               console.log('[guardian-chat] analytics sent via sendBeacon');
-              return;
+              return true;
             }
             console.warn('[guardian-chat] sendBeacon returned false, retrying with fetch');
           } catch (error) {
             console.warn('[guardian-chat] sendBeacon failed', error);
           }
-          fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body,
-            keepalive: true,
-          }).catch((error) => {
+          try {
+            const response = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body,
+              keepalive: true,
+            });
+            console.log('[guardian-chat] analytics fetch completed', response?.ok);
+            return response?.ok ?? false;
+          } catch (error) {
             console.error('[guardian-chat] analytics fetch failed', error);
-          });
+            throw error;
+          }
         }
 
         async function logEvent(eventName, payload) {
-          if (!eventName) return;
+          if (!eventName) return false;
           const bodyObject = { ev: eventName, ts: new Date().toISOString(), ...payload };
           const body = JSON.stringify(bodyObject);
           const gatewayUrl = gatewayBase ? `${gatewayBase}/log_event` : '';
@@ -258,34 +279,36 @@
             String(bodyObject.lead_id).trim().length > 0;
 
           if (!hasLeadId) {
-            track('chat_need_time_no_lead', {
+            return track('chat_need_time_no_lead', {
               source: payload?.payload?.source || 'guardian_chat',
               fallback: payload?.payload?.fallback || '',
             });
-            return;
           }
 
           if (gatewayUrl && gatewaySecret && supportsSigning()) {
             try {
               await sendSignedEvent(gatewayUrl, body);
-              return;
+              console.log('[guardian-chat] signed log_event sent');
+              return true;
             } catch (error) {
               console.warn('[guardian-chat] signed log_event failed, falling back', error);
             }
           }
 
-          if (!apiBase) return;
+          if (!apiBase) return false;
           const fallbackEndpoint = `${apiBase}/ai/log_event`;
           try {
-            const blob = new Blob([body], { type: 'application/json' });
-            navigator.sendBeacon(fallbackEndpoint, blob);
-          } catch (error) {
-            fetch(fallbackEndpoint, {
+            const response = await fetch(fallbackEndpoint, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body,
               keepalive: true,
-            }).catch(() => {});
+            });
+            console.log('[guardian-chat] log_event fetch completed', response?.ok);
+            return response?.ok ?? false;
+          } catch (error) {
+            console.error('[guardian-chat] log_event fetch failed', error);
+            throw error;
           }
         }
 

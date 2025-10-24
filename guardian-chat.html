@@ -139,6 +139,7 @@
             document.getElementById('loading').classList.add('hide');
             const fallbackCard = document.getElementById('fallback');
             fallbackCard.classList.remove('hide');
+            pushDebug('fallback_shown', { reason: 'deeplink_timeout', hasDeepLink: true });
             track('chat_retry_shown', { source, fallback, lead_id: leadId || null }).catch((error) => {
               console.warn('[guardian-chat] track chat_retry_shown failed', error);
             });
@@ -146,6 +147,7 @@
             if (retry) {
               retry.addEventListener('click', async (event) => {
                 event.preventDefault();
+                pushDebug('retry_chat_click', { source, leadId: leadId || null });
                 try {
                   await track('chat_manual_retry', { source, lead_id: leadId || null });
                 } catch (error) {
@@ -164,6 +166,7 @@
               toS0.setAttribute('href', fallback);
               toS0.addEventListener('click', async (event) => {
                 event.preventDefault();
+                pushDebug('fallback_entry_click', { source, fallback, leadId: leadId || null });
                 try {
                   console.log('[guardian-chat] fallback click', Date.now(), {
                     source,
@@ -190,6 +193,7 @@
             document.getElementById('loading').classList.add('hide');
             const fallbackCard = document.getElementById('fallback');
             fallbackCard.classList.remove('hide');
+            pushDebug('fallback_shown', { reason: 'no_deeplink_available', hasDeepLink: false });
             const retry = document.getElementById('retryChat');
             retry?.classList.add('hide');
             const toS0 = document.getElementById('toS0');
@@ -197,6 +201,7 @@
               toS0.setAttribute('href', fallback);
               toS0.addEventListener('click', async (event) => {
                 event.preventDefault();
+                pushDebug('fallback_entry_click', { source, fallback, leadId: leadId || null });
                 try {
                   await track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
                   await logEvent('need_time', {
@@ -249,6 +254,17 @@
           }
         }
 
+        function pushDebug(label, payload) {
+          try {
+            const entry = { ts: Date.now(), label };
+            if (payload !== undefined) entry.payload = payload;
+            window.__guardianDebug = window.__guardianDebug || [];
+            window.__guardianDebug.push(entry);
+          } catch {
+            // ignore debug storage errors
+          }
+        }
+
         function delay(ms) {
           return new Promise((resolve) => setTimeout(resolve, ms));
         }
@@ -256,6 +272,7 @@
         async function track(eventName, payload) {
           if (!eventName) return false;
           try {
+            pushDebug('track_invoked', { event: eventName, payload });
             console.log('[guardian-chat] track invoked', eventName, payload);
           } catch {
             // ignore
@@ -272,6 +289,7 @@
           const body = JSON.stringify({ ev: eventName, ts: Date.now(), ...payload });
           let beaconSent = false;
           try {
+            pushDebug('analytics_payload', { endpoint, payload });
             console.log('[guardian-chat] analytics payload', endpoint, payload);
           } catch {
             // ignore console failures
@@ -280,6 +298,7 @@
             const blob = new Blob([body], { type: 'application/json' });
             beaconSent = navigator.sendBeacon(endpoint, blob);
             if (beaconSent) {
+              pushDebug('analytics_send_beacon');
               console.log('[guardian-chat] analytics sent via sendBeacon');
               return true;
             }
@@ -294,6 +313,7 @@
               body,
               keepalive: true,
             });
+            pushDebug('analytics_fetch_completed', { ok: response?.ok ?? null });
             console.log('[guardian-chat] analytics fetch completed', response?.ok);
             return response?.ok ?? false;
           } catch (error) {
@@ -313,6 +333,10 @@
             String(bodyObject.lead_id).trim().length > 0;
 
           if (!hasLeadId) {
+            pushDebug('log_event_no_lead', {
+              source: payload?.payload?.source || 'guardian_chat',
+              fallback: payload?.payload?.fallback || '',
+            });
             return track('chat_need_time_no_lead', {
               source: payload?.payload?.source || 'guardian_chat',
               fallback: payload?.payload?.fallback || '',
@@ -322,6 +346,7 @@
           if (gatewayUrl && gatewaySecret && supportsSigning()) {
             try {
               await sendSignedEvent(gatewayUrl, body);
+              pushDebug('log_event_signed');
               console.log('[guardian-chat] signed log_event sent');
               return true;
             } catch (error) {
@@ -338,6 +363,7 @@
               body,
               keepalive: true,
             });
+            pushDebug('log_event_fetch_completed', { ok: response?.ok ?? null });
             console.log('[guardian-chat] log_event fetch completed', response?.ok);
             return response?.ok ?? false;
           } catch (error) {

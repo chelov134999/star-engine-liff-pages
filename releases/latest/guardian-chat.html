@@ -128,12 +128,16 @@
             fallbackCard.classList.remove('hide');
             const toS0 = document.getElementById('toS0');
             toS0.setAttribute('href', fallback);
-            toS0.addEventListener('click', () => {
+            toS0.addEventListener('click', (event) => {
+              event.preventDefault();
               track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
               logEvent('need_time', {
                 lead_id: leadId || null,
                 payload: { reason: 'redirect_to_fallback', source, fallback },
               });
+              setTimeout(() => {
+                if (fallback) window.location.href = fallback;
+              }, 400);
             });
           }
         }, 1200);
@@ -179,18 +183,29 @@
           const endpoint = `${apiBase}/analytics`;
           const body = JSON.stringify({ ev: eventName, ts: Date.now(), ...payload });
           try {
+            console.log('[guardian-chat] analytics payload', endpoint, payload);
+          } catch {
+            // ignore console failures
+          }
+          try {
             const blob = new Blob([body], { type: 'application/json' });
             const ok = navigator.sendBeacon(endpoint, blob);
-            if (ok) return;
+            if (ok) {
+              console.log('[guardian-chat] analytics sent via sendBeacon');
+              return;
+            }
+            console.warn('[guardian-chat] sendBeacon returned false, retrying with fetch');
           } catch (error) {
-            // fall through to fetch
+            console.warn('[guardian-chat] sendBeacon failed', error);
           }
           fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body,
             keepalive: true,
-          }).catch(() => {});
+          }).catch((error) => {
+            console.error('[guardian-chat] analytics fetch failed', error);
+          });
         }
 
         async function logEvent(eventName, payload) {

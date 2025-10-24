@@ -180,15 +180,17 @@
           const body = JSON.stringify({ ev: eventName, ts: Date.now(), ...payload });
           try {
             const blob = new Blob([body], { type: 'application/json' });
-            navigator.sendBeacon(endpoint, blob);
+            const ok = navigator.sendBeacon(endpoint, blob);
+            if (ok) return;
           } catch (error) {
-            fetch(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body,
-              keepalive: true,
-            }).catch(() => {});
+            // fall through to fetch
           }
+          fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body,
+            keepalive: true,
+          }).catch(() => {});
         }
 
         async function logEvent(eventName, payload) {

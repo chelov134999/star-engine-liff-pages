@@ -85,6 +85,8 @@
       (function () {
         const cfg = window.__STAR_ENGINE_CONFIG__ || {};
         const apiBase = (cfg.API_BASE || '').replace(/\/$/, '');
+        const gatewayBase = resolveGatewayBase(cfg, apiBase);
+        const gatewaySecret = cfg.CHATKIT_GATEWAY_SECRET || '';
         const params = new URLSearchParams(window.location.search);
         const source = params.get('source') || 'guardian_chat';
         const intent = params.get('intent') || 'see_report';
@@ -145,10 +147,10 @@
               toS0.addEventListener('click', (event) => {
                 event.preventDefault();
                 track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
-                logEvent('need_time', {
-                  lead_id: leadId || null,
-                  payload: { reason: 'redirect_to_fallback', source },
-                });
+              logEvent('need_time', {
+                lead_id: leadId || null,
+                payload: { reason: 'redirect_to_fallback', source, fallback },
+              });
                 if (fallback) window.location.href = fallback;
               });
             }
@@ -213,20 +215,103 @@
           }
         }
 
-        function logEvent(eventName, payload) {
-          if (!eventName || !apiBase) return;
-          const endpoint = `${apiBase}/ai/log_event`;
-          const body = JSON.stringify({ ev: eventName, ts: new Date().toISOString(), ...payload });
+        async function logEvent(eventName, payload) {
+          if (!eventName) return;
+          const bodyObject = { ev: eventName, ts: new Date().toISOString(), ...payload };
+          const body = JSON.stringify(bodyObject);
+          const gatewayUrl = gatewayBase ? `${gatewayBase}/log_event` : '';
+          const hasLeadId =
+            bodyObject.lead_id !== undefined &&
+            bodyObject.lead_id !== null &&
+            String(bodyObject.lead_id).trim().length > 0;
+
+          if (!hasLeadId) {
+            track('chat_need_time_no_lead', {
+              source: payload?.payload?.source || 'guardian_chat',
+              fallback: payload?.payload?.fallback || '',
+            });
+            return;
+          }
+
+          if (gatewayUrl && gatewaySecret && supportsSigning()) {
+            try {
+              await sendSignedEvent(gatewayUrl, body);
+              return;
+            } catch (error) {
+              console.warn('[guardian-chat] signed log_event failed, falling back', error);
+            }
+          }
+
+          if (!apiBase) return;
+          const fallbackEndpoint = `${apiBase}/ai/log_event`;
           try {
             const blob = new Blob([body], { type: 'application/json' });
-            navigator.sendBeacon(endpoint, blob);
+            navigator.sendBeacon(fallbackEndpoint, blob);
           } catch (error) {
-            fetch(endpoint, {
+            fetch(fallbackEndpoint, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body,
               keepalive: true,
             }).catch(() => {});
+          }
+        }
+
+        function resolveGatewayBase(cfg, apiBase) {
+          const base =
+            typeof cfg.API_GATEWAY_BASE === 'string' && cfg.API_GATEWAY_BASE.trim().length > 0
+              ? cfg.API_GATEWAY_BASE
+              : apiBase
+              ? `${apiBase}/ai`
+              : '';
+          return base.replace(/\/$/, '');
+        }
+
+        function supportsSigning() {
+          return Boolean(window.crypto && window.crypto.subtle && typeof TextEncoder === 'function');
+        }
+
+        async function sendSignedEvent(url, body) {
+          const timestamp = Math.floor(Date.now() / 1000).toString();
+          const signature = await sign(`${body}.${timestamp}`, gatewaySecret);
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Client-ID': 'chatkit_openai',
+              'X-Timestamp': timestamp,
+              'X-Signature': signature,
+            },
+            body,
+            keepalive: true,
+          });
+          if (!response.ok) {
+            const detail = await safeParseError(response);
+            throw new Error(`log_event_failed:${detail}`);
+          }
+        }
+
+        async function sign(message, secret) {
+          const encoder = new TextEncoder();
+          const keyData = encoder.encode(secret);
+          const messageData = encoder.encode(message);
+          const cryptoKey = await window.crypto.subtle.importKey(
+            'raw',
+            keyData,
+            { name: 'HMAC', hash: 'SHA-256' },
+            false,
+            ['sign']
+          );
+          const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
+          const signatureBytes = Array.from(new Uint8Array(signatureBuffer));
+          return btoa(String.fromCharCode(...signatureBytes));
+        }
+
+        async function safeParseError(response) {
+          try {
+            return await response.text();
+          } catch (error) {
+            return 'unknown';
           }
         }
       })();

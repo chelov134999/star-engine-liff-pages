@@ -1,4 +1,4 @@
-import { ChatKit } from 'https://cdn.openai.com/chatkit/latest/chatkit.min.js';
+import { ChatKit } from 'https://cdn.platform.openai.com/deployments/chatkit/chatkit.js';
 
 const CFG = window.__STAR_ENGINE_CONFIG__ || {};
 const WORKFLOW_ID = CFG.CHATKIT_WORKFLOW_ID || 'wf_68f8bec1169c81908cfe94e6c85e2a4a0f2cd7e47374bcc5';

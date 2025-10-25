@@ -62,16 +62,6 @@
       .hide {
         display: none;
       }
-      .actions {
-        display: grid;
-        gap: 12px;
-        margin-top: 12px;
-      }
-      .btn-secondary {
-        background: rgba(255, 255, 255, 0.14);
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        color: var(--txt);
-      }
     </style>
     <script src="config.runtime.js" defer></script>
     <script src="analytics.js" defer></script>
@@ -80,14 +70,14 @@
     <div class="sheet">
       <div id="loading" class="card">
         <div class="title">正在連接守護專家…</div>
-        <p class="sub">若 5 秒內沒有開啟對話，將顯示重試與備援選項。</p>
+        <p class="sub">若 5 秒內沒有跳轉，我們會提供重試與備援選項。</p>
       </div>
       <div id="fallback" class="card hide" aria-live="polite">
         <div class="title">守護專家暫時忙線</div>
-        <p class="sub">你可立即重新連線守護專家，或改走 AI 入場券備援流程。</p>
-        <div class="actions">
-          <a id="retryChat" class="btn" href="#">重新開啟聊天</a>
-          <a id="toS0" class="btn btn-secondary" href="#">改用 AI 入場券</a>
+        <p class="sub">你仍可直接重新開啟守護專家對話，或改走 AI 入場券備援流程。</p>
+        <div class="actions" style="display:grid;gap:12px;margin-top:12px;">
+          <a id="retryChat" class="btn" href="#">重新連線守護專家</a>
+          <a id="toS0" class="btn" href="#" style="background:#2f3847;">改用 AI 入場券備援</a>
         </div>
       </div>
     </div>
@@ -96,7 +86,6 @@
         const cfg = window.__STAR_ENGINE_CONFIG__ || {};
         const apiBase = (cfg.API_BASE || '').replace(/\/$/, '');
         const gatewayBase = resolveGatewayBase(cfg, apiBase);
-        const gatewaySecret = cfg.CHATKIT_GATEWAY_SECRET || '';
         const params = new URLSearchParams(window.location.search);
         const source = params.get('source') || 'guardian_chat';
         const intent = params.get('intent') || 'see_report';
@@ -120,27 +109,16 @@
         const skipAutoRedirect = params.get('skip_redirect') === '1';
         const payload = { source, intent, lead_id: leadId || null };
 
-        track('chat_page_open', payload)
-          .then((sent) => {
-            pushDebug('chat_page_open_result', { sent });
-          })
-          .catch((error) => {
-            pushDebug('chat_page_open_failed', { message: error?.message || String(error) });
-            console.warn('[guardian-chat] track chat_page_open failed', error);
-          });
+        track('chat_page_open', payload).catch((error) => {
+          console.warn('[guardian-chat] track chat_page_open failed', error);
+        });
 
         if (deepLink && !skipAutoRedirect) {
-          track('chat_dl_attempt', payload)
-            .then((sent) => {
-              pushDebug('chat_dl_attempt_result', { sent });
-            })
-            .catch((error) => {
-              pushDebug('chat_dl_attempt_failed', { message: error?.message || String(error) });
-              console.warn('[guardian-chat] track chat_dl_attempt failed', error);
-            });
-          window.location.href = deepLink;
+          track('chat_dl_attempt', payload).catch((error) => {
+            console.warn('[guardian-chat] track chat_dl_attempt failed', error);
+          });
+          openChat();
         } else if (deepLink && skipAutoRedirect) {
-          pushDebug('debug_skip_redirect', { deepLink });
           console.log('[guardian-chat] debug skip_redirect active, not auto-opening chat');
         }
 
@@ -150,6 +128,9 @@
         });
         window.addEventListener('blur', () => {
           left = true;
+        });
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'hidden') left = true;
         });
 
         setTimeout(() => {
@@ -161,79 +142,78 @@
             track('chat_retry_shown', { source, fallback, lead_id: leadId || null }).catch((error) => {
               console.warn('[guardian-chat] track chat_retry_shown failed', error);
             });
-            const retryChat = document.getElementById('retryChat');
-            if (retryChat) {
-              retryChat.addEventListener('click', async (event) => {
+            const retry = document.getElementById('retryChat');
+            if (retry) {
+              retry.addEventListener('click', async (event) => {
                 event.preventDefault();
                 pushDebug('retry_chat_click', { source, leadId: leadId || null });
                 try {
                   await track('chat_manual_retry', { source, lead_id: leadId || null });
                 } catch (error) {
-                  console.warn('[guardian-chat] track manual retry failed', error);
+                  console.warn('[guardian-chat] track chat_manual_retry failed', error);
                 }
                 try {
                   await track('chat_dl_attempt', { source, lead_id: leadId || null, intent });
                 } catch (error) {
                   console.warn('[guardian-chat] track chat_dl_attempt retry failed', error);
                 }
-                window.location.href = deepLink;
+                openChat();
               });
             }
             const toS0 = document.getElementById('toS0');
-            toS0.setAttribute('href', fallback);
-            toS0.addEventListener('click', async (event) => {
-              event.preventDefault();
-              pushDebug('fallback_entry_click', { source, fallback, leadId: leadId || null });
-              try {
-                console.log('[guardian-chat] fallback click', Date.now(), {
-                  source,
-                  fallback,
-                  leadId: leadId || null,
-                });
-              } catch {
-                // ignore log failures
-              }
-              try {
-                await track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
-                await logEvent('need_time', {
-                  lead_id: leadId || null,
-                  payload: { reason: 'redirect_to_fallback', source, fallback },
-                });
-              } catch (error) {
-                console.warn('[guardian-chat] fallback events failed before redirect', error);
-              }
-              await delay(1000);
-              if (fallback) window.location.href = fallback;
-            });
+            if (toS0) {
+              toS0.setAttribute('href', fallback);
+              toS0.addEventListener('click', async (event) => {
+                event.preventDefault();
+                pushDebug('fallback_entry_click', { source, fallback, leadId: leadId || null });
+                try {
+                  console.log('[guardian-chat] fallback click', Date.now(), {
+                    source,
+                    fallback,
+                    leadId: leadId || null,
+                  });
+                } catch {
+                  // ignore log failures
+                }
+                try {
+                  await track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
+                  await logEvent('need_time', {
+                    lead_id: leadId || null,
+                    payload: { reason: 'redirect_to_fallback', source, fallback },
+                  });
+                } catch (error) {
+                  console.warn('[guardian-chat] fallback events failed before redirect', error);
+                }
+                await delay(1000);
+                if (fallback) window.location.href = fallback;
+              });
+            }
           } else if (!left) {
             document.getElementById('loading').classList.add('hide');
             const fallbackCard = document.getElementById('fallback');
             fallbackCard.classList.remove('hide');
             pushDebug('fallback_shown', { reason: 'no_deeplink_available', hasDeepLink: false });
-            track('chat_retry_shown', { source, fallback, lead_id: leadId || null }).catch((error) => {
-              console.warn('[guardian-chat] track chat_retry_shown failed', error);
-            });
-            const retryChat = document.getElementById('retryChat');
-            if (retryChat) {
-              retryChat.classList.add('hide');
-            }
+            const retry = document.getElementById('retryChat');
+            retry?.classList.add('hide');
             const toS0 = document.getElementById('toS0');
-            toS0.setAttribute('href', fallback);
-            toS0.addEventListener('click', async (event) => {
-              event.preventDefault();
-              pushDebug('fallback_entry_click', { source, fallback, leadId: leadId || null });
-              try {
-                await track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
-                await logEvent('need_time', {
-                  lead_id: leadId || null,
-                  payload: { reason: 'redirect_to_fallback', source, fallback },
-                });
-              } catch (error) {
-                console.warn('[guardian-chat] fallback events failed before redirect', error);
-              }
-              await delay(1000);
-              if (fallback) window.location.href = fallback;
-            });
+            if (toS0) {
+              toS0.setAttribute('href', fallback);
+              toS0.addEventListener('click', async (event) => {
+                event.preventDefault();
+                pushDebug('fallback_entry_click', { source, fallback, leadId: leadId || null });
+                try {
+                  await track('chat_fallback_click', { source, fallback, lead_id: leadId || null });
+                  await logEvent('need_time', {
+                    lead_id: leadId || null,
+                    payload: { reason: 'redirect_to_fallback', source, fallback },
+                  });
+                } catch (error) {
+                  console.warn('[guardian-chat] fallback events failed before redirect', error);
+                }
+                await delay(1000);
+                if (fallback) window.location.href = fallback;
+              });
+            }
           }
         }, 5000);
 
@@ -252,6 +232,11 @@
             }
           }
           return '';
+        }
+
+        function openChat() {
+          if (!deepLink) return;
+          window.location.href = deepLink;
         }
 
         function buildChatLink(base, { leadId, intent, fallback, source }) {
@@ -357,14 +342,23 @@
             });
           }
 
-          if (gatewayUrl && gatewaySecret && supportsSigning()) {
+          if (gatewayUrl) {
             try {
-              await sendSignedEvent(gatewayUrl, body);
-              pushDebug('log_event_signed');
-              console.log('[guardian-chat] signed log_event sent');
+              await fetch(gatewayUrl, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-ChatKit-Lead-ID': String(bodyObject.lead_id || ''),
+                  'X-ChatKit-Source': bodyObject.payload?.source || 'guardian_chat',
+                },
+                body,
+                keepalive: true,
+              });
+              pushDebug('log_event_gateway');
+              console.log('[guardian-chat] gateway log_event sent');
               return true;
             } catch (error) {
-              console.warn('[guardian-chat] signed log_event failed, falling back', error);
+              console.warn('[guardian-chat] gateway log_event failed, trying fallback', error);
             }
           }
 
@@ -394,46 +388,6 @@
               ? `${apiBase}/ai`
               : '';
           return base.replace(/\/$/, '');
-        }
-
-        function supportsSigning() {
-          return Boolean(window.crypto && window.crypto.subtle && typeof TextEncoder === 'function');
-        }
-
-        async function sendSignedEvent(url, body) {
-          const timestamp = Math.floor(Date.now() / 1000).toString();
-          const signature = await sign(`${body}.${timestamp}`, gatewaySecret);
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Client-ID': 'chatkit_openai',
-              'X-Timestamp': timestamp,
-              'X-Signature': signature,
-            },
-            body,
-            keepalive: true,
-          });
-          if (!response.ok) {
-            const detail = await safeParseError(response);
-            throw new Error(`log_event_failed:${detail}`);
-          }
-        }
-
-        async function sign(message, secret) {
-          const encoder = new TextEncoder();
-          const keyData = encoder.encode(secret);
-          const messageData = encoder.encode(message);
-          const cryptoKey = await window.crypto.subtle.importKey(
-            'raw',
-            keyData,
-            { name: 'HMAC', hash: 'SHA-256' },
-            false,
-            ['sign']
-          );
-          const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
-          const signatureBytes = Array.from(new Uint8Array(signatureBuffer));
-          return btoa(String.fromCharCode(...signatureBytes));
         }
 
         async function safeParseError(response) {

@@ -1,10 +1,9 @@
-import { ChatKit } from 'https://cdn.openai.com/chatkit/latest/chatkit.min.js';
-
 const CFG = window.__STAR_ENGINE_CONFIG__ || {};
-const WORKFLOW_ID = 'wf_68f8bec1169c81908cfe94e6c85e2a4a0f2cd7e47374bcc5';
-const CLIENT_SECRET = CFG.CHATKIT_CLIENT_SECRET || '';
-const GATEWAY_SECRET = CFG.CHATKIT_GATEWAY_SECRET || '';
+const CHATKIT_SDK_URL =
+  (CFG.CHATKIT_SDK_URL || 'https://cdn.platform.openai.com/deployments/chatkit/chatkit.js').trim();
+const WORKFLOW_ID = CFG.CHATKIT_WORKFLOW_ID || 'wf_68f8bec1169c81908cfe94e6c85e2a4a0f2cd7e47374bcc5';
 const LIFF_ID = CFG.LIFF_ID || '2008215846-5LwXlWVN';
+const TOKEN_ENDPOINT = (CFG.CHATKIT_TOKEN_ENDPOINT || '').trim();
 const GATEWAY_BASE = (CFG.API_GATEWAY_BASE || `${(CFG.API_BASE || '').replace(/\/$/, '')}/ai`).replace(
   /\/$/,
   '',
@@ -23,12 +22,12 @@ const SYSTEM_PROMPT = `ChatKit 守護專家 Prompt v3
 身分定位：你是「星級引擎守護專家」，在 LINE 裡陪跑品牌負責人。資料、工具、決策皆由星級引擎控管，ChatKit 只提供對話與建議。
 Free-text First：任何選單 / Chips 僅提供建議選項，務必明確告知「可以直接輸入想討論的重點」。
 CALM 節奏：一次一個行動（One-Action-Per-Turn），先同理再提洞察，最後給行動。四回合內要提出方案與付款選項。
-回覆格式：輸出 JSON，結構 {"messages":[{"text":"...","source":"SERPAPI｜10/22 20:01","cta":{...}}]}；文字長度 50–120 字，允許換行。
+回覆格式：輸出 JSON，結構 {"messages":[{"text":"...","source":"SERPAPI｜10/22 20:01","cta":{"text":"..."}}]}；文字長度 50–120 字，允許換行。
 來源標註：凡引用指標 / 競品 / 工具結果，結尾附 來源：{{source}}｜{{ts}}。
 安全降級：
   • 工具失敗 / timeout：立刻說明「稍晚寄送摘要或寫信 ai@mdzh.io」，並指示使用者可回報 need_time。
   • 未找到資料 / lead 不存在：引導用戶回 S7 重新開啟，或直接寫信。
-  • 付款 placeholder：明講「這是測試付款連結；完成後系統會自動開通並寄送確認信」。
+  • 付款 placeholder：明講「這是測試付款連結；成功後 24 小時內開通 AI 可讀網站」。
 語氣：沉著、有溫度，第一人稱「我們」。避免命令式，強調陪伴與共同行動。
 
 Intents：greet、pain_reviews、pain_visibility、mixed_interest、price、ready_to_pay、need_time。
@@ -48,37 +47,31 @@ First Message：摘要守護重點 + 提醒可直接輸入問題。
 事件紀錄：log_event 必須支援 report_seen、task_selected、proposal_shown、paylink_clicked、paid、need_time、ab_arm。必要欄位：lead_id、ts、payload（含 arm / plan_choice / notes）。
 
 轉換節奏與話術
-1. 同理：引用最抓痛的 KPI（四大指標）與競品差距，告訴對方「現在位置在哪裡」。
-2. 洞察：解釋如果不處理的風險 vs 處理後的收益，搭配來源。
+1. 同理：引用最抓痛的 KPI 與競品差距，說明「現在位置在哪裡」。
+2. 洞察：解釋不處理的風險 vs 處理後的收益，搭配來源。
 3. 行動：
-   • 守望塔 1,980：「省下人工整理評論的時間，系統自動偵測低星回覆」。
+   • 守望塔 1,980：「省下人工整理評論時間，系統自動偵測低星回覆」。
    • 領航艦 5,800：「含 AI 方案與顧問班，兩週完成口碑翻身」。
    • 強調付款為測試連結，成功後 24 小時內開通 AI 可讀網站。
 4. Need Time：記錄事件、給 Email 備援 ai@mdzh.io，標記 pending_summary。
 
-KPI 與競品話術
-• 搜尋曝光：引用 coverage、delta，說明下一步。
-• AI 可見度：指出哪個競品被引用，建議補語料。
-• 危機警示：提醒最近低星與建議守望塔任務。
-• 推薦熱度：說明聲量差距並給升級方案。
-
 反對處理語料
-• 價格：「守望塔 1,980 比請人一天更低，先守住低星。」 
-• 信任：「所有數據都附來源與時間，例如 SERPAPI 或 Google Reviews。」 
-• 時間：「回覆草稿與網站由系統生成，若需要時間可寄信 ai@mdzh.io。」 
+• 價格：「守望塔 1,980 比請人一天更低」。
+• 信任：「所有數據都附來源與時間」。
+• 時間：「系統提供草稿與網站，若需要時間可寄信 ai@mdzh.io」。
 
 會員升級語
 • 守望塔：基礎監測，每日危機推播。
 • 領航艦：全域守護 + 顧問班。
 • 非會員：先體驗守望塔 14 天。
 
-技術守則：短句、留白、Apple 式排版；資料缺漏先安撫，必要時轉人工信箱。工具連續失敗三次即降級。`;
+技術守則：短句、留白、Apple 式排版；資料缺漏先安撫，必要時轉人工信箱。工具連續失敗三次即降級.`;
 
 const INTENTS = [
   { name: 'greet', examples: ['嗨', '哈囉', '有人在嗎'] },
   { name: 'pain_reviews', examples: ['最近被留好多一星', '差評怎麼辦'] },
   { name: 'pain_visibility', examples: ['AI 搜尋都看不到我', '搜尋不到我'] },
-  { name: 'mixed_interest', examples: ['評論和搜尋都想看', '兩個都想聊'] },
+  { name: 'mixed_interest', examples: ['評論和搜尋都想看', '兩個都想聊天'] },
   { name: 'price', examples: ['太貴', '價格多少'] },
   { name: 'ready_to_pay', examples: ['我要升級', '給我付款連結'] },
   { name: 'need_time', examples: ['先等等', '我考慮一下'] },
@@ -100,9 +93,24 @@ const FIRST_MESSAGE = {
   allowFreeText: true,
 };
 
+async function loadChatKit() {
+  if (!CHATKIT_SDK_URL) {
+    throw new Error('chatkit_sdk_url_missing');
+  }
+  try {
+    const module = await import(CHATKIT_SDK_URL);
+    if (module?.ChatKit) return module.ChatKit;
+    if (module?.default) return module.default;
+    throw new Error('chatkit_sdk_missing_export');
+  } catch (error) {
+    console.error('[chatkit] failed to load sdk', { source: CHATKIT_SDK_URL, error });
+    throw error;
+  }
+}
+
 (async function bootstrap() {
-  if (!CLIENT_SECRET || !GATEWAY_SECRET) {
-    console.warn('[chatkit] missing secrets, skip init');
+  if (!WORKFLOW_ID) {
+    handleInitError(new Error('missing_workflow_id'));
     exposeApi();
     return;
   }
@@ -114,14 +122,22 @@ const FIRST_MESSAGE = {
     const leadId = await resolveLeadId(lineUserId);
     state.leadId = leadId || '';
 
+    const clientSecret = await fetchClientSecret({
+      leadId: state.leadId,
+      lineUserId,
+      source: params.get('source') || 'chatkit_web',
+      intent: params.get('intent') || 'see_report',
+    });
+
+    const ChatKit = await loadChatKit();
     const chatkit = new ChatKit({
       element: document.getElementById('chatkit-root'),
       workflow: {
         id: WORKFLOW_ID,
-        clientSecret: CLIENT_SECRET,
+        clientSecret,
       },
       user: {
-        id: leadId ? `${leadId}` : `guest-${lineUserId}`,
+        id: state.leadId ? `${state.leadId}` : `guest-${lineUserId}`,
         metadata: {
           lineUserId,
           entry: params.get('entry') || 's7',
@@ -143,9 +159,9 @@ const FIRST_MESSAGE = {
       firstMessage: FIRST_MESSAGE,
     });
 
-    if (leadId) {
+    if (state.leadId) {
       try {
-        chatkit.setSlot('lead_id', leadId);
+        chatkit.setSlot('lead_id', state.leadId);
       } catch (error) {
         console.warn('[chatkit] setSlot lead_id failed', error);
       }
@@ -153,8 +169,10 @@ const FIRST_MESSAGE = {
 
     state.chatkit = chatkit;
     state.ready = true;
+    pushDebug('chatkit_ready', { leadId: state.leadId || null });
   } catch (error) {
     console.error('[chatkit] init failed', error);
+    handleInitError(error);
   } finally {
     exposeApi();
   }
@@ -190,6 +208,66 @@ function exposeApi() {
       }
     },
   };
+}
+
+async function fetchClientSecret(context) {
+  if (!TOKEN_ENDPOINT) {
+    throw new Error('missing_token_endpoint');
+  }
+  const payload = {
+    lead_id: context.leadId || null,
+    line_user_id: context.lineUserId || null,
+    intent: context.intent,
+    source: context.source,
+    entry: params.get('entry') || 'chatkit',
+  };
+  const body = JSON.stringify(payload);
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (context.leadId) {
+    headers['X-ChatKit-Lead-ID'] = context.leadId;
+  }
+  if (context.lineUserId) {
+    headers['X-ChatKit-Line-User-ID'] = context.lineUserId;
+  };
+
+  const response = await fetch(TOKEN_ENDPOINT, {
+    method: 'POST',
+    headers,
+    body,
+  });
+
+  if (!response.ok) {
+    const detail = await safeParseError(response);
+    const error = new Error(`token_http_${response.status}`);
+    error.detail = detail;
+    throw error;
+  }
+
+  const data = await response.json();
+  const secret = data?.client_secret || data?.clientSecret;
+  if (!secret) {
+    throw new Error('missing_client_secret');
+  }
+  pushDebug('token_acquired', { leadId: context.leadId || null });
+  return secret;
+}
+
+function handleInitError(error) {
+  pushDebug('token_error', { message: error?.message || String(error), detail: error?.detail });
+  const root = document.getElementById('chatkit-root');
+  if (!root) return;
+  root.innerHTML = `
+    <div class="chatkit-placeholder">
+      <span class="chatkit-placeholder__spinner" aria-hidden="true"></span>
+      <div>守護專家暫時忙線</div>
+      <div style="font-size:13px;">
+        我們正在更新聊天入口，請稍後重新整理或回到星級引擎入口再試一次。
+      </div>
+    </div>
+  `;
 }
 
 async function ensureLiff() {
@@ -273,23 +351,21 @@ function registerTools(chatkit) {
 }
 
 async function callGateway(path, body = {}, options = {}) {
-  if (!GATEWAY_SECRET) {
-    throw new Error('missing_gateway_secret');
-  }
   const url =
     (path.startsWith('http') ? path : `${GATEWAY_BASE}${path.startsWith('/') ? path : `/${path}`}`) ||
     '';
   const json = JSON.stringify(body);
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const signature = await sign(`${json}.${timestamp}`, GATEWAY_SECRET);
 
   const headers = {
     'Content-Type': 'application/json',
-    'X-Client-ID': 'chatkit_openai',
-    'X-Timestamp': timestamp,
-    'X-Signature': signature,
     ...(options.headers || {}),
   };
+  if (state.leadId) {
+    headers['X-ChatKit-Lead-ID'] = state.leadId;
+  }
+  if (state.lineUserId) {
+    headers['X-ChatKit-Line-User-ID'] = state.lineUserId;
+  }
 
   const response = await fetch(url, {
     method: 'POST',
@@ -315,18 +391,14 @@ async function callGateway(path, body = {}, options = {}) {
   }
 }
 
-async function sign(message, secret) {
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(secret);
-  const messageData = encoder.encode(message);
-  const cryptoKey = await window.crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign'],
-  );
-  const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
-  const signatureBytes = Array.from(new Uint8Array(signatureBuffer));
-  return btoa(String.fromCharCode(...signatureBytes));
+async function safeParseError(response) {
+  try {
+    return await response.json();
+  } catch (_) {
+    try {
+      return await response.text();
+    } catch (error) {
+      return null;
+    }
+  }
 }

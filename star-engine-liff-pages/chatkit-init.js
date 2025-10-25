@@ -15,6 +15,10 @@ const state = {
   clientSecretExpiresAt: '',
 };
 
+if (!Array.isArray(window.__guardianDebug)) {
+  window.__guardianDebug = [];
+}
+
 const FIRST_MESSAGE = {
   text:
     '我是星級引擎守護專家。我剛看完你的報告：• 評價健康度 3.9★ • AI 曝光第 4（差一名進 Top3）。想先聊哪一塊？也可以直接輸入想法。',
@@ -33,6 +37,7 @@ let bundleReadyPromise = null;
 
   try {
     await loadChatKitBundle();
+    pushDebug('bundle_ready');
 
     const { lineUserId } = await ensureLiff();
     state.lineUserId = lineUserId;
@@ -47,9 +52,13 @@ let bundleReadyPromise = null;
     await applyOptions(chatkitElement);
 
     state.ready = true;
+    pushDebug('chatkit_ready', { leadId: state.leadId || null });
     clearBootstrapMessage();
   } catch (error) {
     console.error('[chatkit] init failed', error);
+    pushDebug('chatkit_init_error', {
+      message: error?.message || String(error),
+    });
     renderBootstrapError('守護專家忙線，請稍後再試或聯絡 ai@mdzh.io。');
   } finally {
     exposeApi();
@@ -74,6 +83,7 @@ async function loadChatKitBundle() {
   const existingScript = document.querySelector('script[data-chatkit-bundle]');
   if (existingScript) {
     await customElements.whenDefined('openai-chatkit');
+    pushDebug('bundle_cached');
     return;
   }
 
@@ -86,10 +96,12 @@ async function loadChatKitBundle() {
       script.onload = resolve;
       script.onerror = () => {
         bundleReadyPromise = null;
+        pushDebug('bundle_error', { src: script.src });
         reject(new Error('chatkit_bundle_failed'));
       };
       document.head.appendChild(script);
     }).then(() => customElements.whenDefined('openai-chatkit'));
+    pushDebug('bundle_load_start', { src: getChatKitScriptUrl() });
   }
 
   await bundleReadyPromise;
@@ -134,10 +146,25 @@ function buildStartScreen() {
   };
 }
 
+function pushDebug(label, payload = {}) {
+  try {
+    window.__guardianDebug.push({
+      label,
+      payload,
+      at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.warn('[chatkit] pushDebug failed', error);
+  }
+}
+
 async function applyOptions(element) {
   const options = {
     api: {
       getClientSecret: getClientSecret,
+    },
+    workflow: {
+      id: WORKFLOW_ID,
     },
     locale: 'zh-Hant',
     theme: {
@@ -161,30 +188,53 @@ async function applyOptions(element) {
     onClientTool: handleClientTool,
   };
 
+  pushDebug('options_applying', {
+    workflowId: WORKFLOW_ID,
+    leadId: state.leadId || null,
+  });
   element.setOptions(options);
+  pushDebug('options_applied', { leadId: state.leadId || null });
 }
 
 async function getClientSecret(currentSecret) {
-  if (
-    currentSecret &&
-    state.clientSecret === currentSecret &&
-    isSecretValid(state.clientSecretExpiresAt)
-  ) {
-    return currentSecret;
-  }
+  const markSuccess = (source, expiresAt) => {
+    pushDebug('token_acquired', {
+      source,
+      expiresAt: expiresAt || '',
+      leadId: state.leadId || null,
+    });
+  };
 
-  if (state.clientSecret && isSecretValid(state.clientSecretExpiresAt)) {
-    return state.clientSecret;
-  }
+  try {
+    if (
+      currentSecret &&
+      state.clientSecret === currentSecret &&
+      isSecretValid(state.clientSecretExpiresAt)
+    ) {
+      markSuccess('workflow_hint', state.clientSecretExpiresAt);
+      return currentSecret;
+    }
 
-  const tokenInfo = await resolveClientSecret();
-  const secret = toText(tokenInfo?.client_secret || tokenInfo?.clientSecret || '');
-  if (!secret) {
-    throw new Error('missing_client_secret');
+    if (state.clientSecret && isSecretValid(state.clientSecretExpiresAt)) {
+      markSuccess('state_cache', state.clientSecretExpiresAt);
+      return state.clientSecret;
+    }
+
+    const tokenInfo = await resolveClientSecret();
+    const secret = toText(tokenInfo?.client_secret || tokenInfo?.clientSecret || '');
+    if (!secret) {
+      throw new Error('missing_client_secret');
+    }
+    state.clientSecret = secret;
+    state.clientSecretExpiresAt = toText(tokenInfo?.expires_at || tokenInfo?.expiresAt || '');
+    markSuccess('fetch', state.clientSecretExpiresAt);
+    return secret;
+  } catch (error) {
+    pushDebug('token_error', {
+      message: error?.message || String(error),
+    });
+    throw error;
   }
-  state.clientSecret = secret;
-  state.clientSecretExpiresAt = toText(tokenInfo?.expires_at || tokenInfo?.expiresAt || '');
-  return secret;
 }
 
 function isSecretValid(expiresAt) {
@@ -198,6 +248,10 @@ function isSecretValid(expiresAt) {
 async function resolveClientSecret() {
   const endpoint = TOKEN_ENDPOINT || `${API_BASE.replace(/\/$/, '')}/chatkit/token`;
   const payload = withLeadMetadata({ workflow_id: WORKFLOW_ID });
+  pushDebug('token_request_sent', {
+    endpoint,
+    leadId: state.leadId || null,
+  });
 
   const response = await fetch(endpoint, {
     method: 'POST',
@@ -341,6 +395,7 @@ function exposeApi() {
 
 async function ensureLiff() {
   if (!window.liff || !LIFF_ID) {
+    pushDebug('liff_disabled');
     return { lineUserId: `web-${Date.now()}` };
   }
 

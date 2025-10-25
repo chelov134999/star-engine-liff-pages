@@ -1,23 +1,33 @@
 const CFG = window.__STAR_ENGINE_CONFIG__ || {};
-const WORKFLOW_ID = 'wf_68f8bec1169c81908cfe94e6c85e2a4a0f2cd7e47374bcc5';
+const WORKFLOW_ID = CFG.CHATKIT_WORKFLOW_ID || 'wf_68f8bec1169c81908cfe94e6c85e2a4a0f2cd7e47374bcc5';
 const LIFF_ID = CFG.LIFF_ID || '2008215846-5LwXlWVN';
 const API_BASE = toText(CFG.API_BASE);
 const TOKEN_ENDPOINT = toText(CFG.CHATKIT_TOKEN_ENDPOINT);
 const CHATKIT_URL = toText(CFG.CHATKIT_URL);
+const CHATKIT_SDK_URL = toText(CFG.CHATKIT_SDK_URL);
 
 const params = new URLSearchParams(window.location.search);
 const state = {
   chatkit: null,
   leadId: '',
   lineUserId: '',
-  ready: false,
   clientSecret: '',
   clientSecretExpiresAt: '',
+  session: null,
+  sessionId: '',
+  workflow: null,
+  tokenMeta: {},
+  ready: false,
 };
 
 if (!Array.isArray(window.__guardianDebug)) {
   window.__guardianDebug = [];
 }
+window.__guardianDebug.push({
+  label: 'bootstrap_init',
+  at: new Date().toISOString(),
+  payload: {},
+});
 
 const FIRST_MESSAGE = {
   text:
@@ -72,6 +82,10 @@ function toText(value) {
 }
 
 function getChatKitScriptUrl() {
+  const override = toText(CHATKIT_SDK_URL);
+  if (override) {
+    return override;
+  }
   const base = CHATKIT_URL || '/chatkit/';
   const normalized = base.endsWith('/') ? base : `${base}/`;
   return `${normalized}chatkit.js`;
@@ -189,6 +203,11 @@ async function applyOptions(element) {
     workflowId: WORKFLOW_ID,
     leadId: state.leadId || null,
   });
+  const workflowConfig = state.workflow && state.workflow.id ? state.workflow : { id: WORKFLOW_ID };
+  state.workflow = workflowConfig;
+  if (!element.workflow || element.workflow.id !== workflowConfig.id) {
+    element.workflow = workflowConfig;
+  }
   element.setOptions(options);
   pushDebug('options_applied', { leadId: state.leadId || null });
 }
@@ -223,8 +242,40 @@ async function getClientSecret(currentSecret) {
       throw new Error('missing_client_secret');
     }
     state.clientSecret = secret;
-    state.clientSecretExpiresAt = toText(tokenInfo?.expires_at || tokenInfo?.expiresAt || '');
-    markSuccess('fetch', state.clientSecretExpiresAt);
+    const rawExpires = tokenInfo?.expires_at ?? tokenInfo?.expiresAt ?? null;
+    let expiresIso = '';
+    if (typeof rawExpires === 'number') {
+      const ms = rawExpires > 9_999_999_999 ? rawExpires : rawExpires * 1000;
+      expiresIso = new Date(ms).toISOString();
+    } else {
+      const parsed = Number(rawExpires);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        const ms = parsed > 9_999_999_999 ? parsed : parsed * 1000;
+        expiresIso = new Date(ms).toISOString();
+      } else {
+        const textValue = toText(rawExpires);
+        if (textValue) {
+          expiresIso = textValue;
+        }
+      }
+    }
+    state.clientSecretExpiresAt = expiresIso;
+    state.session = tokenInfo?.session || tokenInfo?.data?.session || null;
+    state.sessionId = toText(
+      (state.session && state.session.id) || tokenInfo?.session_id || tokenInfo?.id || ''
+    );
+    state.workflow = tokenInfo?.workflow || state.workflow || { id: WORKFLOW_ID };
+    state.tokenMeta = {
+      status: tokenInfo?.status || null,
+      rate_limits: tokenInfo?.rate_limits || null,
+    };
+    pushDebug('token_response', {
+      workflowId: state.workflow && state.workflow.id ? state.workflow.id : WORKFLOW_ID,
+      sessionId: state.sessionId || null,
+      expiresAt: expiresIso || '',
+      status: state.tokenMeta.status || null,
+    });
+    markSuccess('fetch', expiresIso);
     return secret;
   } catch (error) {
     pushDebug('token_error', {
@@ -301,6 +352,11 @@ function withLeadMetadata(body = {}) {
     enriched.line_user_id = state.lineUserId;
   }
 
+  const workflowId = toText(state.workflow && state.workflow.id ? state.workflow.id : WORKFLOW_ID);
+  if (workflowId && !enriched.workflow_id) {
+    enriched.workflow_id = workflowId;
+  }
+
   if (!enriched.entry) {
     enriched.entry = params.get('entry') || 's7';
   }
@@ -318,12 +374,20 @@ async function callGateway(action, body = {}, options = {}) {
     ? action
     : `${base}${action.startsWith('/') ? action : `/${action}`}`;
 
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  };
+  if (state.leadId) {
+    headers['X-ChatKit-Lead-ID'] = state.leadId;
+  }
+  if (state.lineUserId) {
+    headers['X-ChatKit-Line-User-ID'] = state.lineUserId;
+  }
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    headers,
     body: JSON.stringify(body),
   });
 

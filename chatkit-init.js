@@ -163,9 +163,6 @@ async function applyOptions(element) {
     api: {
       getClientSecret: getClientSecret,
     },
-    workflow: {
-      id: WORKFLOW_ID,
-    },
     locale: 'zh-Hant',
     theme: {
       colorScheme: 'dark',

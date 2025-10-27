@@ -8,12 +8,10 @@
   const CHATKIT_BASE = resolveChatkitBase();
   const CHATKIT_REDIRECT_PAGE =
     (typeof config.CHATKIT_REDIRECT_URL === 'string' && config.CHATKIT_REDIRECT_URL.trim()) ||
-    'https://liff.line.me/2008215846-5LwXlWVN?view=guardian';
+    'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_ENTRY = resolveChatkitEntry();
   const CHATKIT_FALLBACK =
-    config.CHATKIT_FALLBACK_URL ||
-    config.ENTRY_LIFF_URL ||
-    'https://liff.line.me/2008215846-5LwXlWVN?view=guardian';
+    config.CHATKIT_FALLBACK_URL || config.ENTRY_LIFF_URL || 'https://liff.line.me/2008215846-5LwXlWVN';
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;

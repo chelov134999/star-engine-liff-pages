@@ -96,31 +96,7 @@
         source: 's7_footer',
       });
 
-      let sent = false;
-      if (typeof engine.sendChatkitMessage === 'function') {
-        sent = await engine.sendChatkitMessage();
-      }
-
-      if (!sent && typeof engine.ensureLiffReady === 'function') {
-        await engine.ensureLiffReady();
-      }
-
-      if (!sent && window.liff && typeof window.liff.sendMessages === 'function') {
-        try {
-          await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
-          sent = true;
-        } catch (error) {
-          console.warn('[chatkit] sendMessages failed', error);
-        }
-      }
-
-      if (sent) {
-        if (typeof engine.closeLiffWindow === 'function') {
-          engine.closeLiffWindow();
-        } else if (window.liff && typeof window.liff.closeWindow === 'function') {
-          window.liff.closeWindow();
-        }
-      }
+      await sendGuardianKeyword();
     });
   }
 
@@ -147,6 +123,41 @@
           lead_id: context.leadId || null,
         });
       });
+    }
+  }
+
+  async function sendGuardianKeyword() {
+    if (typeof engine.sendChatkitMessage === 'function') {
+      const sent = await engine.sendChatkitMessage();
+      if (sent) {
+        closeLiffView();
+        return true;
+      }
+    }
+
+    if (typeof engine.ensureLiffReady === 'function') {
+      const ready = await engine.ensureLiffReady();
+      if (!ready) return false;
+    }
+
+    if (window.liff && typeof window.liff.sendMessages === 'function') {
+      try {
+        await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
+        closeLiffView();
+        return true;
+      } catch (error) {
+        console.warn('[chatkit] sendMessages failed', error);
+      }
+    }
+
+    return false;
+  }
+
+  function closeLiffView() {
+    if (typeof engine.closeLiffWindow === 'function') {
+      engine.closeLiffWindow();
+    } else if (window.liff && typeof window.liff.closeWindow === 'function') {
+      window.liff.closeWindow();
     }
   }
 

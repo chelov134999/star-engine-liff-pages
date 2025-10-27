@@ -8,10 +8,12 @@
   const CHATKIT_BASE = resolveChatkitBase();
   const CHATKIT_REDIRECT_PAGE =
     (typeof config.CHATKIT_REDIRECT_URL === 'string' && config.CHATKIT_REDIRECT_URL.trim()) ||
-    'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
+    'https://liff.line.me/2008215846-5LwXlWVN?view=guardian';
   const CHATKIT_ENTRY = resolveChatkitEntry();
   const CHATKIT_FALLBACK =
-    config.CHATKIT_FALLBACK_URL || config.ENTRY_LIFF_URL || 'https://liff.line.me/2008215846-5LwXlWVN';
+    config.CHATKIT_FALLBACK_URL ||
+    config.ENTRY_LIFF_URL ||
+    'https://liff.line.me/2008215846-5LwXlWVN?view=guardian';
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;
@@ -143,12 +145,18 @@
       if (CHATKIT_ENTRY === CHATKIT_REDIRECT_PAGE) {
         if (context.leadId) url.searchParams.set('lead_id', context.leadId);
         url.searchParams.set('intent', intent || 'see_report');
-        url.searchParams.set('fallback', fallback || CHATKIT_FALLBACK);
+        const resolvedFallback = fallback || CHATKIT_FALLBACK;
+        if (resolvedFallback && resolvedFallback !== CHATKIT_ENTRY) {
+          url.searchParams.set('fallback', resolvedFallback);
+        }
         if (source) url.searchParams.set('source', source);
       } else {
         if (context.leadId) url.searchParams.set('lead_id', context.leadId);
         url.searchParams.set('intent', intent || 'see_report');
-        url.searchParams.set('fallback', fallback || CHATKIT_FALLBACK);
+        const resolvedFallback = fallback || CHATKIT_FALLBACK;
+        if (resolvedFallback && resolvedFallback !== CHATKIT_ENTRY) {
+          url.searchParams.set('fallback', resolvedFallback);
+        }
         if (source) url.searchParams.set('source', source);
       }
       return url.toString();

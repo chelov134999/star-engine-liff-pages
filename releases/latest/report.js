@@ -10,10 +10,10 @@
     (typeof config.CHATKIT_REDIRECT_URL === 'string' && config.CHATKIT_REDIRECT_URL.trim()) ||
     'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_ENTRY = resolveChatkitEntry();
-const CHATKIT_FALLBACK =
-  config.CHATKIT_FALLBACK_URL ||
-  config.ENTRY_LIFF_URL ||
-  'https://liff.line.me/2008215846-5LwXlWVN';
+  const CHATKIT_FALLBACK =
+    config.CHATKIT_FALLBACK_URL ||
+    config.ENTRY_LIFF_URL ||
+    'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;

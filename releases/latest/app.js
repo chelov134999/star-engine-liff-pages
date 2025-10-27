@@ -9,10 +9,10 @@
     typeof CONFIG.CHATKIT_URL === 'string' && CONFIG.CHATKIT_URL.trim().length > 0
       ? CONFIG.CHATKIT_URL
       : '';
-const CHATKIT_FALLBACK_URL =
-  CONFIG.CHATKIT_FALLBACK_URL ||
-  CONFIG.ENTRY_LIFF_URL ||
-  'https://liff.line.me/2008215846-5LwXlWVN';
+  const CHATKIT_FALLBACK_URL =
+    CONFIG.CHATKIT_FALLBACK_URL ||
+    CONFIG.ENTRY_LIFF_URL ||
+    'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
   const CHATKIT_REDIRECT_PAGE =
     (typeof CONFIG.CHATKIT_REDIRECT_URL === 'string' && CONFIG.CHATKIT_REDIRECT_URL.trim()) ||
     'https://liff.line.me/2008215846-5LwXlWVN';

@@ -14,7 +14,7 @@
     config.CHATKIT_FALLBACK_URL ||
     config.ENTRY_LIFF_URL ||
     'https://chelov134999.github.io/star-engine-liff-pages/index.html';
-  const CHATKIT_MESSAGE_TEXT = '我要找守護專家';
+  const CHATKIT_MESSAGE_TEXT = '守護專家';
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;
@@ -77,19 +77,12 @@
     const button = shell.querySelector('[data-chatkit-cta]');
     if (!button) return;
 
-    const deepLink = buildChatkitLink(context, { intent: 'see_report', source: 's7_footer' });
-    if (!deepLink) {
-      disableAction(button);
-      return;
-    }
-
-    button.setAttribute('href', deepLink);
-    button.setAttribute('rel', 'noopener noreferrer');
     button.classList.remove('is-disabled');
     button.removeAttribute('aria-disabled');
     button.removeAttribute('tabindex');
 
     button.addEventListener('click', async (event) => {
+      event.preventDefault();
       const payload = {
         source: 's7_footer',
         lead_id: context.leadId || null,
@@ -103,20 +96,29 @@
         source: 's7_footer',
       });
 
-      if (window.liff && typeof window.liff.sendMessages === 'function') {
-        event.preventDefault();
+      let sent = false;
+      if (typeof engine.sendChatkitMessage === 'function') {
+        sent = await engine.sendChatkitMessage();
+      }
+
+      if (!sent && typeof engine.ensureLiffReady === 'function') {
+        await engine.ensureLiffReady();
+      }
+
+      if (!sent && window.liff && typeof window.liff.sendMessages === 'function') {
         try {
           await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
-          if (typeof window.liff.closeWindow === 'function') {
-            window.liff.closeWindow();
-          }
-          return;
+          sent = true;
         } catch (error) {
           console.warn('[chatkit] sendMessages failed', error);
-          if (typeof window.liff.closeWindow === 'function') {
-            window.liff.closeWindow();
-          }
-          window.location.href = deepLink;
+        }
+      }
+
+      if (sent) {
+        if (typeof engine.closeLiffWindow === 'function') {
+          engine.closeLiffWindow();
+        } else if (window.liff && typeof window.liff.closeWindow === 'function') {
+          window.liff.closeWindow();
         }
       }
     });

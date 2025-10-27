@@ -13,7 +13,8 @@
   const CHATKIT_FALLBACK =
     config.CHATKIT_FALLBACK_URL ||
     config.ENTRY_LIFF_URL ||
-    'https://chelov134999.github.io/star-engine-liff-pages/guardian-chat.html';
+    'https://chelov134999.github.io/star-engine-liff-pages/index.html';
+  const CHATKIT_MESSAGE_TEXT = '我要找守護專家';
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;
@@ -88,7 +89,7 @@
     button.removeAttribute('aria-disabled');
     button.removeAttribute('tabindex');
 
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async (event) => {
       const payload = {
         source: 's7_footer',
         lead_id: context.leadId || null,
@@ -101,6 +102,23 @@
         channel: 'chatkit',
         source: 's7_footer',
       });
+
+      if (window.liff && typeof window.liff.sendMessages === 'function') {
+        event.preventDefault();
+        try {
+          await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
+          if (typeof window.liff.closeWindow === 'function') {
+            window.liff.closeWindow();
+          }
+          return;
+        } catch (error) {
+          console.warn('[chatkit] sendMessages failed', error);
+          if (typeof window.liff.closeWindow === 'function') {
+            window.liff.closeWindow();
+          }
+          window.location.href = deepLink;
+        }
+      }
     });
   }
 

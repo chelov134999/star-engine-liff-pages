@@ -9,12 +9,13 @@
     typeof CONFIG.CHATKIT_URL === 'string' && CONFIG.CHATKIT_URL.trim().length > 0
       ? CONFIG.CHATKIT_URL
       : '';
-const CHATKIT_FALLBACK_URL =
-  CONFIG.CHATKIT_FALLBACK_URL || CONFIG.ENTRY_LIFF_URL || 'https://liff.line.me/2008215846-5LwXlWVN';
+  const CHATKIT_FALLBACK_URL =
+    CONFIG.CHATKIT_FALLBACK_URL || CONFIG.ENTRY_LIFF_URL || 'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_REDIRECT_PAGE =
     (typeof CONFIG.CHATKIT_REDIRECT_URL === 'string' && CONFIG.CHATKIT_REDIRECT_URL.trim()) ||
     'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_BASE = resolveChatkitBase();
+  const CHATKIT_MESSAGE_TEXT = '我要找守護專家';
 
   const STORAGE_KEYS = {
     lead: 'star-engine/lead-context',
@@ -66,6 +67,26 @@ const CHATKIT_FALLBACK_URL =
   ];
 
   const analytics = window.starAnalytics;
+
+  async function sendChatkitMessage() {
+    if (!window.liff || typeof window.liff.sendMessages !== 'function') return false;
+    try {
+      await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
+      return true;
+    } catch (error) {
+      console.warn('[chatkit] sendMessages failed', error);
+      return false;
+    }
+  }
+
+  function closeLiffWindow() {
+    if (!window.liff || typeof window.liff.closeWindow !== 'function') return;
+    try {
+      window.liff.closeWindow();
+    } catch (error) {
+      console.warn('[chatkit] closeWindow failed', error);
+    }
+  }
 
   function trackEvent(eventName, payload = {}) {
     if (!eventName || !analytics || typeof analytics.track !== 'function') return;
@@ -516,7 +537,7 @@ const CHATKIT_FALLBACK_URL =
         cta.classList.remove('is-disabled');
         cta.removeAttribute('aria-disabled');
         cta.removeAttribute('tabindex');
-        cta.addEventListener('click', () => {
+        cta.addEventListener('click', async (event) => {
           const payload = {
             lead_id: baseContext.leadId || null,
             source: 'footer',
@@ -530,6 +551,17 @@ const CHATKIT_FALLBACK_URL =
             channel: 'chatkit_footer',
             source: 'footer',
           });
+
+          if (window.liff && typeof window.liff.sendMessages === 'function') {
+            event.preventDefault();
+            const sent = await sendChatkitMessage();
+            if (sent) {
+              closeLiffWindow();
+              return;
+            }
+            closeLiffWindow();
+            window.location.href = chatUrl;
+          }
         });
       }
     }
@@ -546,7 +578,7 @@ const CHATKIT_FALLBACK_URL =
       link.classList.remove('is-disabled');
       link.removeAttribute('aria-disabled');
       link.removeAttribute('tabindex');
-      link.addEventListener('click', () => {
+      link.addEventListener('click', (event) => {
         const payload = {
           lead_id: baseContext.leadId || null,
           source: 'footer_chip',
@@ -559,6 +591,15 @@ const CHATKIT_FALLBACK_URL =
         });
         trackEvent('chat_cta_click', payload);
         trackEvent('chat_dl_attempt', payload);
+
+        if (window.liff && typeof window.liff.closeWindow === 'function') {
+          event.preventDefault();
+          try {
+            window.liff.closeWindow();
+          } catch (error) {
+            console.warn('[chatkit] closeWindow failed', error);
+          }
+        }
       });
     });
 
@@ -1060,7 +1101,7 @@ const CHATKIT_FALLBACK_URL =
         chatkitLink.classList.remove('is-disabled');
         chatkitLink.removeAttribute('aria-disabled');
         chatkitLink.removeAttribute('tabindex');
-        chatkitLink.addEventListener('click', () => {
+        chatkitLink.addEventListener('click', (event) => {
           const payload = {
             lead_id: context.leadId || null,
             source: 'onboarding_nav',
@@ -1077,6 +1118,15 @@ const CHATKIT_FALLBACK_URL =
             channel: 'chatkit_onboarding',
             source: 'onboarding_nav',
           });
+
+          if (window.liff && typeof window.liff.closeWindow === 'function') {
+            event.preventDefault();
+            try {
+              window.liff.closeWindow();
+            } catch (error) {
+              console.warn('[chatkit] closeWindow failed', error);
+            }
+          }
         });
       } else if (chatkitLink.tagName === 'A') {
         chatkitLink.setAttribute('href', '#');

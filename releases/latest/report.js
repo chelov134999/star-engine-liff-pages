@@ -127,52 +127,101 @@
   }
 
   async function sendGuardianKeyword(context = {}) {
+    const leadId = context.leadId || null;
     let lineContext = null;
+    let liffReady = false;
+
+    if (typeof engine.ensureLiffReady === 'function') {
+      liffReady = await engine.ensureLiffReady();
+    } else if (window.liff) {
+      liffReady = true;
+    }
+
     if (typeof engine.getLiffContext === 'function') {
       lineContext = await engine.getLiffContext();
-    } else if (typeof engine.ensureLiffReady === 'function') {
-      await engine.ensureLiffReady();
-      if (window.liff && typeof window.liff.getContext === 'function') {
-        try {
-          lineContext = window.liff.getContext();
-        } catch (error) {
-          console.warn('[chatkit] getContext failed', error);
-        }
+    }
+    if (!lineContext && liffReady && window.liff && typeof window.liff.getContext === 'function') {
+      try {
+        lineContext = window.liff.getContext();
+      } catch (error) {
+        console.warn('[chatkit] getContext failed', error);
       }
     }
 
     const lineUserId = lineContext && lineContext.userId ? lineContext.userId : null;
-    const leadId = context.leadId || null;
+    const contextType = (lineContext && lineContext.type ? String(lineContext.type) : '').toLowerCase();
+    const inClient = Boolean(
+      window.liff && typeof window.liff.isInClient === 'function' ? window.liff.isInClient() : contextType && contextType !== 'external',
+    );
+    const canSendDirect = liffReady && inClient && ['utou', 'room', 'group'].includes(contextType);
 
+    if (typeof engine.ensureLineBinding === 'function' && leadId) {
+      engine.ensureLineBinding({ leadId }).catch(() => {});
+    }
+
+    const sendDirectMessage = async () => {
+      if (!canSendDirect) return false;
+      if (typeof engine.sendChatkitMessage === 'function') {
+        const sent = await engine.sendChatkitMessage();
+        if (sent) return true;
+      }
+      if (window.liff && typeof window.liff.sendMessages === 'function') {
+        try {
+          await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
+          return true;
+        } catch (error) {
+          console.warn('[chatkit] sendMessages failed', error);
+        }
+      }
+      return false;
+    };
+
+    if (await sendDirectMessage()) {
+      closeLiffView();
+      return true;
+    }
+
+    let dispatched = false;
     if (typeof engine.triggerGuardianWebhook === 'function') {
-      const dispatched = await engine.triggerGuardianWebhook({
-        leadId,
-        lineUserId,
-        trigger: 's7_cta',
-        intent: 'guardian_keyword',
-      });
-      if (dispatched) {
-        closeLiffView();
-        return true;
-      }
-    }
-
-    if (typeof engine.sendChatkitMessage === 'function') {
-      const sent = await engine.sendChatkitMessage();
-      if (sent) {
-        closeLiffView();
-        return true;
-      }
-    }
-
-    if (window.liff && typeof window.liff.sendMessages === 'function') {
       try {
-        await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
-        closeLiffView();
-        return true;
+        dispatched = await engine.triggerGuardianWebhook({
+          leadId,
+          lineUserId,
+          trigger: 's7_cta',
+          intent: 'guardian_keyword',
+        });
       } catch (error) {
-        console.warn('[chatkit] sendMessages failed', error);
+        console.warn('[guardian] webhook dispatch failed', error);
       }
+    }
+    if (dispatched) {
+      closeLiffView();
+      return true;
+    }
+
+    if (!canSendDirect) {
+      trackChatEvent('chat_guardian_fallback', {
+        lead_id: leadId || null,
+        source: 's7_cta',
+        reason: 'not_in_client',
+        context_type: contextType || 'unknown',
+      });
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert('請回到 LINE 聊天視窗，從官方帳號重新開啟此報告再點擊「與守護專家聊聊」。');
+      }
+      const fallbackLink = buildChatkitLink(context, { intent: 'guardian_keyword', source: 's7_cta_fallback' });
+      if (fallbackLink) {
+        try {
+          window.location.href = fallbackLink;
+        } catch (error) {
+          console.warn('[chatkit] fallback redirect failed', error);
+        }
+      }
+    }
+
+    if (await sendDirectMessage()) {
+      closeLiffView();
+      return true;
     }
 
     return false;

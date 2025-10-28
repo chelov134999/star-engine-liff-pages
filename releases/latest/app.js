@@ -25,9 +25,11 @@
 
   let liffSdkPromise = null;
   let liffInitPromise = null;
+  let lineBindingPromise = null;
 
   const STORAGE_KEYS = {
     lead: 'star-engine/lead-context',
+    binding: 'star-engine/line-binding',
   };
 
   const STAGE_FLOW = [
@@ -262,6 +264,23 @@
     }
   }
 
+  function getStoredBinding() {
+    return safeLocalStorage(() => {
+      const raw = window.localStorage.getItem(STORAGE_KEYS.binding);
+      return raw ? JSON.parse(raw) : null;
+    });
+  }
+
+  function setStoredBinding(binding) {
+    safeLocalStorage(() => {
+      if (!binding) {
+        window.localStorage.removeItem(STORAGE_KEYS.binding);
+        return;
+      }
+      window.localStorage.setItem(STORAGE_KEYS.binding, JSON.stringify(binding));
+    });
+  }
+
   function getStoredLead() {
     return safeLocalStorage(() => {
       const raw = window.localStorage.getItem(STORAGE_KEYS.lead);
@@ -315,6 +334,97 @@
     return context;
   }
 
+  async function ensureLineBinding(context = {}) {
+    if (!LIFF_ID) return null;
+    if (lineBindingPromise) return lineBindingPromise;
+
+    lineBindingPromise = (async () => {
+      const storedBinding = getStoredBinding() || {};
+      const targetLeadId = context.leadId || storedBinding.leadId || '';
+      let lineUserId = storedBinding.lineUserId || '';
+
+      let ready = false;
+      try {
+        ready = await ensureLiffReady();
+      } catch (error) {
+        console.warn('[chatkit] ensureLiffReady failed for binding', error);
+      }
+      if (!ready) {
+        return storedBinding;
+      }
+
+      if (window.liff && typeof window.liff.getContext === 'function') {
+        try {
+          const ctx = window.liff.getContext();
+          if (ctx && ctx.userId) {
+            lineUserId = lineUserId || ctx.userId;
+          }
+        } catch (error) {
+          console.warn('[chatkit] getContext failed during binding', error);
+        }
+      }
+
+      if (!lineUserId && window.liff && typeof window.liff.getProfile === 'function') {
+        try {
+          const profile = await window.liff.getProfile();
+          if (profile && profile.userId) {
+            lineUserId = profile.userId;
+          }
+        } catch (error) {
+          console.warn('[chatkit] getProfile failed during binding', error);
+        }
+      }
+
+      if (!lineUserId) {
+        return storedBinding;
+      }
+
+      const bindingSnapshot = {
+        lineUserId,
+        leadId: targetLeadId || '',
+        updatedAt: new Date().toISOString(),
+      };
+      setStoredBinding(bindingSnapshot);
+
+      if (!API_BASE || !bindingSnapshot.leadId) {
+        return bindingSnapshot;
+      }
+
+      if (
+        storedBinding.lineUserId === bindingSnapshot.lineUserId &&
+        storedBinding.leadId === bindingSnapshot.leadId
+      ) {
+        return bindingSnapshot;
+      }
+
+      try {
+        await fetch(`${API_BASE}/session-manager`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'merge',
+            data: {
+              lead_id: bindingSnapshot.leadId,
+              session: { line_user_id: bindingSnapshot.lineUserId },
+            },
+          }),
+        });
+      } catch (error) {
+        console.warn('[chatkit] session-manager merge failed', error);
+        trackChatEvent('chat_line_binding_failed', {
+          lead_id: bindingSnapshot.leadId || null,
+          reason: error?.message || 'request_failed',
+        });
+      }
+
+      return bindingSnapshot;
+    })().finally(() => {
+      lineBindingPromise = null;
+    });
+
+    return lineBindingPromise;
+  }
+
   function submitLead(payload) {
     if (!API_BASE) {
       const error = new Error('missing_api_base');
@@ -332,8 +442,10 @@
     const form = document.getElementById('lead-form');
     if (!form) return;
 
+    const baseContext = getLeadContext();
     trackEvent('s0_view', { page: 'index' });
-    initChatkitFooter(getLeadContext());
+    initChatkitFooter(baseContext);
+    ensureLineBinding(baseContext).catch(() => {});
 
     const statusEl = form.querySelector('.form-status');
     const submitBtn = form.querySelector('button[type="submit"]');
@@ -504,6 +616,7 @@
           createdAt: new Date().toISOString(),
         };
         setStoredLead(context);
+        ensureLineBinding(context).catch(() => {});
 
         trackEvent('s0_submit', { lead_id: leadId, source: payloadSource });
 
@@ -1222,6 +1335,7 @@
   function initOnboarding() {
     const context = resolveStoredLead(getLeadContext());
     initChatkitFooter(context);
+    ensureLineBinding(context).catch(() => {});
     const leadIdEl = document.querySelector('[data-lead-id]');
     const createdEl = document.querySelector('[data-lead-created]');
     const statusEl = document.querySelector('[data-onboarding-status]');
@@ -1352,6 +1466,7 @@
     buildChatkitUrl,
     getLiffContext,
     ensureLiffReady,
+    ensureLineBinding,
     sendChatkitMessage,
     closeLiffWindow,
     triggerGuardianWebhook,

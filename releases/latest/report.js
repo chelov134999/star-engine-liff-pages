@@ -153,14 +153,15 @@
     const inClient = Boolean(
       window.liff && typeof window.liff.isInClient === 'function' ? window.liff.isInClient() : contextType && contextType !== 'external',
     );
-    const canSendDirect = liffReady && inClient && ['utou', 'room', 'group'].includes(contextType);
+    const canAttemptDirect = liffReady && inClient;
+    let lastDirectError = null;
 
     if (typeof engine.ensureLineBinding === 'function' && leadId) {
       engine.ensureLineBinding({ leadId }).catch(() => {});
     }
 
     const sendDirectMessage = async () => {
-      if (!canSendDirect) return false;
+      if (!canAttemptDirect) return false;
       if (typeof engine.sendChatkitMessage === 'function') {
         const sent = await engine.sendChatkitMessage();
         if (sent) return true;
@@ -171,6 +172,7 @@
           return true;
         } catch (error) {
           console.warn('[chatkit] sendMessages failed', error);
+          lastDirectError = error;
         }
       }
       return false;
@@ -199,15 +201,20 @@
       return true;
     }
 
-    if (!canSendDirect) {
+    if (!canAttemptDirect || lastDirectError) {
+      const fallbackReason = !inClient ? 'not_in_client' : 'send_failed';
       trackChatEvent('chat_guardian_fallback', {
         lead_id: leadId || null,
         source: 's7_cta',
-        reason: 'not_in_client',
+        reason: fallbackReason,
         context_type: contextType || 'unknown',
       });
       if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+        if (fallbackReason === 'not_in_client') {
         window.alert('請回到 LINE 聊天視窗，從官方帳號重新開啟此報告再點擊「與守護專家聊聊」。');
+        } else {
+          window.alert('系統忙線，請稍後再試或直接在聊天室輸入「守護專家」。');
+        }
       }
       const fallbackLink = buildChatkitLink(context, { intent: 'guardian_keyword', source: 's7_cta_fallback' });
       if (fallbackLink) {

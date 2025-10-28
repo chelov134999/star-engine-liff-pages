@@ -15,7 +15,16 @@
     (typeof CONFIG.CHATKIT_REDIRECT_URL === 'string' && CONFIG.CHATKIT_REDIRECT_URL.trim()) ||
     'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_BASE = resolveChatkitBase();
-  const CHATKIT_MESSAGE_TEXT = '我要找守護專家';
+  const CHATKIT_MESSAGE_TEXT = '守護專家';
+  const GUARDIAN_WEBHOOK_URL =
+    typeof CONFIG.GUARDIAN_WEBHOOK_URL === 'string' && CONFIG.GUARDIAN_WEBHOOK_URL.trim()
+      ? CONFIG.GUARDIAN_WEBHOOK_URL.trim()
+      : '';
+  const LIFF_ID = CONFIG.LIFF_ID || CHATKIT_APP_ID || '';
+  const LIFF_SDK_URL = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+
+  let liffSdkPromise = null;
+  let liffInitPromise = null;
 
   const STORAGE_KEYS = {
     lead: 'star-engine/lead-context',
@@ -68,8 +77,89 @@
 
   const analytics = window.starAnalytics;
 
+  function loadLiffSdk() {
+    if (typeof window === 'undefined') return Promise.resolve(false);
+    if (window.liff) return Promise.resolve(true);
+
+    if (liffSdkPromise) return liffSdkPromise;
+
+    liffSdkPromise = new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-liff-sdk]');
+      if (existing) {
+        if (window.liff) {
+          resolve(true);
+          return;
+        }
+        existing.addEventListener('load', () => resolve(true), { once: true });
+        existing.addEventListener(
+          'error',
+          () => {
+            liffSdkPromise = null;
+            reject(new Error('liff_sdk_failed'));
+          },
+          { once: true },
+        );
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = LIFF_SDK_URL;
+      script.async = true;
+      script.defer = true;
+      script.dataset.liffSdk = '1';
+      script.onload = () => resolve(true);
+      script.onerror = () => {
+        liffSdkPromise = null;
+        reject(new Error('liff_sdk_failed'));
+      };
+      document.head.appendChild(script);
+    });
+
+    return liffSdkPromise;
+  }
+
+  async function ensureLiffReady() {
+    if (typeof window === 'undefined') return false;
+    if (!LIFF_ID) return false;
+
+    try {
+      await loadLiffSdk();
+      if (!window.liff) return false;
+
+      if (typeof window.liff.init === 'function') {
+        if (!liffInitPromise) {
+          liffInitPromise = window.liff
+            .init({ liffId: LIFF_ID })
+            .catch((error) => {
+              liffInitPromise = null;
+              throw error;
+            });
+        }
+        await liffInitPromise;
+      }
+
+      if (window.liff.ready && typeof window.liff.ready.then === 'function') {
+        try {
+          await window.liff.ready;
+        } catch {
+          // ignore readiness rejection
+        }
+      }
+
+      return typeof window.liff.sendMessages === 'function';
+    } catch (error) {
+      console.warn('[chatkit] ensureLiffReady failed', error);
+      return false;
+    }
+  }
+
   async function sendChatkitMessage() {
+    const ready = await ensureLiffReady();
+    if (!ready) return false;
     if (!window.liff || typeof window.liff.sendMessages !== 'function') return false;
+    if (typeof window.liff.isInClient === 'function' && !window.liff.isInClient()) {
+      return false;
+    }
     try {
       await window.liff.sendMessages([{ type: 'text', text: CHATKIT_MESSAGE_TEXT }]);
       return true;
@@ -85,6 +175,64 @@
       window.liff.closeWindow();
     } catch (error) {
       console.warn('[chatkit] closeWindow failed', error);
+    }
+  }
+
+  async function getLiffContext() {
+    const ready = await ensureLiffReady();
+    if (!ready) return null;
+    if (!window.liff || typeof window.liff.getContext !== 'function') return null;
+    try {
+      return window.liff.getContext();
+    } catch (error) {
+      console.warn('[chatkit] getContext failed', error);
+      return null;
+    }
+  }
+
+  async function triggerGuardianWebhook({
+    leadId,
+    lineUserId,
+    message = CHATKIT_MESSAGE_TEXT,
+    intent = 'guardian_keyword',
+    trigger = 's7_cta',
+  } = {}) {
+    if (!GUARDIAN_WEBHOOK_URL) return false;
+    const payload = {
+      lead_id: leadId || null,
+      message,
+      meta: {
+        trigger,
+        intent,
+        lead_id: leadId || null,
+        line_user_id: lineUserId || null,
+        entry_source: lineUserId ? 'line' : 'api',
+      },
+    };
+    if (lineUserId) {
+      payload.events = [
+        {
+          type: 'message',
+          source: { userId: lineUserId },
+          message: { type: 'text', text: message },
+        },
+      ];
+    }
+
+    try {
+      const response = await fetch(GUARDIAN_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        console.warn('[guardian] webhook responded', response.status);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.warn('[guardian] webhook failed', error);
+      return false;
     }
   }
 
@@ -1202,6 +1350,11 @@
     formatTimestamp,
     getLeadContext,
     buildChatkitUrl,
+    getLiffContext,
+    ensureLiffReady,
+    sendChatkitMessage,
+    closeLiffWindow,
+    triggerGuardianWebhook,
   };
 
   const body = document.body;

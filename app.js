@@ -16,6 +16,10 @@
     'https://liff.line.me/2008215846-5LwXlWVN';
   const CHATKIT_BASE = resolveChatkitBase();
   const CHATKIT_MESSAGE_TEXT = '守護專家';
+  const GUARDIAN_WEBHOOK_URL =
+    typeof CONFIG.GUARDIAN_WEBHOOK_URL === 'string' && CONFIG.GUARDIAN_WEBHOOK_URL.trim()
+      ? CONFIG.GUARDIAN_WEBHOOK_URL.trim()
+      : '';
   const LIFF_ID = CONFIG.LIFF_ID || CHATKIT_APP_ID || '';
   const LIFF_SDK_URL = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
 
@@ -171,6 +175,64 @@
       window.liff.closeWindow();
     } catch (error) {
       console.warn('[chatkit] closeWindow failed', error);
+    }
+  }
+
+  async function getLiffContext() {
+    const ready = await ensureLiffReady();
+    if (!ready) return null;
+    if (!window.liff || typeof window.liff.getContext !== 'function') return null;
+    try {
+      return window.liff.getContext();
+    } catch (error) {
+      console.warn('[chatkit] getContext failed', error);
+      return null;
+    }
+  }
+
+  async function triggerGuardianWebhook({
+    leadId,
+    lineUserId,
+    message = CHATKIT_MESSAGE_TEXT,
+    intent = 'guardian_keyword',
+    trigger = 's7_cta',
+  } = {}) {
+    if (!GUARDIAN_WEBHOOK_URL) return false;
+    const payload = {
+      lead_id: leadId || null,
+      message,
+      meta: {
+        trigger,
+        intent,
+        lead_id: leadId || null,
+        line_user_id: lineUserId || null,
+        entry_source: lineUserId ? 'line' : 'api',
+      },
+    };
+    if (lineUserId) {
+      payload.events = [
+        {
+          type: 'message',
+          source: { userId: lineUserId },
+          message: { type: 'text', text: message },
+        },
+      ];
+    }
+
+    try {
+      const response = await fetch(GUARDIAN_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        console.warn('[guardian] webhook responded', response.status);
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.warn('[guardian] webhook failed', error);
+      return false;
     }
   }
 
@@ -1288,9 +1350,11 @@
     formatTimestamp,
     getLeadContext,
     buildChatkitUrl,
+    getLiffContext,
     ensureLiffReady,
     sendChatkitMessage,
     closeLiffWindow,
+    triggerGuardianWebhook,
   };
 
   const body = document.body;

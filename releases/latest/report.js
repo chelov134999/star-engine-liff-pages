@@ -96,7 +96,7 @@
         source: 's7_footer',
       });
 
-      await sendGuardianKeyword();
+      await sendGuardianKeyword(context);
     });
   }
 
@@ -126,18 +126,43 @@
     }
   }
 
-  async function sendGuardianKeyword() {
+  async function sendGuardianKeyword(context = {}) {
+    let lineContext = null;
+    if (typeof engine.getLiffContext === 'function') {
+      lineContext = await engine.getLiffContext();
+    } else if (typeof engine.ensureLiffReady === 'function') {
+      await engine.ensureLiffReady();
+      if (window.liff && typeof window.liff.getContext === 'function') {
+        try {
+          lineContext = window.liff.getContext();
+        } catch (error) {
+          console.warn('[chatkit] getContext failed', error);
+        }
+      }
+    }
+
+    const lineUserId = lineContext && lineContext.userId ? lineContext.userId : null;
+    const leadId = context.leadId || null;
+
+    if (typeof engine.triggerGuardianWebhook === 'function') {
+      const dispatched = await engine.triggerGuardianWebhook({
+        leadId,
+        lineUserId,
+        trigger: 's7_cta',
+        intent: 'guardian_keyword',
+      });
+      if (dispatched) {
+        closeLiffView();
+        return true;
+      }
+    }
+
     if (typeof engine.sendChatkitMessage === 'function') {
       const sent = await engine.sendChatkitMessage();
       if (sent) {
         closeLiffView();
         return true;
       }
-    }
-
-    if (typeof engine.ensureLiffReady === 'function') {
-      const ready = await engine.ensureLiffReady();
-      if (!ready) return false;
     }
 
     if (window.liff && typeof window.liff.sendMessages === 'function') {

@@ -8,5 +8,6 @@ window.__STAR_ENGINE_CONFIG__ = {
   CHATKIT_FALLBACK_URL: 'line://app/2008215846-5LwXlWVN',
   LIFF_ID: '2008215846-5LwXlWVN',
   CHATKIT_TOKEN_ENDPOINT: 'https://chelov134999.app.n8n.cloud/webhook/chatkit/token',
+  GUARDIAN_WEBHOOK_URL: 'https://chelov134999.app.n8n.cloud/webhook/KK1MvFN2wgSRBN2Z/758fe5bf-3dd3-47dc-b4d3-d7b8fdfec277/api/chat',
   REDUCED_MOTION: window.matchMedia('(prefers-reduced-motion: reduce)').matches
 };

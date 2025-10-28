@@ -5,6 +5,8 @@
   const emptyState = document.querySelector('[data-empty-state]');
 
   const API_BASE = (config.API_BASE || '').replace(/\/$/, '');
+  const LIFF_ID = config.LIFF_ID || config.CHATKIT_APP_ID || '';
+  const LIFF_BASE_URL = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : '';
   const CHATKIT_BASE = resolveChatkitBase();
   const CHATKIT_REDIRECT_PAGE =
     (typeof config.CHATKIT_REDIRECT_URL === 'string' && config.CHATKIT_REDIRECT_URL.trim()) ||
@@ -15,6 +17,9 @@
     config.ENTRY_LIFF_URL ||
     'https://chelov134999.github.io/star-engine-liff-pages/index.html';
   const CHATKIT_MESSAGE_TEXT = '守護專家';
+  const externalNotice = document.querySelector('[data-external-notice]');
+  const externalMessage = externalNotice?.querySelector('[data-external-message]');
+  const externalAction = externalNotice?.querySelector('[data-external-open]');
 
   document.addEventListener('DOMContentLoaded', () => {
     if (!shell) return;
@@ -178,11 +183,6 @@
       return false;
     };
 
-    if (await sendDirectMessage()) {
-      closeLiffView();
-      return true;
-    }
-
     let dispatched = false;
     if (typeof engine.triggerGuardianWebhook === 'function') {
       try {
@@ -209,29 +209,17 @@
         reason: fallbackReason,
         context_type: contextType || 'unknown',
       });
-      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
-        if (fallbackReason === 'not_in_client') {
-        window.alert('請回到 LINE 聊天視窗，從官方帳號重新開啟此報告再點擊「與守護專家聊聊」。');
-        } else {
-          window.alert('系統忙線，請稍後再試或直接在聊天室輸入「守護專家」。');
-        }
-      }
-      const fallbackLink = buildChatkitLink(context, { intent: 'guardian_keyword', source: 's7_cta_fallback' });
-      if (fallbackLink) {
-        try {
-          window.location.href = fallbackLink;
-        } catch (error) {
-          console.warn('[chatkit] fallback redirect failed', error);
-        }
-      }
+      showExternalNotice(context, fallbackReason, lastDirectError);
+      return false;
     }
 
-    // Last attempt after prompting user (covers cases where ensureLiffReady succeeded later)
-    if (await sendDirectMessage()) {
+    const finalAttempt = await sendDirectMessage();
+    if (finalAttempt) {
       closeLiffView();
       return true;
     }
 
+    showExternalNotice(context, 'send_failed', lastDirectError);
     return false;
   }
 
@@ -277,6 +265,40 @@
       console.warn('[chatkit] failed to build deeplink', error);
       return CHATKIT_ENTRY;
     }
+  }
+
+  function buildLiffDeepLink(view, context = {}) {
+    if (!LIFF_BASE_URL) return '';
+    const params = new URLSearchParams();
+    if (view && view !== 'index') params.set('view', view);
+    if (context.leadId) params.set('lead_id', context.leadId);
+    if (context.token) params.set('token', context.token);
+    return `${LIFF_BASE_URL}?${params.toString()}`;
+  }
+
+  function showExternalNotice(context, reason, error) {
+    if (!externalNotice) return;
+    const message =
+      reason === 'not_in_client'
+        ? '請在 LINE 聊天視窗中開啟此報告，再點擊「與守護專家聊聊」。'
+        : '目前系統忙線，稍後再試，或直接在聊天室輸入「守護專家」。';
+    if (externalMessage) {
+      externalMessage.textContent = message;
+    }
+    if (externalAction) {
+      const deepLink = buildLiffDeepLink('report', context);
+      if (deepLink) {
+        externalAction.href = deepLink;
+        externalAction.hidden = false;
+      } else {
+        externalAction.href = '#';
+        externalAction.hidden = true;
+      }
+    }
+    if (reason === 'send_failed' && error) {
+      console.warn('[chatkit] guardian CTA fallback', error);
+    }
+    externalNotice.hidden = false;
   }
 
   function resolveChatkitEntry() {

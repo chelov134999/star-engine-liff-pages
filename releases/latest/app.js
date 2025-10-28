@@ -22,6 +22,35 @@
       : '';
   const LIFF_ID = CONFIG.LIFF_ID || CHATKIT_APP_ID || '';
   const LIFF_SDK_URL = 'https://static.line-scdn.net/liff/edge/2/sdk.js';
+  const LIFF_BASE_URL = LIFF_ID ? `https://liff.line.me/${LIFF_ID}` : '';
+
+  (function handleLiffViewParam() {
+    if (!LIFF_ID) return;
+    if (typeof window === 'undefined') return;
+    let search = '';
+    try {
+      search = window.location.search || '';
+    } catch {
+      search = '';
+    }
+    const params = new URLSearchParams(search);
+    const view = (params.get('view') || '').toLowerCase();
+    if (!view || view === 'index') return;
+
+    const viewTargets = {
+      report: 'report.html',
+      onboarding: 'onboarding.html',
+      plans: 'plans.html',
+      sample: 'sample-report.html',
+      about: 'about.html',
+    };
+    const target = viewTargets[view];
+    if (!target) return;
+    params.delete('view');
+    const query = params.toString();
+    const nextUrl = query ? `${target}?${query}` : target;
+    window.location.replace(nextUrl);
+  })();
 
   let liffSdkPromise = null;
   let liffInitPromise = null;
@@ -669,19 +698,43 @@
   }
 
   function applyReportLink(context) {
-    const url = buildReportUrl(context);
+    const liffUrl = buildReportUrl(context);
+    const fallbackUrl = buildReportPageUrl(context);
     document
       .querySelectorAll('[data-report-link]')
       .forEach((el) => {
         if (el.tagName === 'A') {
-          el.setAttribute('href', url);
+          el.setAttribute('href', liffUrl || fallbackUrl);
         } else {
-          el.dataset.reportHref = url;
+          el.dataset.reportHref = fallbackUrl;
         }
       });
   }
 
+  function buildLiffViewUrl(view, params = {}) {
+    if (!LIFF_BASE_URL) return '';
+    const searchParams = new URLSearchParams();
+    if (view && view !== 'index') {
+      searchParams.set('view', view);
+    }
+    Object.entries(params).forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') return;
+      searchParams.set(key, value);
+    });
+    const query = searchParams.toString();
+    return query ? `${LIFF_BASE_URL}?${query}` : LIFF_BASE_URL;
+  }
+
   function buildReportUrl(context) {
+    if (!context) return buildReportPageUrl();
+    const params = {};
+    if (context.leadId) params.lead_id = context.leadId;
+    if (context.token) params.token = context.token;
+    const deepLink = buildLiffViewUrl('report', params);
+    return deepLink || buildReportPageUrl(context);
+  }
+
+  function buildReportPageUrl(context) {
     if (!context) return 'report.html';
     const params = new URLSearchParams();
     if (context.leadId) params.set('lead_id', context.leadId);
@@ -691,8 +744,23 @@
   }
 
   function goToReport(context) {
-    const url = buildReportUrl(context);
-    window.location.href = url;
+    const fallbackUrl = buildReportPageUrl(context);
+    const deepLink = buildReportUrl(context);
+    const inClient =
+      typeof window !== 'undefined' &&
+      window.liff &&
+      typeof window.liff.isInClient === 'function' &&
+      window.liff.isInClient();
+
+    if (inClient) {
+      window.location.href = fallbackUrl;
+      return;
+    }
+    if (deepLink) {
+      window.location.href = deepLink;
+      return;
+    }
+    window.location.href = fallbackUrl;
   }
 
   function resolveChatkitBase() {

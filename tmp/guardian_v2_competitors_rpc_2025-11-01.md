@@ -118,4 +118,38 @@
 }
 ```
 
-> 已由終端 1 部署 `api_v2_competitors_update_status`，可正式更新競品狀態。***
+> 已由終端 1 部署 `api_v2_competitors_update_status`，可正式更新競品狀態。
+
+## Admin RPC
+
+### `api_v2_admin_set_plan` — 200 OK
+
+```json
+{
+  "data": {
+    "planCode": "lite",
+    "accountId": "00000000-0000-4000-8000-000000000001",
+    "planSource": "manual",
+    "planExpiresAt": null
+  },
+  "meta": {
+    "eventId": "97e61ad7-05b6-47ca-819f-0d2ae82eeca0",
+    "updatedAt": "2025-11-01T11:42:30.435516+00:00"
+  }
+}
+```
+
+### `api_v2_admin_flows_run` — 200 OK
+
+```json
+{
+  "data": {
+    "runId": "a74cbc57-f8fe-4ea7-bb2f-01abe6390a99",
+    "status": "queued",
+    "flowCode": "guardian_report_refresh"
+  },
+  "meta": {
+    "createdAt": "2025-11-01T11:42:40.69237+00:00"
+  }
+}
+```

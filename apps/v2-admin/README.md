@@ -33,6 +33,6 @@ src/
 - 其他錯誤：alert 會顯示 API `message`，請同步給終端 1 排查。
 
 ## 驗證筆記（2025-11-01）
-- `api_v2_admin_set_plan`：`acct-guardian-demo` 從 PRO 切換至 Lite 成功，回傳 `eventId=e0d2b16b-...`；UI 提示「方案已更新為 LITE（來源 manual） · 事件 e0d2b16b」。
-- `api_v2_admin_flows_run`：觸發 `guardian_report_refresh` 回傳 `runId=4e5dce21-...`，頁面顯示 `已送出流程 guardian_report_refresh · run 4e5dce21`。
+- `api_v2_admin_set_plan`：`acct-guardian-demo` 從 PRO 切換至 Lite 成功，回傳 `eventId=97e61ad7-...`；UI 提示「方案已更新為 LITE（來源 manual） · 事件 97e61ad7」。
+- `api_v2_admin_flows_run`：觸發 `guardian_report_refresh` 回傳 `runId=a74cbc57-...`，頁面顯示 `已送出流程 guardian_report_refresh · run a74cbc57`。
 - 權限測試：將 `V2_HAS_ADMIN_ROLE=false` 時，所有按鈕顯示「需要 admin 權限」且未送出 RPC。

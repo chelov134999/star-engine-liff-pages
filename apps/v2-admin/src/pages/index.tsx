@@ -124,7 +124,8 @@ const AdminPage: React.FC = () => {
         note: DEFAULT_REASON,
       });
       setStatusSeverity('info');
-      setStatusMessage(`已送出流程 ${flow} · run ${result.data.runId.slice(0, 8)}`);
+      const runSummary = `${result.data.runId.slice(0, 8)} · ${result.data.status}`;
+      setStatusMessage(`已送出流程 ${flow} · run ${runSummary}`);
     } catch (error) {
       const message = error instanceof Error ? error.message : '流程觸發失敗';
       setStatusSeverity('error');

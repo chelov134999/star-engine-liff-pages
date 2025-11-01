@@ -88,5 +88,5 @@
 補充：如需先確認 RPC 回傳，可執行 `scripts/curl_guardian_v2_samples.sh all` 檢視 Supabase 回應與錯誤訊息。
 
 ## Build 狀態（2025-11-01）
-- 透過 `npm install -g pnpm` 取得 pnpm v10.20.0 後，分別於 `apps/v2-reports`、`apps/v2-competitors`、`apps/v2-admin` 執行 `pnpm install` 成功（出現 `Ignored build scripts: @parcel/watcher, esbuild` 提示，尚未 approve-builds）。
-- 三個 app 皆在 `pnpm build` 時失敗，錯誤訊息：`Could not resolve entry module "index.html"`（Vite 預設需要項目根目錄存在 `index.html`；目前僅有 `src/pages/index.tsx`，需於後續補上 Vite 配置或 entry 檔再進行產出）。
+- 透過 `npm install -g pnpm` 取得 pnpm v10.20.0，針對三個 app（reports / competitors / admin）執行 `pnpm install` 無誤（仍會顯示 `Ignored build scripts: @parcel/watcher, esbuild`，尚未執行 `pnpm approve-builds`）。
+- 補上 `index.html` 與 `src/main.tsx` 入口後，`pnpm build` 皆成功輸出（reports/dist、competitors/dist、admin/dist 均生成 HTML/CSS/JS bundle；Sass 模組出現 legacy JS API deprecation warning，待日後升級）。

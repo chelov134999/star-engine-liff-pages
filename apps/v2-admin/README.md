@@ -29,5 +29,10 @@ src/
 ## 常見錯誤碼
 - `401`：缺少 token，介面會顯示「需要 admin 權限」，請更新 `V2_SUPABASE_JWT` 或導入正規登入流程。
 - `403`：後端拒絕權限；可透過 `V2_HAS_ADMIN_ROLE=false` 模擬，此時按鈕會提示需要 admin 權限。
-- `404`：Supabase 尚未部署 `api_v2_admin_*` 函式；請確認終端 1 是否套用 20251104 migration。
+- `404`：Supabase 尚未部署 `api_v2_admin_*` 函式；請確認終端 1 是否套用 20251104000000 migration。
 - 其他錯誤：alert 會顯示 API `message`，請同步給終端 1 排查。
+
+## 驗證筆記（2025-11-01）
+- `api_v2_admin_set_plan`：`acct-guardian-demo` 從 PRO 切換至 Lite 成功，回傳 `eventId=e0d2b16b-...`；UI 提示「方案已更新為 LITE（來源 manual） · 事件 e0d2b16b」。
+- `api_v2_admin_flows_run`：觸發 `guardian_report_refresh` 回傳 `runId=4e5dce21-...`，頁面顯示 `已送出流程 guardian_report_refresh · run 4e5dce21`。
+- 權限測試：將 `V2_HAS_ADMIN_ROLE=false` 時，所有按鈕顯示「需要 admin 權限」且未送出 RPC。

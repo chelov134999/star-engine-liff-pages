@@ -18,36 +18,36 @@
         "city": "Taipei",
         "domain": "demo-competitor.example.com",
         "leadId": "guardian_demo_lead",
+        "status": "active",
         "accountId": "00000000-0000-4000-8000-000000000001",
         "monitorType": "organic",
-        "trackingLevel": "full"
+        "statusReason": "curl demo verification",
+        "trackingLevel": "full",
+        "statusUpdatedAt": "2025-11-01T11:23:16.325362+00:00"
       },
       "storeName": "Demo Competitor",
-      "lastSeenAt": "2025-11-01T07:50:17.525876+00:00",
+      "lastSeenAt": "2025-11-01T11:23:16.325362+00:00",
       "sentimentDelta": 0
     },
     {
-      "city": "Taipei",
+      "city": "",
       "metrics": {},
-      "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
-      "website": "https://demo-bistro.example.com",
+      "storeId": "00000000-0000-0000-0000-00000000c001",
+      "website": null,
       "metadata": {
-        "city": "Taipei",
-        "domain": "demo-bistro.example.com",
+        "domain": "demo-competitor.test",
         "leadId": "guardian_demo_lead",
-        "source": "api_v2",
-        "website": "https://demo-bistro.example.com",
         "accountId": "00000000-0000-4000-8000-000000000001",
         "monitorType": "organic"
       },
-      "storeName": "Demo Bistro",
-      "lastSeenAt": "2025-11-01T08:29:00.187833+00:00",
+      "storeName": "Demo Competitor",
+      "lastSeenAt": "2025-11-01T09:17:17.030113+00:00",
       "sentimentDelta": 0
     }
   ],
   "meta": {
-    "requestId": "a62a4059-3148-43bc-8363-d833dcc71fdb",
-    "generatedAt": "2025-11-01T08:28:50.416164+00:00"
+    "requestId": "2749e8b5-143c-403b-9417-e04977c9b27d",
+    "generatedAt": "2025-11-01T11:35:35.919841+00:00"
   }
 }
 ```
@@ -66,17 +66,20 @@
       "domain": "demo-bistro.example.com",
       "leadId": "guardian_demo_lead",
       "source": "api_v2",
+      "status": "paused",
       "website": "https://demo-bistro.example.com",
       "accountId": "00000000-0000-4000-8000-000000000001",
-      "monitorType": "organic"
+      "monitorType": "organic",
+      "statusReason": "frontend-demo",
+      "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-01T08:29:00.187833+00:00",
+    "lastSeenAt": "2025-11-01T11:35:43.090367+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "9b49e602-6050-46e2-a4b0-c83316aeb5b8",
-    "generatedAt": "2025-11-01T08:29:00.187833+00:00"
+    "requestId": "e48b68be-2eeb-4265-8f4e-df9841535d5c",
+    "generatedAt": "2025-11-01T11:35:43.090367+00:00"
   }
 }
 ```
@@ -85,11 +88,34 @@
 
 ```json
 {
-  "code": "PGRST202",
-  "details": "Searched for the function public.api_v2_competitors_update_status with parameters p_lead, p_reason, p_status, p_store_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.",
-  "hint": "Perhaps you meant to call the function public.api_v2_competitors_list",
-  "message": "Could not find the function public.api_v2_competitors_update_status(p_lead, p_reason, p_status, p_store_id) in the schema cache"
+  "data": {
+    "city": "Taipei",
+    "status": "paused",
+    "metrics": {},
+    "placeId": null,
+    "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
+    "website": "https://demo-bistro.example.com",
+    "metadata": {
+      "city": "Taipei",
+      "domain": "demo-bistro.example.com",
+      "leadId": "guardian_demo_lead",
+      "source": "api_v2",
+      "status": "paused",
+      "website": "https://demo-bistro.example.com",
+      "accountId": "00000000-0000-4000-8000-000000000001",
+      "monitorType": "organic",
+      "statusReason": "frontend-demo",
+      "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
+    },
+    "storeName": "Demo Bistro",
+    "lastSeenAt": "2025-11-01T11:35:07.864015+00:00",
+    "sentimentDelta": 0
+  },
+  "meta": {
+    "requestId": "e443d669-da78-48be-9b6d-cf3033db1339",
+    "generatedAt": "2025-11-01T11:35:07.864015+00:00"
+  }
 }
 ```
 
-> **TODO**：待終端 1 建立 `api_v2_competitors_update_status` RPC 後重新驗證；目前前端會顯示「尚未部署」提醒並維持原狀態。
+> 已由終端 1 部署 `api_v2_competitors_update_status`，可正式更新競品狀態。***

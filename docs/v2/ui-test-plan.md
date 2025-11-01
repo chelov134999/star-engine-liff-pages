@@ -47,11 +47,19 @@
 - `api_v2_competitors_update_status`
   ```json
   {
-    "code": "PGRST202",
-    "message": "Could not find the function public.api_v2_competitors_update_status(p_lead, p_reason, p_status, p_store_id) in the schema cache"
+    "data": {
+      "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
+      "status": "paused",
+      "metadata": {
+        "statusReason": "frontend-demo",
+        "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
+      }
+    },
+    "meta": {
+      "requestId": "e443d669-da78-48be-9b6d-cf3033db1339"
+    }
   }
   ```
-  > 仍待終端 1 部署更新函式；前端保留錯誤提示以利追蹤。
 
 ## 1. Reports (/apps/v2-reports)
 - **Mock/實際切換**：清空 `V2_SUPABASE_SERVICE_KEY` / `V2_SUPABASE_JWT` 後載入頁面應呈現 mock 資料；填入有效 token 後重新整理，應呼叫 `api_v2_reports` 並顯示回傳內容。
@@ -78,3 +86,6 @@
 > 建議於本機 `.env.local` 動態調整 token/URL，並搭配 `scripts/dev_guardian_v2.sh` 啟動所有 app 進行 Smoke Test。
 
 補充：如需先確認 RPC 回傳，可執行 `scripts/curl_guardian_v2_samples.sh all` 檢視 Supabase 回應與錯誤訊息。
+
+## Build 狀態（2025-11-01）
+- 目前環境缺少 `pnpm` / `corepack` 指令，`pnpm install && pnpm build` 無法執行；請於具備 pnpm 的環境重新驗證。

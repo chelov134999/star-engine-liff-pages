@@ -30,6 +30,27 @@
       "sentimentDelta": 0
     },
     {
+      "city": "Taipei",
+      "metrics": {},
+      "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
+      "website": "https://demo-bistro.example.com",
+      "metadata": {
+        "city": "Taipei",
+        "domain": "demo-bistro.example.com",
+        "leadId": "guardian_demo_lead",
+        "source": "api_v2",
+        "status": "active",
+        "website": "https://demo-bistro.example.com",
+        "accountId": "00000000-0000-4000-8000-000000000001",
+        "monitorType": "organic",
+        "statusReason": "frontend-demo",
+        "statusUpdatedAt": "2025-11-01T17:14:16.377374+00:00"
+      },
+      "storeName": "Demo Bistro",
+      "lastSeenAt": "2025-11-01T17:14:16.377374+00:00",
+      "sentimentDelta": 0
+    },
+    {
       "city": "",
       "metrics": {},
       "storeId": "00000000-0000-0000-0000-00000000c001",
@@ -46,8 +67,8 @@
     }
   ],
   "meta": {
-    "requestId": "2749e8b5-143c-403b-9417-e04977c9b27d",
-    "generatedAt": "2025-11-01T11:35:35.919841+00:00"
+    "requestId": "cbe327e2-b966-46ac-a888-968afada2169",
+    "generatedAt": "2025-11-01T17:13:59.990308+00:00"
   }
 }
 ```
@@ -74,12 +95,12 @@
       "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-01T11:35:43.090367+00:00",
+    "lastSeenAt": "2025-11-01T17:14:08.437114+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "e48b68be-2eeb-4265-8f4e-df9841535d5c",
-    "generatedAt": "2025-11-01T11:35:43.090367+00:00"
+    "requestId": "472fc4c0-9718-4259-b176-4b2f4fbf8e6c",
+    "generatedAt": "2025-11-01T17:14:08.437114+00:00"
   }
 }
 ```
@@ -90,7 +111,7 @@
 {
   "data": {
     "city": "Taipei",
-    "status": "paused",
+    "status": "active",
     "metrics": {},
     "placeId": null,
     "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
@@ -100,20 +121,20 @@
       "domain": "demo-bistro.example.com",
       "leadId": "guardian_demo_lead",
       "source": "api_v2",
-      "status": "paused",
+      "status": "active",
       "website": "https://demo-bistro.example.com",
       "accountId": "00000000-0000-4000-8000-000000000001",
       "monitorType": "organic",
       "statusReason": "frontend-demo",
-      "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
+      "statusUpdatedAt": "2025-11-01T17:14:16.377374+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-01T11:35:07.864015+00:00",
+    "lastSeenAt": "2025-11-01T17:14:16.377374+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "e443d669-da78-48be-9b6d-cf3033db1339",
-    "generatedAt": "2025-11-01T11:35:07.864015+00:00"
+    "requestId": "0d48c4a4-93e3-463c-a119-d8083af18a4d",
+    "generatedAt": "2025-11-01T17:14:16.377374+00:00"
   }
 }
 ```

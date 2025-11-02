@@ -17,8 +17,8 @@
       }
     ],
     "meta": {
-      "generatedAt": "2025-11-01T09:13:23.227942+00:00",
-      "requestId": "a0377ebe-b0da-488a-9452-bbd57df8b0d0"
+      "generatedAt": "2025-11-01T17:13:49.714375+00:00",
+      "requestId": "ba82e18e-fb8a-4348-9aac-5c39c4d73bbb"
     }
   }
   ```
@@ -34,13 +34,16 @@
         "metadata": {
           "leadId": "guardian_demo_lead",
           "accountId": "00000000-0000-4000-8000-000000000001",
-          "monitorType": "organic"
+          "monitorType": "organic",
+          "status": "active",
+          "statusReason": "curl demo verification",
+          "statusUpdatedAt": "2025-11-01T11:23:16.325362+00:00"
         }
       }
     ],
     "meta": {
-      "generatedAt": "2025-11-01T09:03:14.69356+00:00",
-      "requestId": "c7d077e7-6755-4248-be11-b8b45aba2721"
+      "generatedAt": "2025-11-01T17:13:59.990308+00:00",
+      "requestId": "cbe327e2-b966-46ac-a888-968afada2169"
     }
   }
   ```
@@ -76,10 +79,9 @@
 - **錯誤碼測試**：將 token 設為失效字串檢查 401 提示；設定 `V2_HAS_ADMIN_ROLE=false` 後確保所有呼叫在前端阻擋。
 - **函式缺失**：若出現 `PGRST202 Could not find the function public.api_v2_competitors_update_status`，需回報終端 1 部署該 RPC。
 
-## 3. Admin (/apps/v2-admin)
 - **搜尋**：輸入關鍵字後按「搜尋」，列表更新且顯示 info 訊息。
-- **方案切換**：填入 service key 後按任一方案按鈕，Network 應出現 `rest/v1/rpc/api_v2_admin_set_plan` 並回傳 `eventId`；錯誤時顯示紅色警示。
-- **流程觸發**：三個流程按鈕依序測試，Network 須出現 `rest/v1/rpc/api_v2_admin_flows_run`，成功時訊息包含 `runId`。
+- **方案切換**：填入 service key 後按任一方案按鈕，Network 應出現 `rest/v1/rpc/api_v2_admin_set_plan` 並回傳 `eventId`；介面應提示 LINE 推播已排程，錯誤時顯示紅色警示。
+- **流程觸發**：三個流程按鈕依序測試，Network 須出現 `rest/v1/rpc/api_v2_admin_flows_run`，成功訊息包含 `runId` 與狀態，並提醒 LINE 推播已排程。
 - **缺權限**：將 `V2_HAS_ADMIN_ROLE=false`，確認按鈕顯示「需要 admin 權限」且不發出 request。
 - **函式缺失**：若 RPC 回覆 `Not Found` 或 `PGRST202`，需通知終端 1 補上對應函式。
 

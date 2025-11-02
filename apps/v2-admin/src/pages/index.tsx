@@ -97,7 +97,7 @@ const AdminPage: React.FC = () => {
       setStatusSeverity('success');
       const planSource = result.data.planSource ? `（來源 ${result.data.planSource}）` : '';
       const eventHint = result.meta.eventId ? ` · 事件 ${result.meta.eventId.slice(0, 8)}` : '';
-      setStatusMessage(`方案已更新為 ${nextPlan.toUpperCase()}${planSource}${eventHint}`);
+      setStatusMessage(`方案已更新為 ${nextPlan.toUpperCase()}${planSource}${eventHint} · LINE 推播已排程`);
     } catch (error) {
       const message = error instanceof Error ? error.message : '方案切換發生錯誤';
       setStatusSeverity('error');
@@ -125,7 +125,7 @@ const AdminPage: React.FC = () => {
       });
       setStatusSeverity('info');
       const runSummary = `${result.data.runId.slice(0, 8)} · ${result.data.status}`;
-      setStatusMessage(`已送出流程 ${flow} · run ${runSummary}`);
+      setStatusMessage(`已送出流程 ${flow} · run ${runSummary} · LINE 推播已排程`);
     } catch (error) {
       const message = error instanceof Error ? error.message : '流程觸發失敗';
       setStatusSeverity('error');
@@ -253,7 +253,7 @@ const AdminPage: React.FC = () => {
             />
           </div>
           <p className="guardian-card__highlight">
-            執行前須確認登入者具備 `guardian.admin` 或 `guardian.ops` 權限。
+            執行前須確認登入者具備 `guardian.admin` 或 `guardian.ops` 權限；成功後會推播通知至 LINE。
           </p>
         </section>
 

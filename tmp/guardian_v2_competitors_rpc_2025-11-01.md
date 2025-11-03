@@ -12,22 +12,22 @@
     {
       "insights": [],
       "planTier": "lite",
-      "reportId": "00000000-0000-4000-8000-000000000021",
+      "reportId": "e721213a-e426-41e2-b58e-dfbb926928d0",
       "aiSpendUsd": 0,
-      "reportDate": "2025-10-31",
+      "reportDate": "2025-11-03",
       "accountName": "Guardian Demo Lead",
-      "generatedAt": "2025-11-01T07:50:17.525876+00:00",
+      "generatedAt": "2025-11-03T15:59:59.672+00:00",
       "coverageScore": 0
     }
   ],
   "meta": {
-    "requestId": "cfeddc46-c1e7-4a87-bea8-46e6861f7e8e",
-    "generatedAt": "2025-11-03T12:34:13.202582+00:00"
+    "requestId": "0b2c1e10-5ea3-45af-b8b9-a7c4b06b6048",
+    "generatedAt": "2025-11-03T16:20:37.559044+00:00"
   },
   "timeline": null,
   "pagination": {
     "cursor": null,
-    "hasNext": false
+    "hasNext": true
   }
 }
 ```
@@ -72,10 +72,10 @@
         "accountId": "00000000-0000-4000-8000-000000000001",
         "monitorType": "organic",
         "statusReason": "curl demo verification",
-        "statusUpdatedAt": "2025-11-03T12:34:03.130395+00:00"
+        "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
       },
       "storeName": "Demo Bistro",
-      "lastSeenAt": "2025-11-03T12:34:03.130395+00:00",
+      "lastSeenAt": "2025-11-03T12:34:14.154779+00:00",
       "sentimentDelta": 0
     },
     {
@@ -95,8 +95,8 @@
     }
   ],
   "meta": {
-    "requestId": "bbad2125-1ffc-4ae3-a79e-e4eb82e586bc",
-    "generatedAt": "2025-11-03T12:34:13.438992+00:00"
+    "requestId": "0c23dac5-4993-4a59-8414-3b63a5335a8b",
+    "generatedAt": "2025-11-03T16:20:37.832236+00:00"
   }
 }
 ```
@@ -120,15 +120,15 @@
       "accountId": "00000000-0000-4000-8000-000000000001",
       "monitorType": "organic",
       "statusReason": "curl demo verification",
-      "statusUpdatedAt": "2025-11-03T12:34:13.683992+00:00"
+      "statusUpdatedAt": "2025-11-03T16:20:38.085849+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-03T12:34:13.683992+00:00",
+    "lastSeenAt": "2025-11-03T16:20:38.085849+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "e949fe01-0e8d-473e-9a2e-f49e957f183d",
-    "generatedAt": "2025-11-03T12:34:13.683992+00:00"
+    "requestId": "c68b8886-8d47-4dcf-9609-d9ae82728014",
+    "generatedAt": "2025-11-03T16:20:38.085849+00:00"
   }
 }
 ```
@@ -154,15 +154,15 @@
       "accountId": "00000000-0000-4000-8000-000000000001",
       "monitorType": "organic",
       "statusReason": "curl demo verification",
-      "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
+      "statusUpdatedAt": "2025-11-03T16:20:38.603746+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-03T12:34:14.154779+00:00",
+    "lastSeenAt": "2025-11-03T16:20:38.603746+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "087fc984-12a5-4f02-bd9a-eb59cbc12187",
-    "generatedAt": "2025-11-03T12:34:14.154779+00:00"
+    "requestId": "fb2c30ba-dab9-41f8-9188-829edfd61aae",
+    "generatedAt": "2025-11-03T16:20:38.603746+00:00"
   }
 }
 ```
@@ -190,8 +190,8 @@
     }
   ],
   "meta": {
-    "requestId": "6a188044-764e-4e0e-b328-341a6ca8e737",
-    "generatedAt": "2025-11-03T12:34:13.910903+00:00"
+    "requestId": "f2f20292-c1f9-47d2-9344-687ac9d94f73",
+    "generatedAt": "2025-11-03T16:20:38.326738+00:00"
   }
 }
 ```
@@ -209,40 +209,58 @@
     "planExpiresAt": null
   },
   "meta": {
-    "eventId": "2fe64ea8-e332-42c0-b0f5-6d5b0e8dd234",
-    "updatedAt": "2025-11-03T12:34:14.394553+00:00"
+    "eventId": "2f90196a-6bf7-4f32-afd2-a5b56be9a6eb",
+    "updatedAt": "2025-11-03T16:20:38.852832+00:00"
   }
 }
 ```
 
-### `api_v2_admin_flows_run` — 200 OK
+### `api_v2_admin_flows_run` — 200 OK（測試模式）
 
 ```json
 {
   "data": {
-    "runId": "44be1b1f-c7ae-4db3-91fa-3d9410da3ae0",
+    "runId": "bfbd845c-33d0-460c-8303-98db10258eb2",
     "status": "queued",
     "flowCode": "guardian_report_refresh"
   },
   "meta": {
-    "createdAt": "2025-11-03T12:34:23.736124+00:00"
+    "createdAt": "2025-11-03T16:20:45.539376+00:00"
   }
 }
 ```
 
-> 測試模式：推播僅發送至 line_test_user_id。
+> 測試模式：推播僅發送至 `line_test_user_id`，同時記錄 `linePushStatus=SENT`。
+
+### `api_v2_admin_flows_run` — 200 OK（正式模式）
 
 ```json
 {
   "data": {
-    "runId": "0d78ce4a-634c-49eb-8f3d-f22dfa4a01b1",
+    "runId": "80843760-2f45-4774-9fb5-044d786c95d5",
     "status": "queued",
     "flowCode": "guardian_report_refresh"
   },
   "meta": {
-    "createdAt": "2025-11-03T12:34:38.599136+00:00"
+    "createdAt": "2025-11-03T16:20:54.855922+00:00"
   }
 }
 ```
 
-> 正式模式：推播送至 line_admin_user_id。
+> 正式模式：推播送至 `line_admin_user_id`，流程完成後可在 `public.guardian_workflow_status` 查到對應 SLO。
+
+### `api_v2_admin_flows_run` — 200 OK（guardian_hourly 範例）
+
+```json
+{
+  "data": {
+    "runId": "7f163d3e-2d53-4750-9f57-bbcd80c178f3",
+    "status": "queued",
+    "flowCode": "guardian_hourly"
+  },
+  "meta": {
+    "createdAt": "2025-11-03T16:20:39.106281+00:00"
+  }
+}
+```
+```

@@ -33,7 +33,7 @@ src/
 - 其他錯誤：alert 會顯示 API `message`，請同步給終端 1 排查。
 
 ## 驗證筆記（2025-11-03）
-- `api_v2_admin_set_plan`：`acct-guardian-demo` 升級至 Guardian Pro 成功，回傳 `eventId=2fe64ea8-...`；UI 提示「方案已更新為 GUARDIAN_PRO（來源 manual） · 事件 2fe64ea8 · LINE 推播已排程」。
-- `api_v2_admin_flows_run`（測試模式）：觸發 `guardian_report_refresh` 回傳 `runId=44be1b1f-...`（`status=queued`），頁面顯示 `已送出流程 guardian_report_refresh（測試） · run 44be1b1f · queued · LINE 推播已排程`。
-- `api_v2_admin_flows_run`（正式模式）：回傳 `runId=0d78ce4a-...`，頁面顯示 `已送出流程 guardian_report_refresh · run 0d78ce4a · queued · LINE 推播已排程`。
+- `api_v2_admin_set_plan`：`acct-guardian-demo` 升級至 Guardian Pro 成功，回傳 `eventId=2f90196a-...`；UI 提示「方案已更新為 GUARDIAN_PRO（來源 manual） · 事件 2f90196a · LINE 推播已排程」。
+- `api_v2_admin_flows_run`（測試模式）：觸發 `guardian_report_refresh` 回傳 `runId=bfbd845c-...`（`status=queued`），頁面顯示 `已送出流程 guardian_report_refresh（測試） · run bfbd845c · queued · LINE 推播已排程`，LINE 推播紀錄 `linePushStatus=SENT`。
+- `api_v2_admin_flows_run`（正式模式）：回傳 `runId=80843760-...`，頁面顯示 `已送出流程 guardian_report_refresh · run 80843760 · queued · LINE 推播已排程`，並可於 `public.guardian_workflow_status` 查到對應 SLO。
 - 權限測試：將 `V2_HAS_ADMIN_ROLE=false` 時，所有按鈕顯示「需要 admin 權限」且未送出 RPC。

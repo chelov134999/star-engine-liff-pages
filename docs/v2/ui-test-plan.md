@@ -8,22 +8,22 @@
       {
         "insights": [],
         "planTier": "lite",
-        "reportId": "00000000-0000-4000-8000-000000000021",
-        "reportDate": "2025-10-31",
+        "reportId": "e721213a-e426-41e2-b58e-dfbb926928d0",
+        "reportDate": "2025-11-03",
+        "generatedAt": "2025-11-03T15:59:59.672+00:00",
         "accountName": "Guardian Demo Lead",
         "coverageScore": 0,
-        "aiSpendUsd": 0,
-        "generatedAt": "2025-11-01T07:50:17.525876+00:00"
+        "aiSpendUsd": 0
       }
     ],
     "meta": {
-      "generatedAt": "2025-11-03T12:34:13.202582+00:00",
-      "requestId": "cfeddc46-c1e7-4a87-bea8-46e6861f7e8e"
+      "generatedAt": "2025-11-03T16:20:37.559044+00:00",
+      "requestId": "0b2c1e10-5ea3-45af-b8b9-a7c4b06b6048"
     },
     "timeline": null,
     "pagination": {
       "cursor": null,
-      "hasNext": false
+      "hasNext": true
     }
   }
   ```
@@ -56,13 +56,13 @@
           "monitorType": "organic",
           "status": "active",
           "statusReason": "curl demo verification",
-          "statusUpdatedAt": "2025-11-03T12:34:03.130395+00:00"
+          "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
         }
       }
     ],
     "meta": {
-      "generatedAt": "2025-11-03T12:34:13.438992+00:00",
-      "requestId": "bbad2125-1ffc-4ae3-a79e-e4eb82e586bc"
+      "generatedAt": "2025-11-03T16:20:37.832236+00:00",
+      "requestId": "0c23dac5-4993-4a59-8414-3b63a5335a8b"
     }
   }
   ```
@@ -74,44 +74,57 @@
       "status": "active",
       "metadata": {
         "statusReason": "curl demo verification",
-        "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
+        "statusUpdatedAt": "2025-11-03T16:20:38.603746+00:00"
       }
     },
     "meta": {
-      "requestId": "087fc984-12a5-4f02-bd9a-eb59cbc12187",
-      "generatedAt": "2025-11-03T12:34:14.154779+00:00"
+      "requestId": "fb2c30ba-dab9-41f8-9188-829edfd61aae",
+      "generatedAt": "2025-11-03T16:20:38.603746+00:00"
+    }
+  }
+  ```
+- `api_v2_guardian_active_leads`
+  ```json
+  {
+    "data": [
+      {
+        "leadId": "guardian_demo_lead",
+        "accountId": "00000000-0000-4000-8000-000000000001",
+        "lineUserId": "guardian_demo_line_user",
+        "updated_at": "2025-11-01T07:50:17.525876+00:00"
+      }
+    ],
+    "meta": {
+      "generatedAt": "2025-11-03T16:20:38.326738+00:00",
+      "requestId": "f2f20292-c1f9-47d2-9344-687ac9d94f73"
     }
   }
   ```
 
 ## 1. Reports (/apps/v2-reports)
-- **Mock/實際切換**：清空 `V2_SUPABASE_SERVICE_KEY` / `V2_SUPABASE_JWT` 後載入頁面應呈現 mock 資料；填入有效 token 後重新整理，應呼叫 `api_v2_reports` 並顯示回傳內容。
-- **設定範例**：`V2_SUPABASE_SERVICE_KEY=<service_role_key>`、`V2_DEFAULT_LEAD_ID=guardian_demo_lead` 對應 demo seed。
-- **Error State**：將 RPC 名稱改為錯誤值或使用過期 JWT，確認頁面顯示 `message` 內容（`guardian-alert--critical` 區塊），同時保留搜尋區塊。
-- **Mode A/B**：切換 A/B 時需重新呼叫 API 並渲染對應卡片；若 `insights.actions` 為空，須顯示「暫無建議」。
-- **缺權限**：將 `V2_SUPABASE_JWT` 清空、僅保留 service key 時，應顯示 mock 並提示「Supabase 環境未設定」；若後端回傳 403，alert 需顯示 `needs admin permission` 類訊息。
+- **Mock/實際切換**：清空 `V2_SUPABASE_SERVICE_KEY`/`V2_SUPABASE_JWT` 後載入頁面應呈現 mock；填入有效 token 後重新整理，確認改呼叫 `api_v2_reports`。
+- **Error State**：將 RPC 名稱改成錯誤值或使用過期 JWT，alert 需顯示後端 `message` 並保留搜尋區塊。
+- **Mode A/B**：切換 A/B 時重新呼叫 API；若 `insights.actions` 為空須顯示「暫無建議」。
 
 ## 2. Competitors (/apps/v2-competitors)
-- **列表載入**：缺憑證時顯示 mock 清單；有 token 時呼叫 `api_v2_competitors_list`，於 Network 面板確認 `rest/v1/rpc` request。
-- **資料結構**：Supabase RPC 目前回傳 `{ data: [...], meta: {...} }`（尚未含 account/trends），頁面會自動以 `data` 填入卡片與矩陣；若欄位缺失，Hero 卡須改顯示預設文字。
-- **新增競品**：填寫 `storeName/city/placeId`（選填網址）送出，呼叫 `api_v2_competitors_insert`；成功後提示「已建立競品」並即時加入列表。
-- **暫停/恢復/移除**：點擊列表內按鈕呼叫 `api_v2_competitors_update_status`，按鈕進入 loading；錯誤時顯示紅色訊息並保留原狀態。
-- **錯誤碼測試**：將 token 設為失效字串檢查 401 提示；設定 `V2_HAS_ADMIN_ROLE=false` 後確保所有呼叫在前端阻擋。
-- **函式缺失**：若出現 `PGRST202 Could not find the function public.api_v2_competitors_update_status`，需回報終端 1 部署該 RPC。
+- **列表載入**：缺憑證時顯示 mock 清單；有 token 時應送出 `api_v2_competitors_list` request。
+- **新增競品**：填寫 `storeName/city/placeId`（或網站）後送出，確認呼叫 `api_v2_competitors_insert`，成功後立即刷新列表。
+- **暫停/恢復/移除**：按鈕會呼叫 `api_v2_competitors_update_status`，並依回傳更新卡片狀態；錯誤時保留原狀並顯示紅色訊息。
 
 ## 3. Admin (/apps/v2-admin)
-- **搜尋**：輸入關鍵字後按「搜尋」，列表更新且顯示 info 訊息。
-- **方案切換**：填入 service key 後按任一方案按鈕，Network 應出現 `rest/v1/rpc/api_v2_admin_set_plan` 並回傳 `eventId`；介面應提示 LINE 推播已排程，錯誤時顯示紅色警示。
-- **流程觸發**：三個流程按鈕依序測試，Network 須出現 `rest/v1/rpc/api_v2_admin_flows_run`，成功訊息包含 `runId`、`status` 與測試模式標籤（若為測試需驗證 payload `testMode=true` 僅推播至私人 LINE）。
-- **缺權限**：將 `V2_HAS_ADMIN_ROLE=false`，確認按鈕顯示「需要 admin 權限」且不發出 request。
-- **函式缺失**：若 RPC 回覆 `Not Found` 或 `PGRST202`，需通知終端 1 補上對應函式。
+- **搜尋**：輸入關鍵字後按「搜尋」，更新列表並顯示 info 訊息。
+- **方案切換**：呼叫 `api_v2_admin_set_plan`，成功時顯示 `LINE 推播已排程` 並列出 eventId（2025-11-03 實測 `eventId=2f90196a-…`）。
+- **流程觸發**：
+  - 測試模式勾選時，`guardian_report_refresh` 回傳 `runId=bfbd845c-…`（`status=queued`），推播僅送至 `line_test_user_id` 並於資料庫記錄 `linePushStatus=SENT`。
+  - 取消勾選時，回傳 `runId=80843760-…`，推播送至 `line_admin_user_id`；SLO 可於 `public.guardian_workflow_status` 查到最新一筆。
+  - 若收到 4xx/5xx，alert 需顯示 `message` 原文；`V2_HAS_ADMIN_ROLE=false` 應阻擋呼叫並顯示權限提示。
 
-> 2025-11-03 Smoke Test：`api_v2_admin_set_plan` eventId=`2fe64ea8-…`；`guardian_report_refresh` 測試模式 runId=`44be1b1f-…`、正式模式 runId=`0d78ce4a-…`，皆回傳 `status=queued` 並收到 LINE 推播。
-
-> 建議於本機 `.env.local` 動態調整 token/URL，並搭配 `scripts/dev_guardian_v2.sh` 啟動所有 app 進行 Smoke Test。
-
-補充：如需先確認 RPC 回傳，可執行 `scripts/curl_guardian_v2_samples.sh all` 檢視 Supabase 回應與錯誤訊息。
+## 4. SLO / 佇列確認
+- 成功觸發後，可透過 `/rest/v1/guardian_workflow_status` 查詢 `guardian_report_refresh`、`guardian_hourly` 的最新 run（本輪 `runId=7f163d3e-…` 已寫入）。
+- Competitor Daily 佇列可在 `public.firecrawl_queue` 檢視 `firecrawlNote=QUEUED_FIRECRAWL`。
 
 ## Build 狀態（2025-11-03）
-- 使用 pnpm v10.20.0 於三個 app（reports / competitors / admin）分別執行 `pnpm install && pnpm build` 皆成功，僅出現 `Ignored build scripts: @parcel/watcher, esbuild` 與 Sass legacy JS API deprecation 警告（後續可視需要執行 `pnpm approve-builds` 或升級 Sass）。
-- build 產出包含 `dist/index.html` 與對應 CSS/JS bundle，確認最新版結構無異常。
+- 使用 pnpm v10.20.0 於 `apps/v2-{reports,competitors,admin}` 依序執行 `pnpm install && pnpm build` 均成功，僅出現 `Ignored build scripts: @parcel/watcher, esbuild` 與 Sass legacy JS API deprecation 警告。
+- build 產生 `dist/index.html` 與 CSS/JS bundle，確認內容可供部署。
+
+> 建議於 Smoke Test 後，更新 `tmp/guardian_v2_competitors_rpc_2025-11-01.md` 並在 README 記錄最新 runId/eventId，方便後續追蹤。

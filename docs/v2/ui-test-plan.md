@@ -79,9 +79,10 @@
 - **錯誤碼測試**：將 token 設為失效字串檢查 401 提示；設定 `V2_HAS_ADMIN_ROLE=false` 後確保所有呼叫在前端阻擋。
 - **函式缺失**：若出現 `PGRST202 Could not find the function public.api_v2_competitors_update_status`，需回報終端 1 部署該 RPC。
 
+## 3. Admin (/apps/v2-admin)
 - **搜尋**：輸入關鍵字後按「搜尋」，列表更新且顯示 info 訊息。
 - **方案切換**：填入 service key 後按任一方案按鈕，Network 應出現 `rest/v1/rpc/api_v2_admin_set_plan` 並回傳 `eventId`；介面應提示 LINE 推播已排程，錯誤時顯示紅色警示。
-- **流程觸發**：三個流程按鈕依序測試，Network 須出現 `rest/v1/rpc/api_v2_admin_flows_run`，成功訊息包含 `runId` 與狀態，並提醒 LINE 推播已排程。
+- **流程觸發**：三個流程按鈕依序測試，Network 須出現 `rest/v1/rpc/api_v2_admin_flows_run`，成功訊息包含 `runId`、`status` 與測試模式標籤（若為測試需驗證 payload `testMode=true` 僅推播至私人 LINE）。
 - **缺權限**：將 `V2_HAS_ADMIN_ROLE=false`，確認按鈕顯示「需要 admin 權限」且不發出 request。
 - **函式缺失**：若 RPC 回覆 `Not Found` 或 `PGRST202`，需通知終端 1 補上對應函式。
 

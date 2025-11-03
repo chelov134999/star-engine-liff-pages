@@ -165,12 +165,29 @@
 ```json
 {
   "data": {
-    "runId": "a74cbc57-f8fe-4ea7-bb2f-01abe6390a99",
+    "runId": "fc9f4a54-ae1f-447d-bb73-57a9f8fc3dc5",
     "status": "queued",
     "flowCode": "guardian_report_refresh"
   },
   "meta": {
-    "createdAt": "2025-11-01T11:42:40.69237+00:00"
+    "createdAt": "2025-11-03T07:38:36.635726+00:00"
   }
 }
 ```
+
+> 測試模式：推播僅發送至 line_test_user_id。
+
+```json
+{
+  "data": {
+    "runId": "4c76d2f7-f4c3-4c79-989f-d7778c37da22",
+    "status": "queued",
+    "flowCode": "guardian_report_refresh"
+  },
+  "meta": {
+    "createdAt": "2025-11-03T07:38:48.176671+00:00"
+  }
+}
+```
+
+> 正式模式：推播送至 line_admin_user_id。

@@ -51,6 +51,7 @@ const AdminPage: React.FC = () => {
   const [statusSeverity, setStatusSeverity] = useState<'info' | 'error' | 'success'>('info');
   const [planLoading, setPlanLoading] = useState(false);
   const [flowLoading, setFlowLoading] = useState<Record<string, boolean>>({});
+  const [testMode, setTestMode] = useState(false);
 
   const filteredAccounts = useMemo(() => {
     if (!searchTerm.trim()) return mockAccounts;
@@ -122,10 +123,12 @@ const AdminPage: React.FC = () => {
         flow,
         accountId: selectedAccount.accountId,
         note: DEFAULT_REASON,
+        testMode,
       });
       setStatusSeverity('info');
       const runSummary = `${result.data.runId.slice(0, 8)} · ${result.data.status}`;
-      setStatusMessage(`已送出流程 ${flow} · run ${runSummary} · LINE 推播已排程`);
+      const modeLabel = testMode ? '（測試）' : '';
+      setStatusMessage(`已送出流程 ${flow}${modeLabel} · run ${runSummary} · LINE 推播已排程`);
     } catch (error) {
       const message = error instanceof Error ? error.message : '流程觸發失敗';
       setStatusSeverity('error');
@@ -233,6 +236,17 @@ const AdminPage: React.FC = () => {
 
         <section className="guardian-section">
           <h2>觸發流程</h2>
+          <div className="guardian-form guardian-form--inline">
+            <label className="guardian-field__label" htmlFor="admin-test-mode">
+              測試模式（推播至個人 LINE）
+            </label>
+            <input
+              id="admin-test-mode"
+              type="checkbox"
+              checked={testMode}
+              onChange={(event) => setTestMode(event.target.checked)}
+            />
+          </div>
           <div className="guardian-hero__actions">
             <QuickActionButton
               label="重新產生報表"

@@ -160,6 +160,7 @@
     );
     const canAttemptDirect = liffReady && inClient;
     let lastDirectError = null;
+    let directAttempted = false;
 
     if (typeof engine.ensureLineBinding === 'function' && leadId) {
       engine.ensureLineBinding({ leadId }).catch(() => {});
@@ -183,6 +184,15 @@
       return false;
     };
 
+    if (canAttemptDirect) {
+      directAttempted = true;
+      const finalAttempt = await sendDirectMessage();
+      if (finalAttempt) {
+        closeLiffView();
+        return true;
+      }
+    }
+
     let dispatched = false;
     if (typeof engine.triggerGuardianWebhook === 'function') {
       try {
@@ -201,25 +211,14 @@
       return true;
     }
 
-    if (!canAttemptDirect || lastDirectError) {
-      const fallbackReason = !inClient ? 'not_in_client' : 'send_failed';
-      trackChatEvent('chat_guardian_fallback', {
-        lead_id: leadId || null,
-        source: 's7_cta',
-        reason: fallbackReason,
-        context_type: contextType || 'unknown',
-      });
-      showExternalNotice(context, fallbackReason, lastDirectError);
-      return false;
-    }
-
-    const finalAttempt = await sendDirectMessage();
-    if (finalAttempt) {
-      closeLiffView();
-      return true;
-    }
-
-    showExternalNotice(context, 'send_failed', lastDirectError);
+    const fallbackReason = !inClient ? 'not_in_client' : (directAttempted ? 'send_failed' : 'webhook_failed');
+    trackChatEvent('chat_guardian_fallback', {
+      lead_id: leadId || null,
+      source: 's7_cta',
+      reason: fallbackReason,
+      context_type: contextType || 'unknown',
+    });
+    showExternalNotice(context, fallbackReason, lastDirectError);
     return false;
   }
 

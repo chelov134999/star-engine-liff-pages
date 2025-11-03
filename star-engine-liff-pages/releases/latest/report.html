@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>星級引擎｜S7 守護接力</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
+    <link rel="stylesheet" href="styles.css?ts=20251022T2350" />
+    <link rel="stylesheet" href="styles/s7-chatkit.css?ts=20251022T2350" />
+    <link rel="stylesheet" href="styles/mobile-fixes.css" />
+    <script src="config.runtime.js?ts=20251022T2350" defer></script>
+    <script src="analytics.js?ts=20251022T2350" defer></script>
+    <script src="app.js?ts=20251022T2350" defer></script>
+    <script src="report.js?ts=20251022T2350" defer></script>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js" defer></script>
+    <script type="module" src="chatkit-init.js?ts=20251022T1500" defer></script>
+    <script src="./chatkit/chatkit.js" defer></script>
+    <script src="chatkit-config.js?ts=20251022T1400" defer></script>
+    <script src="chatkit-init.js?ts=20251022T1400" defer></script>
+  </head>
+  <body class="page-report page-s7-handoff">
+    <header class="app-header header" aria-label="星級引擎導覽">
+      <a class="app-brand" href="index.html">
+        <img src="assets/brand/logo.png" alt="星級引擎 Star Engine" width="32" height="32" />
+        <span class="app-brand__name">星級引擎｜STAR ENGINE</span>
+      </a>
+      <nav class="app-nav" aria-label="主要導覽">
+        <a class="app-nav__link" href="onboarding.html">返回流程</a>
+        <a class="app-nav__link" href="mailto:ai@mdzh.io">聯絡守護團隊</a>
+      </nav>
+    </header>
+
+    <main class="report-shell s7-shell" data-handoff>
+      <section class="s7-card s7-hero" aria-labelledby="s7-title">
+        <span class="s7-tag">S7 · 守護接力</span>
+        <h1 id="s7-title">AI 初檢完成，守護專家準備陪你對話</h1>
+        <p class="s7-subhead">
+          報告已同步。我們的星級引擎守護專家（採用 OpenAI ChatKit 對話引擎）正在等待你，一起看今天的重點與下一步。
+        </p>
+
+        <div class="s7-info-grid" role="list">
+          <article class="s7-info" role="listitem">
+            <h2>入場券</h2>
+            <p class="s7-info__value" data-lead-code>—</p>
+            <span class="s7-info__note">保留這組序號，方便守護專家核對。</span>
+          </article>
+          <article class="s7-info" role="listitem">
+            <h2>最新同步</h2>
+            <p class="s7-info__value">
+              <span data-last-sync>--</span>
+              <span class="s7-info__divider">+</span>
+              <span data-next-sync>--</span>
+            </p>
+            <span class="s7-info__note">資料由星級引擎保管。</span>
+          </article>
+          <article class="s7-info" role="listitem">
+            <h2>LINE 回覆</h2>
+            <p class="s7-info__value">15 秒內抵達 LINE</p>
+            <span class="s7-info__note">未收到請寄信：ai@mdzh.io。</span>
+          </article>
+        </div>
+
+        <div class="s7-cta">
+          <a class="btn btn-primary s7-button" data-chatkit-cta href="https://liff.line.me/2008215846-5LwXlWVN">
+            與守護專家聊聊
+          </a>
+          <p class="s7-cta__note">由 OpenAI ChatKit 對話引擎支援，我們全程陪同。</p>
+          <a
+            class="s7-backup-link"
+            data-backup-link
+            data-template="mailto:ai@mdzh.io?subject=星級引擎報告&body=請協助寄送我的報告，入場券：{{lead_id}}"
+            href="mailto:ai@mdzh.io?subject=星級引擎報告&body=請協助寄送我的報告，入場券："
+          >
+            不方便使用 LINE？寄 Email 摘要給我
+          </a>
+        </div>
+      </section>
+
+      <section class="s7-card s7-chat" aria-labelledby="s7-chat-title">
+        <div class="s7-chat__header">
+          <h2 id="s7-chat-title">星級引擎守護專家（ChatKit）</h2>
+          <p class="s7-chat__note">這裡會顯示守護專家的即時對話與工具操作，也可以直接輸入想詢問的重點。</p>
+        </div>
+        <div id="chatkit-root" aria-live="polite"></div>
+      </section>
+
+      <section class="s7-card s7-companion" aria-labelledby="s7-companion-title">
+        <h2 id="s7-companion-title">接下來我們會陪你做的三件事</h2>
+        <ul>
+          <li>梳理今日的曝光、評論、AI 語意指標，指出最需要注意的風險。</li>
+          <li>為你準備兩項立即可執行的任務，包含低星回覆草稿與補強建議。</li>
+          <li>視你的節奏，討論守望塔或領航艦方案是否值得；不急著決定。</li>
+        </ul>
+      </section>
+
+      <section class="s7-card s7-security" aria-labelledby="s7-security-title">
+        <div class="s7-security__header">
+          <span class="s7-icon" aria-hidden="true">i</span>
+          <h2 id="s7-security-title">資料與安全，仍由星級引擎控管</h2>
+        </div>
+        <ul>
+          <li>每次請求皆附 HMAC、timestamp、Idempotency Key，防止重放。</li>
+          <li>ChatKit 僅透過 Gateway 取得部分資料，無法直接存取資料庫。</li>
+          <li>對話不會顯示完整評論內容；資料保留 90 天，可向 ai@mdzh.io 提出刪除。</li>
+          <li>若 15 秒內未收到 LINE 通知，請寫信至 ai@mdzh.io，我們會親自送上報告。</li>
+        </ul>
+      </section>
+    </main>
+
+    <section class="s7-empty" data-empty-state hidden aria-live="polite">
+      <div class="s7-card s7-empty__card">
+        <h2>尚未取得入場券</h2>
+        <p>請回到首頁重新建立，我們會重新為你生成 AI 初檢並安排守護專家陪伴。</p>
+        <div class="s7-empty__actions">
+          <a class="btn btn-primary s7-button" href="index.html">返回首頁重新建立</a>
+          <a class="s7-backup-link" href="mailto:ai@mdzh.io">需要協助？寫信給守護團隊</a>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

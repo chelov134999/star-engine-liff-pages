@@ -22,7 +22,7 @@ src/
 2. 進入 `apps/v2-admin/` 後執行 `pnpm install`、`pnpm dev` 啟動開發伺服器（同樣需要 `sass` 支援）。
 3. 串接 Supabase RPC：
    - `api_v2_admin_set_plan`：方案切換（body：`{p_account, p_plan_code, p_plan_source, p_expires_at?, p_notes?}`）。前端透過 service key / JWT 驗證，成功後會回傳 `eventId` 與最新 `planSource`。
-   - `api_v2_admin_flows_run`：排入後台流程（body：`{p_flow_code, p_payload}`），回傳 `runId` 與排程狀態；前端提供「測試模式」勾選，送出後會推播通知至指定 LINE 帳號（測試模式時僅推播至私人 LINE）。
+   - `api_v2_admin_flows_run`：排入後台流程（body：`{p_flow_code, p_payload}`），回傳 `runId` 與排程狀態；成功後會推播通知至指定 LINE 帳號。
    - 呼叫前需檢查登入者是否具備 `guardian.admin` 或 `guardian.ops` 權限（等待 LIFF / Supabase Auth 串接）。
 4. `.env.local` 需提供 `V2_SUPABASE_URL`、`V2_SUPABASE_ANON_KEY`、`V2_SUPABASE_SERVICE_KEY|JWT`。可透過 `V2_HAS_ADMIN_ROLE=false` 模擬 viewer 角色。`V2_ADMIN_PLAN_REASON` 與 `V2_ADMIN_PLAN_SOURCE` 可自訂變更原因與來源標記。
 
@@ -34,5 +34,5 @@ src/
 
 ## 驗證筆記（2025-11-01）
 - `api_v2_admin_set_plan`：`acct-guardian-demo` 從 PRO 切換至 Lite 成功，回傳 `eventId=97e61ad7-...`；UI 提示「方案已更新為 LITE（來源 manual） · 事件 97e61ad7 · LINE 推播已排程」。
-- `api_v2_admin_flows_run`（測試模式）：觸發 `guardian_report_refresh` 回傳 `runId=a74cbc57-...`（status `queued`），頁面顯示 `已送出流程 guardian_report_refresh（測試） · run a74cbc57 · queued · LINE 推播已排程`。
+- `api_v2_admin_flows_run`：觸發 `guardian_report_refresh` 回傳 `runId=a74cbc57-...`，頁面顯示 `已送出流程 guardian_report_refresh · run a74cbc57 · LINE 推播已排程`。
 - 權限測試：將 `V2_HAS_ADMIN_ROLE=false` 時，所有按鈕顯示「需要 admin 權限」且未送出 RPC。

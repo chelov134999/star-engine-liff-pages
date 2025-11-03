@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>星級引擎｜AI 守護報告</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="config.runtime.js" defer></script>
+    <script src="analytics.js" defer></script>
+    <script src="app.js" defer></script>
+    <script src="report.js" defer></script>
+  </head>
+  <body class="page-report">
+    <div class="page">
+      <header class="site-header">
+        <a class="brand-mini" href="index.html">
+          <img src="logo.png" alt="星級引擎 Logo">
+          <span class="logo-text">
+            <span class="logo-name">星級引擎</span>
+            <span class="logo-divider">|</span>
+            <span class="logo-tag">脈動智匯</span>
+          </span>
+        </a>
+      </header>
+
+      <main class="report-content">
+        <header class="card report-card report-hero" aria-labelledby="report-title">
+          <div class="card-header">
+            <span class="chip">AI 初檢</span>
+            <h1 id="report-title">AI 初檢報告</h1>
+            <p class="lead-meta">入場券：<strong data-report-lead>—</strong></p>
+            <p class="hero-hint">AI 正同步你的品牌檔案，下列指標會在資料更新後自動刷新。</p>
+          </div>
+          <div class="intro-meta">
+            <span>最近更新：<strong data-last-updated>--</strong></span>
+            <span>下一次同步：<strong data-next-sync>--</strong></span>
+            <span class="token-chip" data-token-wrapper hidden>Token：<strong data-report-token>—</strong></span>
+          </div>
+        </header>
+
+        <p class="report-status" data-report-status>AI 正在拉取最新資料…</p>
+
+        <section class="card report-card" aria-labelledby="kpi-title">
+          <div class="card-header">
+            <h2 id="kpi-title">AI 監控 4 大指標</h2>
+            <p>右上角顯示資料來源，缺值時會顯示「資料更新中」。</p>
+          </div>
+          <div class="kpi-grid">
+            <article class="kpi-card" data-kpi="search_visibility">
+              <header class="kpi-head">
+                <h3>搜尋曝光</h3>
+                <span class="badge">來源: <span data-source>—</span></span>
+              </header>
+              <p class="kpi-value" data-value>資料更新中</p>
+              <p class="kpi-note" data-note></p>
+              <p class="kpi-desc">近期是否出現在前 3 名搜尋推薦。</p>
+            </article>
+            <article class="kpi-card" data-kpi="ai_visibility">
+              <header class="kpi-head">
+                <h3>AI 可見度</h3>
+                <span class="badge">來源: <span data-source>—</span></span>
+              </header>
+              <p class="kpi-value" data-value>資料更新中</p>
+              <p class="kpi-note" data-note></p>
+              <p class="kpi-desc">AI 摘要中是否提到你的品牌與賣點。</p>
+            </article>
+            <article class="kpi-card" data-kpi="crisis_alert">
+              <header class="kpi-head">
+                <h3>危機警示</h3>
+                <span class="badge">來源: <span data-source>—</span></span>
+              </header>
+              <p class="kpi-value" data-value>資料更新中</p>
+              <p class="kpi-note" data-note></p>
+              <p class="kpi-desc">低星評論與負面訊號的即時狀態。</p>
+            </article>
+            <article class="kpi-card" data-kpi="recommendation_heat">
+              <header class="kpi-head">
+                <h3>推薦熱度</h3>
+                <span class="badge">來源: <span data-source>—</span></span>
+              </header>
+              <p class="kpi-value" data-value>資料更新中</p>
+              <p class="kpi-note" data-note></p>
+              <p class="kpi-desc">AI 是否把你列為推薦名單。</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="card report-card" aria-labelledby="competitor-title">
+          <div class="card-header">
+            <h2 id="competitor-title">競品對照 — Top 3</h2>
+            <p>比較星等、回覆速度與 AI 推薦率，找出需要追趕的指標。</p>
+          </div>
+          <div class="table-wrapper">
+            <table class="compare-table" data-competitor-table>
+              <thead>
+                <tr>
+                  <th scope="col">競品</th>
+                  <th scope="col">Google 星等</th>
+                  <th scope="col">回覆速度</th>
+                  <th scope="col">AI 推薦率</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="skeleton-row"><td colspan="4">資料更新中</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card report-card" aria-labelledby="mission-title">
+          <div class="card-header">
+            <h2 id="mission-title">AI 守護任務</h2>
+            <p>按照時程分為立即補救、下一步與自助引導，協助你快速改善。</p>
+          </div>
+          <div class="accordion" data-accordion>
+            <details open>
+              <summary>立即補救</summary>
+              <ul class="task-list" data-task-group="immediate">
+                <li>資料更新中</li>
+              </ul>
+            </details>
+            <details>
+              <summary>下一步</summary>
+              <ul class="task-list" data-task-group="next">
+                <li>資料更新中</li>
+              </ul>
+            </details>
+            <details>
+              <summary>自助引導</summary>
+              <ul class="task-list" data-task-group="self">
+                <li>資料更新中</li>
+              </ul>
+            </details>
+          </div>
+        </section>
+
+        <section class="card report-card" aria-labelledby="member-title">
+          <div class="card-header">
+            <h2 id="member-title">會員狀態</h2>
+            <p>同步 DataForSEO 帳號資訊與最近一次更新時間。</p>
+          </div>
+          <article class="member-card">
+            <dl>
+              <div>
+                <dt>方案</dt>
+                <dd data-plan-tier>--</dd>
+              </div>
+              <div>
+                <dt>狀態</dt>
+                <dd data-plan-status>--</dd>
+              </div>
+              <div>
+                <dt>DataForSEO 同步</dt>
+                <dd data-plan-sync>--</dd>
+              </div>
+            </dl>
+          </article>
+        </section>
+
+        <section class="card report-card" aria-labelledby="cta-title">
+          <div class="card-header">
+            <h2 id="cta-title">升級守護方案</h2>
+            <p>選擇最符合你的服務層級，立即鎖定品牌聲量。</p>
+          </div>
+          <article class="plan-card report-plan">
+            <div class="plan-content">
+              <h3>AI 守護服務</h3>
+              <p>包含每日監控、競品對照、專人教練與 AI 自動化回覆。</p>
+            </div>
+            <div class="plan-actions">
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-plan-action="checkout"
+                data-analytics-event="s7_plan_click"
+                data-analytics-payload='{"plan":"sentry"}'
+              >
+                立即啟動 AI 守護
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline"
+                data-plan-action="upgrade"
+                data-analytics-event="s7_plan_click"
+                data-analytics-payload='{"plan":"navigator"}'
+              >
+                開啟升星計畫
+              </button>
+              <button
+                type="button"
+                class="btn btn-ghost"
+                data-plan-action="chat"
+                data-analytics-event="s7_plan_click"
+                data-analytics-payload='{"plan":"chatkit"}'
+              >
+                先與守護專家對話
+              </button>
+            </div>
+          </article>
+        </section>
+
+        <section class="report-empty" hidden data-empty-state>
+          <h2>AI 還在準備你的報告</h2>
+          <p>若等待超過 1 分鐘，請與守護專家聯絡，我們會協助手動同步。</p>
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-empty-chat
+            data-analytics-event="s7_timeout_chat"
+          >
+            開啟 ChatKit 專線
+          </button>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

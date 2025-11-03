@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>星級引擎｜AI 入場券申請</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
+    <link rel="stylesheet" href="styles.css?ts=20251022T1400" />
+  </head>
+  <body class="page-index">
+    <header class="app-header" aria-label="星級引擎頂部導覽">
+      <a class="app-brand" href="index.html">
+        <img src="assets/brand/logo.png" alt="星級引擎 Star Engine" width="32" height="32" />
+        <span class="app-brand__name">星級引擎｜STAR ENGINE</span>
+      </a>
+      <nav class="app-nav" aria-label="主要導覽">
+        <a class="app-nav__link" href="onboarding.html?lead_id=preview" data-analytics-event="s0_preview"
+          >流程預覽</a
+        >
+        <a class="app-nav__link" href="report.html?lead_id=preview" data-analytics-event="s0_report_preview"
+          >報告示意</a
+        >
+      </nav>
+    </header>
+
+    <main class="index-shell">
+      <section class="index-hero" aria-labelledby="hero-title">
+        <span class="hero-chip">S0 · AI 入場券申請</span>
+        <h1 id="hero-title">三分鐘啟動 AI 守護，為門市建立第一份品牌體檢。</h1>
+        <p class="hero-lead">
+          填入門市定位資訊，AI 會模擬搜尋曝光、整理守護任務並生成初檢報告。整個流程由星級引擎專家驗證，確保你獲得最可信的品牌健康指引。
+        </p>
+      </section>
+
+      <section class="index-grid">
+        <form id="lead-form" class="lead-card" autocomplete="off" novalidate>
+          <header class="lead-card__header">
+            <h2>一次填好門市資料，AI 立即排程守護。</h2>
+            <p>保持地址與店名精準，AI 能在 3 分鐘內完成第一輪掃描。</p>
+          </header>
+
+          <div class="lead-form-grid">
+            <label class="field" for="city">
+              <span class="field__label">城市</span>
+              <input
+                id="city"
+                name="city"
+                type="text"
+                inputmode="text"
+                autocomplete="address-level2"
+                placeholder="例如：台北市"
+                data-error-empty="請填寫城市"
+                data-autofocus-next="#route"
+                required
+              />
+              <span class="field__error" aria-live="polite"></span>
+            </label>
+
+            <label class="field" for="route">
+              <span class="field__label">路段</span>
+              <input
+                id="route"
+                name="route"
+                type="text"
+                inputmode="text"
+                autocomplete="address-line1"
+                placeholder="例如：信義路四段"
+                data-error-empty="請填寫路段"
+                data-autofocus-next="#number"
+                required
+              />
+              <span class="field__error" aria-live="polite"></span>
+            </label>
+
+            <label class="field" for="number">
+              <span class="field__label">門牌</span>
+              <input
+                id="number"
+                name="number"
+                type="tel"
+                inputmode="numeric"
+                pattern="[0-9０-９-／\\s]*"
+                autocomplete="address-line2"
+                placeholder="例如：99 號"
+                data-error-empty="請填寫門牌"
+                data-autofocus-next="#name"
+                required
+              />
+              <span class="field__error" aria-live="polite"></span>
+            </label>
+
+            <label class="field" for="name">
+              <span class="field__label">店名</span>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                inputmode="text"
+                autocomplete="organization"
+                placeholder="例如：星級咖啡館"
+                data-error-empty="請填寫店名"
+                required
+              />
+              <span class="field__error" aria-live="polite"></span>
+            </label>
+          </div>
+
+          <p class="form-status" role="alert" aria-live="polite"></p>
+
+          <div class="lead-actions">
+            <button
+              id="cta-start"
+              type="submit"
+              class="btn btn-primary"
+              data-loading-text="正在連接星級引擎…"
+            >
+              <span class="btn-label">申請 AI 入場券</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+            <a
+              class="btn btn-outline"
+              href="onboarding.html?lead_id=preview"
+              data-analytics-event="s0_preview_click"
+            >
+              預覽流程節奏
+            </a>
+          </div>
+        </form>
+
+        <aside class="index-aside" aria-label="流程節奏及提示">
+          <article class="aside-card">
+            <h3>流程節奏</h3>
+            <ol class="timeline">
+              <li>
+                <span class="timeline__step">Step 1</span>
+                <p>AI 定位門市資料與常見搜尋語句。</p>
+              </li>
+              <li>
+                <span class="timeline__step">Step 2</span>
+                <p>比對競品表現、評論狀態與守護任務。</p>
+              </li>
+              <li>
+                <span class="timeline__step">Step 3</span>
+                <p>生成初檢報告與 ChatKit 專家建議。</p>
+              </li>
+            </ol>
+          </article>
+          <article class="aside-card">
+            <h3>填寫提醒</h3>
+            <p>
+              若有別稱、巷弄資訊或熱門品項，可補充在店名欄位；這些關鍵字會一起被 AI 帶入分析，更容易命中搜尋與對話推薦。
+            </p>
+          </article>
+        </aside>
+      </section>
+    </main>
+
+    <div class="handoff-overlay" id="handoff-overlay" role="status" aria-live="polite" hidden>
+      <div class="handoff-panel">
+        <div class="handoff-logo" aria-hidden="true">
+          <img src="assets/brand/logo.png" alt="" width="40" height="40" />
+        </div>
+        <p class="handoff-text">星級引擎正在接手，準備啟動 AI 守護…</p>
+        <div class="handoff-progress">
+          <span class="handoff-progress__bar" data-handoff-progress></span>
+        </div>
+      </div>
+    </div>
+
+    <script src="config.runtime.js?ts=20251027T1450" defer></script>
+    <script src="analytics.js?ts=20251022T1400" defer></script>
+    <script src="app.js?ts=20251022T1400" defer></script>
+  </body>
+</html>

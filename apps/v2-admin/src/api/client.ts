@@ -16,7 +16,6 @@ export interface AdminFlowPayload {
   flow: string;
   accountId: string;
   note?: string;
-  testMode?: boolean;
   payload?: Record<string, unknown>;
 }
 
@@ -83,7 +82,6 @@ export const triggerFlow = async (payload: AdminFlowPayload): Promise<AdminFlowR
     p_payload: {
       accountId: payload.accountId,
       note: payload.note,
-      testMode: payload.testMode ?? false,
       ...(payload.payload ?? {}),
     },
   });

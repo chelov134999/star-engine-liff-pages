@@ -32,8 +32,8 @@ src/
 - `404`：Supabase 尚未部署 `api_v2_admin_*` 函式；請確認終端 1 是否套用 20251104000000 migration。
 - 其他錯誤：alert 會顯示 API `message`，請同步給終端 1 排查。
 
-## 驗證筆記（2025-11-01）
-- `api_v2_admin_set_plan`：`acct-guardian-demo` 從 PRO 切換至 Lite 成功，回傳 `eventId=97e61ad7-...`；UI 提示「方案已更新為 LITE（來源 manual） · 事件 97e61ad7 · LINE 推播已排程」。
-- `api_v2_admin_flows_run`（測試模式）：觸發 `guardian_report_refresh` 回傳 `runId=fc9f4a54-...`（`status=queued`），頁面顯示 `已送出流程 guardian_report_refresh（測試） · run fc9f4a54 · queued · LINE 推播已排程`。
-- `api_v2_admin_flows_run`（正式模式）：回傳 `runId=4c76d2f7-...`，頁面顯示 `已送出流程 guardian_report_refresh · run 4c76d2f7 · queued · LINE 推播已排程`。
+## 驗證筆記（2025-11-03）
+- `api_v2_admin_set_plan`：`acct-guardian-demo` 升級至 Guardian Pro 成功，回傳 `eventId=2fe64ea8-...`；UI 提示「方案已更新為 GUARDIAN_PRO（來源 manual） · 事件 2fe64ea8 · LINE 推播已排程」。
+- `api_v2_admin_flows_run`（測試模式）：觸發 `guardian_report_refresh` 回傳 `runId=44be1b1f-...`（`status=queued`），頁面顯示 `已送出流程 guardian_report_refresh（測試） · run 44be1b1f · queued · LINE 推播已排程`。
+- `api_v2_admin_flows_run`（正式模式）：回傳 `runId=0d78ce4a-...`，頁面顯示 `已送出流程 guardian_report_refresh · run 0d78ce4a · queued · LINE 推播已排程`。
 - 權限測試：將 `V2_HAS_ADMIN_ROLE=false` 時，所有按鈕顯示「需要 admin 權限」且未送出 RPC。

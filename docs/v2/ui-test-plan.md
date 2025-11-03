@@ -1,24 +1,29 @@
 # Guardian V2 UI Smoke Test Plan
 
-## RPC 驗證（2025-11-01）
+## RPC 驗證（2025-11-03）
 - `api_v2_reports`
   ```json
   {
     "data": [
       {
+        "insights": [],
+        "planTier": "lite",
         "reportId": "00000000-0000-4000-8000-000000000021",
         "reportDate": "2025-10-31",
-        "generatedAt": "2025-11-01T07:50:17.525876+00:00",
         "accountName": "Guardian Demo Lead",
-        "planTier": "lite",
         "coverageScore": 0,
         "aiSpendUsd": 0,
-        "insights": []
+        "generatedAt": "2025-11-01T07:50:17.525876+00:00"
       }
     ],
     "meta": {
-      "generatedAt": "2025-11-01T17:13:49.714375+00:00",
-      "requestId": "ba82e18e-fb8a-4348-9aac-5c39c4d73bbb"
+      "generatedAt": "2025-11-03T12:34:13.202582+00:00",
+      "requestId": "cfeddc46-c1e7-4a87-bea8-46e6861f7e8e"
+    },
+    "timeline": null,
+    "pagination": {
+      "cursor": null,
+      "hasNext": false
     }
   }
   ```
@@ -39,11 +44,25 @@
           "statusReason": "curl demo verification",
           "statusUpdatedAt": "2025-11-01T11:23:16.325362+00:00"
         }
+      },
+      {
+        "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
+        "storeName": "Demo Bistro",
+        "city": "Taipei",
+        "sentimentDelta": 0,
+        "metadata": {
+          "leadId": "guardian_demo_lead",
+          "accountId": "00000000-0000-4000-8000-000000000001",
+          "monitorType": "organic",
+          "status": "active",
+          "statusReason": "curl demo verification",
+          "statusUpdatedAt": "2025-11-03T12:34:03.130395+00:00"
+        }
       }
     ],
     "meta": {
-      "generatedAt": "2025-11-01T17:13:59.990308+00:00",
-      "requestId": "cbe327e2-b966-46ac-a888-968afada2169"
+      "generatedAt": "2025-11-03T12:34:13.438992+00:00",
+      "requestId": "bbad2125-1ffc-4ae3-a79e-e4eb82e586bc"
     }
   }
   ```
@@ -52,14 +71,15 @@
   {
     "data": {
       "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
-      "status": "paused",
+      "status": "active",
       "metadata": {
-        "statusReason": "frontend-demo",
-        "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
+        "statusReason": "curl demo verification",
+        "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
       }
     },
     "meta": {
-      "requestId": "e443d669-da78-48be-9b6d-cf3033db1339"
+      "requestId": "087fc984-12a5-4f02-bd9a-eb59cbc12187",
+      "generatedAt": "2025-11-03T12:34:14.154779+00:00"
     }
   }
   ```
@@ -86,10 +106,12 @@
 - **缺權限**：將 `V2_HAS_ADMIN_ROLE=false`，確認按鈕顯示「需要 admin 權限」且不發出 request。
 - **函式缺失**：若 RPC 回覆 `Not Found` 或 `PGRST202`，需通知終端 1 補上對應函式。
 
+> 2025-11-03 Smoke Test：`api_v2_admin_set_plan` eventId=`2fe64ea8-…`；`guardian_report_refresh` 測試模式 runId=`44be1b1f-…`、正式模式 runId=`0d78ce4a-…`，皆回傳 `status=queued` 並收到 LINE 推播。
+
 > 建議於本機 `.env.local` 動態調整 token/URL，並搭配 `scripts/dev_guardian_v2.sh` 啟動所有 app 進行 Smoke Test。
 
 補充：如需先確認 RPC 回傳，可執行 `scripts/curl_guardian_v2_samples.sh all` 檢視 Supabase 回應與錯誤訊息。
 
-## Build 狀態（2025-11-01）
-- 透過 `npm install -g pnpm` 取得 pnpm v10.20.0，針對三個 app（reports / competitors / admin）執行 `pnpm install` 無誤（仍會顯示 `Ignored build scripts: @parcel/watcher, esbuild`，尚未執行 `pnpm approve-builds`）。
-- 補上 `index.html` 與 `src/main.tsx` 入口後，`pnpm build` 皆成功輸出（reports/dist、competitors/dist、admin/dist 均生成 HTML/CSS/JS bundle；Sass 模組出現 legacy JS API deprecation warning，待日後升級）。
+## Build 狀態（2025-11-03）
+- 使用 pnpm v10.20.0 於三個 app（reports / competitors / admin）分別執行 `pnpm install && pnpm build` 皆成功，僅出現 `Ignored build scripts: @parcel/watcher, esbuild` 與 Sass legacy JS API deprecation 警告（後續可視需要執行 `pnpm approve-builds` 或升級 Sass）。
+- build 產出包含 `dist/index.html` 與對應 CSS/JS bundle，確認最新版結構無異常。

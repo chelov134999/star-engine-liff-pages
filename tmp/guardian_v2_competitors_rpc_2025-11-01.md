@@ -1,8 +1,36 @@
-# Guardian V2 Competitors RPC Verification — 2025-11-01
+# Guardian V2 Competitors RPC Verification — 2025-11-03
 
 以 `.env.local` 中的 Supabase demo 憑證呼叫遠端 RPC，確認終端 2 前端所需欄位與錯誤訊息行為。
 
 > 請自行從 `.env.local` 讀取 `SUPABASE_REST_URL`、`SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 後執行下列 `curl`。
+
+## `api_v2_reports` — 200 OK
+
+```json
+{
+  "data": [
+    {
+      "insights": [],
+      "planTier": "lite",
+      "reportId": "00000000-0000-4000-8000-000000000021",
+      "aiSpendUsd": 0,
+      "reportDate": "2025-10-31",
+      "accountName": "Guardian Demo Lead",
+      "generatedAt": "2025-11-01T07:50:17.525876+00:00",
+      "coverageScore": 0
+    }
+  ],
+  "meta": {
+    "requestId": "cfeddc46-c1e7-4a87-bea8-46e6861f7e8e",
+    "generatedAt": "2025-11-03T12:34:13.202582+00:00"
+  },
+  "timeline": null,
+  "pagination": {
+    "cursor": null,
+    "hasNext": false
+  }
+}
+```
 
 ## `api_v2_competitors_list` — 200 OK
 
@@ -43,11 +71,11 @@
         "website": "https://demo-bistro.example.com",
         "accountId": "00000000-0000-4000-8000-000000000001",
         "monitorType": "organic",
-        "statusReason": "frontend-demo",
-        "statusUpdatedAt": "2025-11-01T17:14:16.377374+00:00"
+        "statusReason": "curl demo verification",
+        "statusUpdatedAt": "2025-11-03T12:34:03.130395+00:00"
       },
       "storeName": "Demo Bistro",
-      "lastSeenAt": "2025-11-01T17:14:16.377374+00:00",
+      "lastSeenAt": "2025-11-03T12:34:03.130395+00:00",
       "sentimentDelta": 0
     },
     {
@@ -67,8 +95,8 @@
     }
   ],
   "meta": {
-    "requestId": "cbe327e2-b966-46ac-a888-968afada2169",
-    "generatedAt": "2025-11-01T17:13:59.990308+00:00"
+    "requestId": "bbad2125-1ffc-4ae3-a79e-e4eb82e586bc",
+    "generatedAt": "2025-11-03T12:34:13.438992+00:00"
   }
 }
 ```
@@ -87,25 +115,25 @@
       "domain": "demo-bistro.example.com",
       "leadId": "guardian_demo_lead",
       "source": "api_v2",
-      "status": "paused",
+      "status": "active",
       "website": "https://demo-bistro.example.com",
       "accountId": "00000000-0000-4000-8000-000000000001",
       "monitorType": "organic",
-      "statusReason": "frontend-demo",
-      "statusUpdatedAt": "2025-11-01T11:35:07.864015+00:00"
+      "statusReason": "curl demo verification",
+      "statusUpdatedAt": "2025-11-03T12:34:13.683992+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-01T17:14:08.437114+00:00",
+    "lastSeenAt": "2025-11-03T12:34:13.683992+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "472fc4c0-9718-4259-b176-4b2f4fbf8e6c",
-    "generatedAt": "2025-11-01T17:14:08.437114+00:00"
+    "requestId": "e949fe01-0e8d-473e-9a2e-f49e957f183d",
+    "generatedAt": "2025-11-03T12:34:13.683992+00:00"
   }
 }
 ```
 
-## `api_v2_competitors_update_status` — 404 PGRST202
+## `api_v2_competitors_update_status` — 200 OK
 
 ```json
 {
@@ -125,21 +153,48 @@
       "website": "https://demo-bistro.example.com",
       "accountId": "00000000-0000-4000-8000-000000000001",
       "monitorType": "organic",
-      "statusReason": "frontend-demo",
-      "statusUpdatedAt": "2025-11-01T17:14:16.377374+00:00"
+      "statusReason": "curl demo verification",
+      "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-01T17:14:16.377374+00:00",
+    "lastSeenAt": "2025-11-03T12:34:14.154779+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "0d48c4a4-93e3-463c-a119-d8083af18a4d",
-    "generatedAt": "2025-11-01T17:14:16.377374+00:00"
+    "requestId": "087fc984-12a5-4f02-bd9a-eb59cbc12187",
+    "generatedAt": "2025-11-03T12:34:14.154779+00:00"
   }
 }
 ```
 
-> 已由終端 1 部署 `api_v2_competitors_update_status`，可正式更新競品狀態。
+> 已由終端 1 部署 `api_v2_competitors_update_status`，本次成功回傳 200 並更新狀態。
+
+## `api_v2_guardian_active_leads` — 200 OK
+
+```json
+{
+  "data": [
+    {
+      "city": null,
+      "route": null,
+      "leadId": "guardian_demo_lead",
+      "userId": "00000000-0000-4000-8000-000000000002",
+      "lead_id": "guardian_demo_lead",
+      "summary": "Guardian demo LINE mapping",
+      "user_id": "00000000-0000-4000-8000-000000000002",
+      "accountId": "00000000-0000-4000-8000-000000000001",
+      "account_id": "00000000-0000-4000-8000-000000000001",
+      "lineUserId": "guardian_demo_line_user",
+      "updated_at": "2025-11-01T07:50:17.525876+00:00",
+      "line_user_id": "guardian_demo_line_user"
+    }
+  ],
+  "meta": {
+    "requestId": "6a188044-764e-4e0e-b328-341a6ca8e737",
+    "generatedAt": "2025-11-03T12:34:13.910903+00:00"
+  }
+}
+```
 
 ## Admin RPC
 
@@ -148,14 +203,14 @@
 ```json
 {
   "data": {
-    "planCode": "lite",
+    "planCode": "guardian_pro",
     "accountId": "00000000-0000-4000-8000-000000000001",
     "planSource": "manual",
     "planExpiresAt": null
   },
   "meta": {
-    "eventId": "97e61ad7-05b6-47ca-819f-0d2ae82eeca0",
-    "updatedAt": "2025-11-01T11:42:30.435516+00:00"
+    "eventId": "2fe64ea8-e332-42c0-b0f5-6d5b0e8dd234",
+    "updatedAt": "2025-11-03T12:34:14.394553+00:00"
   }
 }
 ```
@@ -165,12 +220,12 @@
 ```json
 {
   "data": {
-    "runId": "fc9f4a54-ae1f-447d-bb73-57a9f8fc3dc5",
+    "runId": "44be1b1f-c7ae-4db3-91fa-3d9410da3ae0",
     "status": "queued",
     "flowCode": "guardian_report_refresh"
   },
   "meta": {
-    "createdAt": "2025-11-03T07:38:36.635726+00:00"
+    "createdAt": "2025-11-03T12:34:23.736124+00:00"
   }
 }
 ```
@@ -180,12 +235,12 @@
 ```json
 {
   "data": {
-    "runId": "4c76d2f7-f4c3-4c79-989f-d7778c37da22",
+    "runId": "0d78ce4a-634c-49eb-8f3d-f22dfa4a01b1",
     "status": "queued",
     "flowCode": "guardian_report_refresh"
   },
   "meta": {
-    "createdAt": "2025-11-03T07:38:48.176671+00:00"
+    "createdAt": "2025-11-03T12:34:38.599136+00:00"
   }
 }
 ```

@@ -27,6 +27,22 @@
     </header>
 
     <main id="onboarding-stage" aria-live="polite">
+      <section class="mobile-guardian-card" aria-live="polite">
+        <p class="mobile-guardian-card__eyebrow">AI 守護已啟動</p>
+        <p class="mobile-guardian-card__desc">異常會即時通知你；想看下一步，隨時按下方按鈕。</p>
+        <div class="mobile-guardian-card__actions">
+          <a
+            class="mobile-card-btn mobile-card-btn--primary"
+            href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+            data-analytics-event="v2_entry_clicked"
+          >
+            升級到監控版 (V2)
+          </a>
+          <a class="mobile-card-btn mobile-card-btn--ghost" href="#onboarding-stage">
+            查看我的重點
+          </a>
+        </div>
+      </section>
       <div class="stage-frame">
         <section class="progress" aria-label="導覽進度">
           <div class="progress__track">
@@ -34,7 +50,7 @@
           </div>
           <div class="progress__meta">
             <span id="progress-label">完成 1 / 6</span>
-            <span id="progress-lead">入場券 ID：<strong data-lead-id>--</strong> · 建立時間：<strong data-lead-created>--</strong></span>
+            <span id="progress-lead">監控序號：<strong data-lead-id>--</strong> · 建立時間：<strong data-lead-created>--</strong></span>
           </div>
         </section>
 
@@ -55,8 +71,8 @@
         >
           <header class="card-header">
             <span class="card-step">STEP 1</span>
-            <h2 id="s1-title">AI 搜尋時代，你的店 AI 看得到嗎？</h2>
-            <p class="card-lead">AI 已開始取代搜尋。如果它沒看到你，你每天都在流失新客。</p>
+            <h2 id="s1-title">AI 搜尋時代，你的店被看見了嗎？</h2>
+            <p class="card-lead">若 AI 看不到你，你每天都在流失新客。</p>
           </header>
           <div class="card-body search-sim">
             <div class="search-sim__bar" aria-live="polite">
@@ -83,7 +99,7 @@
           </div>
           <footer class="card-actions">
             <button type="button" class="btn btn-primary" data-next data-analytics-event="card1_cta">
-              立即檢測我的 AI 能見度
+              立即檢測我的可見度
             </button>
           </footer>
         </section>
@@ -97,8 +113,13 @@
         >
           <header class="card-header">
             <span class="card-step">STEP 2</span>
-            <h2 id="s2-title">發動你的星級引擎，AI 24 小時守護。</h2>
-            <p class="card-lead">三張守護卡，一分鐘搞懂我們替你做什麼。</p>
+            <h2 id="s2-title">發動你的星級引擎，AI 24 小時守護</h2>
+            <p class="card-lead">低星警報、競品雷達、專家互動，快速看懂我們每天幫你做的事。</p>
+            <ul class="card-highlights">
+              <li>低星警報：新低星→15 分內推草稿</li>
+              <li>競品雷達：每天追蹤對手活動與口碑</li>
+              <li>專家互動：把重點變成下一步行動</li>
+            </ul>
           </header>
           <div class="card-body service-overview">
             <div class="service-swiper" data-service-swiper>
@@ -110,8 +131,8 @@
                 <div class="service-swiper__track" data-swiper-track>
                   <article class="service-card is-active" data-swiper-slide>
                     <header class="service-card__head">
-                      <h3>評論守護</h3>
-                      <p>AI 24 小時偵測評論，出現 1–3★ 立即 LINE 警報＋回覆草稿。</p>
+                      <h3>低星警報</h3>
+                      <p>新低星一出現，15 分內 LINE 提醒並附上回覆草稿。</p>
                     </header>
                     <ul class="service-card__points">
                       <li>🛡️ 不漏任何負評</li>
@@ -144,12 +165,12 @@
                   </article>
                   <article class="service-card" data-swiper-slide>
                     <header class="service-card__head">
-                      <h3>AI 可讀度</h3>
-                      <p>AI 幫你建品牌專屬網站，讓 Google/ChatGPT 看懂你。</p>
+                      <h3>專家互動</h3>
+                      <p>AI 守護專家把重點整理成下一步行動，隨時在 LINE 等你。</p>
                     </header>
                     <ul class="service-card__points">
-                      <li>🌐 LocalBusiness/Rating/Review JSON-LD</li>
-                      <li>🔁 升級後 24h 上線並每日同步</li>
+                      <li>🤝 ChatKit 專家陪伴</li>
+                      <li>📝 行動清單同步 LINE</li>
                     </ul>
                     <button
                       type="button"
@@ -167,7 +188,7 @@
                   class="service-dot is-active"
                   aria-pressed="true"
                   data-swiper-dot="0"
-                  aria-label="檢視評論守護"
+                  aria-label="檢視低星警報"
                 ></button>
                 <button
                   type="button"
@@ -181,14 +202,14 @@
                   class="service-dot"
                   aria-pressed="false"
                   data-swiper-dot="2"
-                  aria-label="檢視 AI 可讀度"
+                  aria-label="檢視專家互動"
                 ></button>
               </div>
             </div>
           </div>
           <footer class="card-actions">
             <button type="button" class="btn btn-primary" data-next data-analytics-event="card2_cta">
-              我想啟動星級引擎
+              開始偵測
             </button>
           </footer>
         </section>
@@ -203,7 +224,7 @@
           <header class="card-header">
             <span class="card-step">STEP 3</span>
             <h2 id="s3-title">AI 品牌健康分析</h2>
-            <p class="card-lead">AI 正在分析你的品牌狀態：曝光・評論・語意覆蓋。</p>
+            <p class="card-lead">曝光、評論、語意覆蓋，一眼看懂現在的優勢與缺口。</p>
           </header>
           <div class="card-body brand-health">
             <div class="health-chart" role="img" aria-label="品牌健康三大指標">
@@ -240,7 +261,7 @@
           </div>
           <footer class="card-actions">
             <button type="button" class="btn btn-primary" data-next data-analytics-event="card3_cta">
-              查看我的品牌健康
+              查看修正建議
             </button>
           </footer>
         </section>
@@ -345,14 +366,14 @@
               </svg>
             </div>
             <ul class="shield-notes">
-              <li>每 15 分自動掃描你的品牌評價</li>
-              <li>發現異常立即 LINE 通知</li>
-              <li>每週報告追蹤守護成果</li>
+              <li>每小時自動掃描你的品牌評價</li>
+              <li>異常出現就 LINE 通知＋草稿</li>
+              <li>每週報告追蹤守護成效</li>
             </ul>
           </div>
           <footer class="card-actions">
             <button type="button" class="btn btn-primary" data-next data-analytics-event="card5_cta">
-              開啟我的守護模式
+              加入監控名單
             </button>
           </footer>
         </section>
@@ -390,7 +411,7 @@
               data-report-link
               data-analytics-event="card6_cta_report"
             >
-              查看我的完整報告
+              查看完整報告
             </button>
             <button
               type="button"
@@ -398,7 +419,7 @@
               data-chatkit-link
               data-analytics-event="card6_cta_upgrade"
             >
-              升級 AI 守護專案
+              請守護專家帶我升星
             </button>
           </footer>
         </section>
@@ -479,22 +500,22 @@
           <div class="sheet__backdrop" data-sheet-close></div>
           <article class="sheet__panel">
             <header class="sheet__header">
-              <h3 id="sheet-ai-visibility-title">AI 可讀度 | AI Visibility</h3>
+              <h3 id="sheet-ai-visibility-title">專家互動 | Guardian Expert</h3>
               <button
                 type="button"
                 class="sheet__close"
                 data-sheet-close
-                aria-label="關閉 AI 可讀度說明"
+                aria-label="關閉專家互動說明"
               >
                 <span aria-hidden="true">&times;</span>
                 <span class="visually-hidden">關閉</span>
               </button>
             </header>
             <ul class="sheet__list">
-              <li>網站型態：AI 專屬結構化頁</li>
-              <li>更新：每日寫回星等/評論</li>
-              <li>好處：提升 AI 推薦命中</li>
-              <li>升級解鎖：FAQ/Offer/AI Summary</li>
+              <li>對話媒介：LINE ChatKit 守護專家</li>
+              <li>產出：重點摘要＋下一步行動</li>
+              <li>支援：草稿、計畫切換、守護提醒</li>
+              <li>升級解鎖：專家對話記錄＋任務追蹤</li>
             </ul>
           </article>
         </div>

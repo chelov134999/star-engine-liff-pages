@@ -11,6 +11,12 @@ const readEnv = (key: string): string | undefined =>
 
 const isBrowser = typeof window !== 'undefined';
 
+declare global {
+  interface Window {
+    __GUARDIAN_LIFF_ID__?: string;
+  }
+}
+
 export interface GuardianSupabaseConfig {
   supabaseUrl: string;
   supabaseAnonKey: string;
@@ -55,10 +61,25 @@ const ensureSupabaseClient = (): SupabaseClient => {
   return supabaseClient;
 };
 
+const resolveLiffId = (): string => {
+  const envValue = (readEnv('V2_LIFF_ID') ?? '').trim();
+  if (envValue) return envValue;
+  if (isBrowser) {
+    const params = new URLSearchParams(window.location.search);
+    const queryValue = params.get('liffId') ?? params.get('liff_id');
+    if (queryValue) return queryValue;
+    const globalValue = (window as { [key: string]: unknown }).__GUARDIAN_LIFF_ID__;
+    if (typeof globalValue === 'string' && globalValue.trim()) {
+      return globalValue.trim();
+    }
+  }
+  return '2008215846-5LwXlWVN'; // fallback to official LIFF ID
+};
+
 const initGuardianLiff = async (): Promise<void> => {
   if (!isBrowser) return;
   if (!liffInitPromise) {
-    const liffId = readEnv('V2_LIFF_ID');
+    const liffId = resolveLiffId();
     if (!liffId) throw new Error('缺少 LIFF 設定（V2_LIFF_ID）');
     liffInitPromise = liff
       .init({ liffId })

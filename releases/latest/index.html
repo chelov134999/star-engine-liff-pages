@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>星級引擎｜AI 入場券申請</title>
+    <title>星級引擎｜AI 監控啟動</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -20,22 +20,38 @@
         <span class="app-brand__name">星級引擎｜STAR ENGINE</span>
       </a>
       <nav class="app-nav" aria-label="主要導覽">
-        <a class="app-nav__link" href="onboarding.html?lead_id=preview" data-analytics-event="s0_preview"
-          >流程預覽</a
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-reports/"
+          data-analytics-event="nav_reports"
+          >報表中心</a
         >
-        <a class="app-nav__link" href="report.html?lead_id=preview" data-analytics-event="s0_report_preview"
-          >報告示意</a
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-competitors/"
+          data-analytics-event="nav_competitors"
+          >監控名單</a
+        >
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+          data-analytics-event="nav_plans"
+          >升級方案</a
+        >
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/#settings"
+          data-analytics-event="nav_settings"
+          >設定</a
         >
       </nav>
     </header>
 
-    <main class="index-shell">
+    <main class="index-shell" id="main-content">
       <section class="index-hero" aria-labelledby="hero-title">
-        <span class="hero-chip">S0 · AI 入場券申請</span>
-        <h1 id="hero-title">三分鐘啟動 AI 守護，為門市建立第一份品牌體檢。</h1>
-        <p class="hero-lead">
-          填入門市定位資訊，AI 會模擬搜尋曝光、整理守護任務並生成初檢報告。整個流程由星級引擎專家驗證，確保你獲得最可信的品牌健康指引。
-        </p>
+        <span class="hero-chip">S0 · AI 監控啟動</span>
+        <h1 id="hero-title">三分鐘啟動 AI 監控，為門市建立第一份品牌體檢。</h1>
+        <p class="hero-lead">每小時掃描評價、每日追蹤對手，守住你的排名與口碑。</p>
       </section>
 
       <section class="index-grid">
@@ -114,13 +130,8 @@
           <p class="form-status" role="alert" aria-live="polite"></p>
 
           <div class="lead-actions">
-            <button
-              id="cta-start"
-              type="submit"
-              class="btn btn-primary"
-              data-loading-text="正在連接星級引擎…"
-            >
-              <span class="btn-label">申請 AI 入場券</span>
+            <button id="cta-start" type="submit" class="btn btn-primary" data-loading-text="正在連接星級引擎…">
+              <span class="btn-label">開始監控</span>
               <span class="spinner" aria-hidden="true"></span>
             </button>
             <a
@@ -130,6 +141,12 @@
             >
               預覽流程節奏
             </a>
+            <a
+              class="btn btn-upgrade"
+              href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+              data-analytics-event="v2_entry_clicked"
+              >升級到監控版 (V2)</a
+            >
           </div>
         </form>
 
@@ -158,6 +175,24 @@
             </p>
           </article>
         </aside>
+      </section>
+      <section class="mobile-guardian-card" aria-live="polite">
+        <p class="mobile-guardian-card__eyebrow">AI 守護已啟動</p>
+        <p class="mobile-guardian-card__desc">
+          異常會即時通知你；想看下一步，隨時按下方按鈕。
+        </p>
+        <div class="mobile-guardian-card__actions">
+          <a
+            class="mobile-card-btn mobile-card-btn--primary"
+            href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+            data-analytics-event="v2_entry_clicked"
+          >
+            升級到監控版 (V2)
+          </a>
+          <a class="mobile-card-btn mobile-card-btn--ghost" href="#hero-title">
+            查看我的重點
+          </a>
+        </div>
       </section>
     </main>
 

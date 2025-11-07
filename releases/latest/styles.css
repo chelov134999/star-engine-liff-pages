@@ -118,6 +118,107 @@ body.sheet-open { overflow: hidden; }
 .handoff-progress__bar { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0, 123, 255, 0.8), rgba(0, 173, 255, 0.9)); transform-origin: left center; animation: handoff-progress 800ms var(--motion-easing) forwards; }
 @keyframes handoff-progress { from { transform: scaleX(0.12); } to { transform: scaleX(1); } }
 
+/* Upgrade button */
+.btn-upgrade {
+  border-radius: var(--radius-button);
+  border: 1.5px dashed rgba(0, 123, 255, 0.4);
+  padding: 12px 22px;
+  font-weight: 600;
+  background: rgba(0, 123, 255, 0.08);
+  color: var(--color-primary);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.btn-upgrade:hover {
+  background: rgba(0, 123, 255, 0.14);
+  border-color: rgba(0, 123, 255, 0.6);
+}
+
+/* Mobile guardian card */
+.mobile-guardian-card {
+  display: none;
+}
+
+.mobile-card-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: 1px solid transparent;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+.mobile-card-btn + .mobile-card-btn {
+  margin-top: 8px;
+}
+.mobile-card-btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-btn);
+}
+.mobile-card-btn--ghost {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 123, 255, 0.25);
+  color: var(--color-text-primary);
+}
+
+.card-highlights {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  list-style: disc;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+.card-highlights li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+  .app-header,
+  .gh,
+  .progress {
+    display: none !important;
+  }
+  .index-shell,
+  .stage-frame,
+  .report-shell {
+    margin-top: 48px;
+  }
+  .index-hero {
+    display: none;
+  }
+  .mobile-guardian-card {
+    display: block;
+    margin: 32px clamp(16px, 6vw, 28px) 12px;
+    padding: 16px clamp(16px, 6vw, 28px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 123, 255, 0.08);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(244, 250, 255, 0.95));
+    box-shadow: 0 18px 32px -24px rgba(0, 123, 255, 0.35);
+  }
+  .mobile-guardian-card__eyebrow {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--color-primary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .mobile-guardian-card__desc {
+    font-size: 0.92rem;
+    color: var(--color-text-secondary);
+    margin: 6px 0 14px;
+    line-height: 1.5;
+  }
+  .mobile-guardian-card__actions {
+    display: grid;
+    gap: 10px;
+  }
+  .mobile-card-btn + .mobile-card-btn {
+    margin-top: 0;
+  }
+}
+
 .gh { position: fixed; top: 0; left: 0; right: 0; height: var(--header-height); padding: 0 clamp(20px, 6vw, 48px); display: flex; align-items: center; justify-content: space-between; gap: 20px; background: rgba(255, 255, 255, 0.76); backdrop-filter: saturate(1.1) blur(12px); border-bottom: 1px solid rgba(16, 56, 120, 0.08); z-index: 80; }
 .gh::after { content: ''; position: absolute; left: clamp(20px, 6vw, 48px); right: clamp(20px, 6vw, 48px); bottom: 0; height: 1px; background: linear-gradient(90deg, rgba(233, 245, 255, 0), #e9f5ff, rgba(233, 245, 255, 0)); }
 .gh__brand { display: inline-flex; align-items: center; gap: 12px; color: var(--brand-neutral-800); font-weight: 600; font-size: 0.95rem; letter-spacing: 0.08em; text-transform: uppercase; }

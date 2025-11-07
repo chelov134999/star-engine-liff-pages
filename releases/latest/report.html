@@ -27,17 +27,39 @@
         <span class="app-brand__name">星級引擎｜STAR ENGINE</span>
       </a>
       <nav class="app-nav" aria-label="主要導覽">
-        <a class="app-nav__link" href="onboarding.html">返回流程</a>
-        <a class="app-nav__link" href="mailto:ai@mdzh.io">聯絡守護團隊</a>
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-reports/"
+          data-analytics-event="nav_reports"
+          >報表中心</a
+        >
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-competitors/"
+          data-analytics-event="nav_competitors"
+          >監控名單</a
+        >
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+          data-analytics-event="nav_plans"
+          >升級方案</a
+        >
+        <a
+          class="app-nav__link"
+          href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/#settings"
+          data-analytics-event="nav_settings"
+          >設定</a
+        >
       </nav>
     </header>
 
-    <main class="report-shell s7-shell" data-handoff>
+    <main class="report-shell s7-shell" data-handoff id="report-main">
       <section class="s7-card s7-hero" aria-labelledby="s7-title">
         <span class="s7-tag">S7 · 守護接力</span>
         <h1 id="s7-title">AI 初檢完成，守護專家準備陪你對話</h1>
         <p class="s7-subhead">
-          報告已同步。我們的星級引擎守護專家（採用 OpenAI ChatKit 對話引擎）正在等待你，一起看今天的重點與下一步。
+          今天的重點與下一步，我們會陪你看完；需要更多協助時，守護專家會立即加入。
         </p>
 
         <div class="s7-info-grid" role="list">
@@ -53,20 +75,34 @@
               <span class="s7-info__divider">+</span>
               <span data-next-sync>--</span>
             </p>
-            <span class="s7-info__note">資料由星級引擎保管。</span>
+            <span class="s7-info__note">最新同步＋下一次掃描，由星級引擎自動排程。</span>
           </article>
           <article class="s7-info" role="listitem">
             <h2>LINE 回覆</h2>
             <p class="s7-info__value">15 秒內抵達 LINE</p>
-            <span class="s7-info__note">未收到請寄信：ai@mdzh.io。</span>
+            <span class="s7-info__note">回 LINE 傳「守護專家」，若無回覆請寄信 ai@mdzh.io。</span>
           </article>
         </div>
 
         <div class="s7-cta">
-          <button type="button" class="btn btn-primary s7-button" data-chatkit-cta>
+          <button
+            type="button"
+            class="btn btn-primary s7-button"
+            data-chatkit-cta
+            data-analytics-event="guardian_cta_mobile_clicked"
+          >
             與守護專家聊聊
           </button>
-          <p class="s7-cta__note">由 OpenAI ChatKit 對話引擎支援，我們全程陪同。</p>
+          <a
+            class="btn btn-outline s7-button"
+            href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+            data-analytics-event="v2_entry_clicked"
+          >
+            升級到監控版 (V2)
+          </a>
+          <p class="s7-cta__note">
+            在 LIFF 中點擊會自動關閉視窗，回 LINE 傳「守護專家」即可銜接守護顧問。
+          </p>
           <a
             class="s7-backup-link"
             data-backup-link
@@ -102,6 +138,24 @@
           <li>對話不會顯示完整評論內容；資料保留 90 天，可向 ai@mdzh.io 提出刪除。</li>
           <li>若 15 秒內未收到 LINE 通知，請寫信至 ai@mdzh.io，我們會親自送上報告。</li>
         </ul>
+      </section>
+      <section class="mobile-guardian-card" aria-live="polite">
+        <p class="mobile-guardian-card__eyebrow">AI 守護已啟動</p>
+        <p class="mobile-guardian-card__desc">
+          異常會即時通知你；想看下一步，隨時按下方按鈕。
+        </p>
+        <div class="mobile-guardian-card__actions">
+          <a
+            class="mobile-card-btn mobile-card-btn--primary"
+            href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+            data-analytics-event="v2_entry_clicked"
+          >
+            升級到監控版 (V2)
+          </a>
+          <a class="mobile-card-btn mobile-card-btn--ghost" href="#s7-title">
+            查看我的重點
+          </a>
+        </div>
       </section>
     </main>
 

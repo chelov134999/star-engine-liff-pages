@@ -185,6 +185,9 @@ body.sheet-open { overflow: hidden; }
   .report-shell {
     margin-top: 48px;
   }
+  .index-hero {
+    display: none;
+  }
   .mobile-guardian-card {
     display: block;
     margin: 32px clamp(16px, 6vw, 28px) 12px;

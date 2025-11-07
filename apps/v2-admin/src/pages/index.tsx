@@ -1,7 +1,9 @@
-import React, { FormEvent, useMemo, useState } from 'react';
+import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import '../../../shared/guardian_v2/styles.scss';
 import { GuardianHeader, QuickActionButton } from '../../../shared/guardian_v2/components';
 import { setPlan as setPlanApi, triggerFlow as triggerFlowApi } from '../api/client';
+import { hasGuardianAdminRole } from '../../../shared/guardian_v2/auth/session';
+import { useGuardianAuth } from '../../../shared/guardian_v2/auth/useGuardianAuth';
 
 type PlanCode = 'lite' | 'pro' | 'enterprise';
 
@@ -42,9 +44,19 @@ const readEnv = (key: string, fallback = ''): string => env[key] ?? env[`VITE_${
 
 const DEFAULT_REASON = readEnv('V2_ADMIN_PLAN_REASON', 'frontend-demo');
 const DEFAULT_PLAN_SOURCE = readEnv('V2_ADMIN_PLAN_SOURCE', 'manual');
-const HAS_ADMIN_ROLE = readEnv('V2_HAS_ADMIN_ROLE', 'true') !== 'false';
+const RICH_MENU_ENTRIES = ['報表中心', '監控名單', '升級方案', '設定'];
 
 const AdminPage: React.FC = () => {
+  const {
+    loading: authLoading,
+    error: authError,
+    roles,
+    profile,
+    defaultAccountId,
+  } = useGuardianAuth();
+
+  const HAS_ADMIN_ROLE = hasGuardianAdminRole(roles);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccount, setSelectedAccount] = useState<AdminAccountSummary | null>(mockAccounts[0]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -52,6 +64,14 @@ const AdminPage: React.FC = () => {
   const [planLoading, setPlanLoading] = useState(false);
   const [flowLoading, setFlowLoading] = useState<Record<string, boolean>>({});
   const [testMode, setTestMode] = useState(false);
+
+  useEffect(() => {
+    if (!defaultAccountId) return;
+    const matched = mockAccounts.find((account) => account.accountId === defaultAccountId);
+    if (matched) {
+      setSelectedAccount(matched);
+    }
+  }, [defaultAccountId]);
 
   const filteredAccounts = useMemo(() => {
     if (!searchTerm.trim()) return mockAccounts;
@@ -145,13 +165,57 @@ const AdminPage: React.FC = () => {
 
   return (
     <div className="guardian-app guardian-admin">
-      <GuardianHeader logoText="Guardian Admin" />
+      <GuardianHeader
+        logoText="Guardian Admin"
+        rightSlot={
+          profile ? (
+            <div className="guardian-user-chip">
+              <span className="guardian-user-chip__emoji" role="img" aria-label="advisor">
+                🛡️
+              </span>
+              <span className="guardian-user-chip__label">
+                {profile.displayName}
+                <small>LINE 顧問 · {HAS_ADMIN_ROLE ? 'Admin' : 'Viewer'}</small>
+              </span>
+            </div>
+          ) : null
+        }
+      />
 
       <main className="guardian-main">
-        {!HAS_ADMIN_ROLE && (
+        {authLoading && <div className="guardian-status">正在初始化 LIFF 會話...</div>}
+
+        {authError && (
+          <div className="guardian-alert guardian-alert--critical">
+            <span className="guardian-alert__body">
+              {authError}
+              <br />
+              若頁面未自動重新導向，請重新整理或確認 LIFF / Supabase 設定。
+            </span>
+          </div>
+        )}
+
+        {!authLoading && !authError && !HAS_ADMIN_ROLE && (
           <div className="guardian-alert guardian-alert--critical">
             <span className="guardian-alert__body">目前為 viewer 模式，請使用具 guardian.admin 權限的帳號登入後再試。</span>
           </div>
+        )}
+
+        {!authLoading && !authError && (
+          <section className="guardian-section">
+            <h2>Rich Menu V2</h2>
+            <div className="guardian-card guardian-card--menu">
+              <p className="guardian-card__highlight">已同步最新 Rich Menu · 預期排序如下：</p>
+              <nav className="guardian-rich-menu">
+                {RICH_MENU_ENTRIES.map((entry) => (
+                  <span key={entry} className="guardian-rich-menu__pill">
+                    {entry}
+                  </span>
+                ))}
+              </nav>
+              <p>顧問歡迎訊息已啟用，流程觸發後會推播排程狀態與報表摘要。</p>
+            </div>
+          </section>
         )}
 
         <section className="guardian-section">

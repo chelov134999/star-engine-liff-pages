@@ -1,0 +1,10 @@
+{
+  "name": "guardian-v2-shared",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "@line/liff": "^2.27.2",
+    "@supabase/supabase-js": "^2.78.0"
+  }
+}

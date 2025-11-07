@@ -1,173 +1,78 @@
-# Guardian V2 Competitors RPC Verification — 2025-11-03
+# Guardian V2 Competitors RPC Verification — 2025-11-05
 
-以 `.env.local` 中的 Supabase demo 憑證呼叫遠端 RPC，確認終端 2 前端所需欄位與錯誤訊息行為。
+以 `.env.local` 中的正式 Supabase 憑證呼叫遠端 RPC，驗證終端 2 介面所需欄位與錯誤訊息。以下範例皆使用：
 
-> 請自行從 `.env.local` 讀取 `SUPABASE_REST_URL`、`SUPABASE_ANON_KEY`、`SUPABASE_SERVICE_ROLE_KEY` 後執行下列 `curl`。
+- Lead UUID `e5c7c9ed-f23e-4aa8-9427-b941e3025103`
+- Account UUID `5d71ea12-92bd-4c00-b21a-0e507ebe4a13`
 
-## `api_v2_reports` — 200 OK
+> 請參照 `.env.example_v2` 取得 `V2_SUPABASE_URL`、`V2_SUPABASE_ANON_KEY`、`V2_SUPABASE_SERVICE_KEY` 等設定後再執行 `scripts/curl_guardian_v2_samples.sh`。
+
+## `api_v2_reports` — PGRST203（函式重載尚未統一）
 
 ```json
 {
-  "data": [
-    {
-      "insights": [],
-      "planTier": "lite",
-      "reportId": "e721213a-e426-41e2-b58e-dfbb926928d0",
-      "aiSpendUsd": 0,
-      "reportDate": "2025-11-03",
-      "accountName": "Guardian Demo Lead",
-      "generatedAt": "2025-11-03T15:59:59.672+00:00",
-      "coverageScore": 0
-    }
-  ],
+  "code": "PGRST203",
+  "details": null,
+  "hint": "Try renaming the parameters or the function itself in the database so function overloading can be resolved",
+  "message": "Could not choose the best candidate function between: public.api_v2_reports(p_lead => text, p_report_type => text, p_date => date, p_mode => text), public.api_v2_reports(p_lead => uuid, p_report_type => text, p_date => date, p_mode => text)"
+}
+```
+
+> 後端同時存在 text/uuid 版本；請統一函式或明確指定參數型別後再行呼叫。
+
+## `api_v2_competitors_list` — 200 OK（正式帳號目前尚無資料）
+
+```json
+{
+  "data": [],
   "meta": {
-    "requestId": "0b2c1e10-5ea3-45af-b8b9-a7c4b06b6048",
-    "generatedAt": "2025-11-03T16:20:37.559044+00:00"
-  },
-  "timeline": null,
-  "pagination": {
-    "cursor": null,
-    "hasNext": true
+    "requestId": "0f8a6e71-5aee-4f89-a029-d04a5ae393e2",
+    "generatedAt": "2025-11-05T08:01:32.982518+00:00"
   }
 }
 ```
 
-## `api_v2_competitors_list` — 200 OK
-
-```json
-{
-  "data": [
-    {
-      "city": "Taipei",
-      "metrics": {},
-      "storeId": "00000000-0000-4000-8000-000000000031",
-      "website": null,
-      "metadata": {
-        "city": "Taipei",
-        "domain": "demo-competitor.example.com",
-        "leadId": "guardian_demo_lead",
-        "status": "active",
-        "accountId": "00000000-0000-4000-8000-000000000001",
-        "monitorType": "organic",
-        "statusReason": "curl demo verification",
-        "trackingLevel": "full",
-        "statusUpdatedAt": "2025-11-01T11:23:16.325362+00:00"
-      },
-      "storeName": "Demo Competitor",
-      "lastSeenAt": "2025-11-01T11:23:16.325362+00:00",
-      "sentimentDelta": 0
-    },
-    {
-      "city": "Taipei",
-      "metrics": {},
-      "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
-      "website": "https://demo-bistro.example.com",
-      "metadata": {
-        "city": "Taipei",
-        "domain": "demo-bistro.example.com",
-        "leadId": "guardian_demo_lead",
-        "source": "api_v2",
-        "status": "active",
-        "website": "https://demo-bistro.example.com",
-        "accountId": "00000000-0000-4000-8000-000000000001",
-        "monitorType": "organic",
-        "statusReason": "curl demo verification",
-        "statusUpdatedAt": "2025-11-03T12:34:14.154779+00:00"
-      },
-      "storeName": "Demo Bistro",
-      "lastSeenAt": "2025-11-03T12:34:14.154779+00:00",
-      "sentimentDelta": 0
-    },
-    {
-      "city": "",
-      "metrics": {},
-      "storeId": "00000000-0000-0000-0000-00000000c001",
-      "website": null,
-      "metadata": {
-        "domain": "demo-competitor.test",
-        "leadId": "guardian_demo_lead",
-        "accountId": "00000000-0000-4000-8000-000000000001",
-        "monitorType": "organic"
-      },
-      "storeName": "Demo Competitor",
-      "lastSeenAt": "2025-11-01T09:17:17.030113+00:00",
-      "sentimentDelta": 0
-    }
-  ],
-  "meta": {
-    "requestId": "0c23dac5-4993-4a59-8414-3b63a5335a8b",
-    "generatedAt": "2025-11-03T16:20:37.832236+00:00"
-  }
-}
-```
-
-## `api_v2_competitors_insert` — 200 OK
+## `api_v2_competitors_insert` — 200 OK（新 storeId）
 
 ```json
 {
   "data": {
     "city": "Taipei",
     "metrics": {},
-    "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
+    "storeId": "8b4c6c60-29de-4e21-9cc5-c97678124166",
     "website": "https://demo-bistro.example.com",
     "metadata": {
       "city": "Taipei",
       "domain": "demo-bistro.example.com",
-      "leadId": "guardian_demo_lead",
+      "leadId": "e5c7c9ed-f23e-4aa8-9427-b941e3025103",
       "source": "api_v2",
-      "status": "active",
       "website": "https://demo-bistro.example.com",
-      "accountId": "00000000-0000-4000-8000-000000000001",
-      "monitorType": "organic",
-      "statusReason": "curl demo verification",
-      "statusUpdatedAt": "2025-11-03T16:20:38.085849+00:00"
+      "accountId": "5d71ea12-92bd-4c00-b21a-0e507ebe4a13",
+      "monitorType": "organic"
     },
     "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-03T16:20:38.085849+00:00",
+    "lastSeenAt": "2025-11-05T08:01:33.32211+00:00",
     "sentimentDelta": 0
   },
   "meta": {
-    "requestId": "c68b8886-8d47-4dcf-9609-d9ae82728014",
-    "generatedAt": "2025-11-03T16:20:38.085849+00:00"
+    "requestId": "1add11b3-98eb-444f-9f55-7d2c00f4b928",
+    "generatedAt": "2025-11-05T08:01:33.32211+00:00"
   }
 }
 ```
 
-## `api_v2_competitors_update_status` — 200 OK
+## `api_v2_competitors_update_status` — P0001（competitor_not_found）
 
 ```json
 {
-  "data": {
-    "city": "Taipei",
-    "status": "active",
-    "metrics": {},
-    "placeId": null,
-    "storeId": "433b811d-2938-497b-bddf-3b5d2ebf944c",
-    "website": "https://demo-bistro.example.com",
-    "metadata": {
-      "city": "Taipei",
-      "domain": "demo-bistro.example.com",
-      "leadId": "guardian_demo_lead",
-      "source": "api_v2",
-      "status": "active",
-      "website": "https://demo-bistro.example.com",
-      "accountId": "00000000-0000-4000-8000-000000000001",
-      "monitorType": "organic",
-      "statusReason": "curl demo verification",
-      "statusUpdatedAt": "2025-11-03T16:20:38.603746+00:00"
-    },
-    "storeName": "Demo Bistro",
-    "lastSeenAt": "2025-11-03T16:20:38.603746+00:00",
-    "sentimentDelta": 0
-  },
-  "meta": {
-    "requestId": "fb2c30ba-dab9-41f8-9188-829edfd61aae",
-    "generatedAt": "2025-11-03T16:20:38.603746+00:00"
-  }
+  "code": "P0001",
+  "details": null,
+  "hint": null,
+  "message": "competitor_not_found"
 }
 ```
 
-> 已由終端 1 部署 `api_v2_competitors_update_status`，本次成功回傳 200 並更新狀態。
+> 正式帳號尚未建立相同 `storeId`，需先建立競品或改用最新的 `storeId=8b4c6c60-29de-4e21-9cc5-c97678124166`。
 
 ## `api_v2_guardian_active_leads` — 200 OK
 
@@ -175,92 +80,65 @@
 {
   "data": [
     {
+      "city": "台北市",
+      "route": "忠孝東路",
+      "leadId": "e5c7c9ed-f23e-4aa8-9427-b941e3025103",
+      "userId": "abf1535b-e411-4e1f-8d6d-89439ed4b647",
+      "summary": "正式測試帳號",
+      "accountId": "5d71ea12-92bd-4c00-b21a-0e507ebe4a13",
+      "lineUserId": "UofficialGuardian001",
+      "updated_at": "2025-11-04T05:42:24.157108+00:00"
+    },
+    {
       "city": null,
       "route": null,
       "leadId": "guardian_demo_lead",
       "userId": "00000000-0000-4000-8000-000000000002",
-      "lead_id": "guardian_demo_lead",
       "summary": "Guardian demo LINE mapping",
-      "user_id": "00000000-0000-4000-8000-000000000002",
       "accountId": "00000000-0000-4000-8000-000000000001",
-      "account_id": "00000000-0000-4000-8000-000000000001",
       "lineUserId": "guardian_demo_line_user",
-      "updated_at": "2025-11-01T07:50:17.525876+00:00",
-      "line_user_id": "guardian_demo_line_user"
+      "updated_at": "2025-11-01T07:50:17.525876+00:00"
     }
   ],
   "meta": {
-    "requestId": "f2f20292-c1f9-47d2-9344-687ac9d94f73",
-    "generatedAt": "2025-11-03T16:20:38.326738+00:00"
+    "requestId": "dbbe86e8-c943-4433-89ea-4d1a58d1920c",
+    "generatedAt": "2025-11-05T08:01:33.627885+00:00"
   }
 }
 ```
 
 ## Admin RPC
 
-### `api_v2_admin_set_plan` — 200 OK
+### `api_v2_admin_set_plan` — 200 OK（正式帳號）
 
 ```json
 {
   "data": {
     "planCode": "guardian_pro",
-    "accountId": "00000000-0000-4000-8000-000000000001",
+    "accountId": "5d71ea12-92bd-4c00-b21a-0e507ebe4a13",
     "planSource": "manual",
     "planExpiresAt": null
   },
   "meta": {
-    "eventId": "2f90196a-6bf7-4f32-afd2-a5b56be9a6eb",
-    "updatedAt": "2025-11-03T16:20:38.852832+00:00"
+    "eventId": "27b8329a-c5e7-47fb-a93f-72917fdbf036",
+    "updatedAt": "2025-11-05T08:01:34.238899+00:00"
   }
 }
 ```
-
-### `api_v2_admin_flows_run` — 200 OK（測試模式）
-
-```json
-{
-  "data": {
-    "runId": "bfbd845c-33d0-460c-8303-98db10258eb2",
-    "status": "queued",
-    "flowCode": "guardian_report_refresh"
-  },
-  "meta": {
-    "createdAt": "2025-11-03T16:20:45.539376+00:00"
-  }
-}
-```
-
-> 測試模式：推播僅發送至 `line_test_user_id`，同時記錄 `linePushStatus=SENT`。
-
-### `api_v2_admin_flows_run` — 200 OK（正式模式）
-
-```json
-{
-  "data": {
-    "runId": "80843760-2f45-4774-9fb5-044d786c95d5",
-    "status": "queued",
-    "flowCode": "guardian_report_refresh"
-  },
-  "meta": {
-    "createdAt": "2025-11-03T16:20:54.855922+00:00"
-  }
-}
-```
-
-> 正式模式：推播送至 `line_admin_user_id`，流程完成後可在 `public.guardian_workflow_status` 查到對應 SLO。
 
 ### `api_v2_admin_flows_run` — 200 OK（guardian_hourly 範例）
 
 ```json
 {
   "data": {
-    "runId": "7f163d3e-2d53-4750-9f57-bbcd80c178f3",
+    "runId": "c82a2a18-1b92-43ff-99e2-58e2b5068f72",
     "status": "queued",
     "flowCode": "guardian_hourly"
   },
   "meta": {
-    "createdAt": "2025-11-03T16:20:39.106281+00:00"
+    "createdAt": "2025-11-05T08:01:34.514125+00:00"
   }
 }
 ```
-```
+
+> 另有測試模式 / 正式模式的 `guardian_report_refresh`，分別回傳 `runId=bfbd845c-…`、`runId=80843760-…`，詳見 `docs/v2/ui-test-plan.md`。

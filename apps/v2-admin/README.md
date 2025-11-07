@@ -19,12 +19,14 @@ src/
 ## 開發指引
 
 1. 根目錄複製 `.env.example_v2` 為 `.env.local`，供這個 app 與其他 V2 頁面共用。
-2. 進入 `apps/v2-admin/` 後執行 `pnpm install`、`pnpm dev` 啟動開發伺服器（同樣需要 `sass` 支援）。
-3. 串接 Supabase RPC：
-   - `api_v2_admin_set_plan`：方案切換（body：`{p_account, p_plan_code, p_plan_source, p_expires_at?, p_notes?}`）。前端透過 service key / JWT 驗證，成功後會回傳 `eventId` 與最新 `planSource`。
-   - `api_v2_admin_flows_run`：排入後台流程（body：`{p_flow_code, p_payload}`），回傳 `runId` 與排程狀態；介面提供「測試模式（推播至個人 LINE）」勾選，送出時會在 payload 內帶 `testMode` 供 n8n 決定推播目標。
-   - 呼叫前需檢查登入者是否具備 `guardian.admin` 或 `guardian.ops` 權限（等待 LIFF / Supabase Auth 串接）。
-4. `.env.local` 需提供 `V2_SUPABASE_URL`、`V2_SUPABASE_ANON_KEY`、`V2_SUPABASE_SERVICE_KEY|JWT`。可透過 `V2_HAS_ADMIN_ROLE=false` 模擬 viewer 角色。`V2_ADMIN_PLAN_REASON` 與 `V2_ADMIN_PLAN_SOURCE` 可自訂變更原因與來源標記。
+2. 進入 `apps/v2-admin/` 後執行 `pnpm install`（會安裝 `@line/liff`、`@supabase/supabase-js`）、`pnpm dev` 啟動開發伺服器（同樣需要 `sass` 支援）。
+3. LIFF + Supabase Auth：
+   - 在 `.env.local` 設定 `V2_LIFF_ID` 與（可選）`V2_LIFF_REDIRECT_URL`，頁面載入時會自動執行 LIFF login 並透過 `supabase.auth.signInWithIdToken` 取得 JWT。
+   - `useGuardianAuth()` 會回傳 `roles`、`profile`、`defaultLeadId` / `defaultAccountId` 等資訊；介面依據 `guardian.admin`、`guardian.ops` 控制權限。
+4. Supabase RPC 串接：
+   - `api_v2_admin_set_plan`：方案切換（body：`{p_account, p_plan_code, p_plan_source, p_expires_at?, p_notes?}`），成功後回傳 `eventId` 與最新 `planSource`。
+   - `api_v2_admin_flows_run`：排入後台流程（body：`{p_flow_code, p_payload}`），`payload.testMode` 控制推播對象（正式 vs. 個人 LINE）。
+5. `.env.local` 需提供 `V2_SUPABASE_URL`、`V2_SUPABASE_ANON_KEY`。若欲離線測試仍可設定 `V2_SUPABASE_JWT` / `V2_SUPABASE_SERVICE_KEY` 作為 fallback；`V2_ADMIN_PLAN_REASON` 與 `V2_ADMIN_PLAN_SOURCE` 可自訂變更原因與來源標記。
 
 ## 常見錯誤碼
 - `401`：缺少 token，介面會顯示「需要 admin 權限」，請更新 `V2_SUPABASE_JWT` 或導入正規登入流程。

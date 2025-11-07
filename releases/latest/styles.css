@@ -183,16 +183,14 @@ body.sheet-open { overflow: hidden; }
   .index-shell {
     margin-top: 48px;
   }
-  .stage-frame,
-  .report-shell {
-    margin-top: 24px;
-  }
+  .stage-frame { margin-top: 24px; }
+  .report-shell { margin-top: 16px; padding-inline: clamp(16px, 6vw, 24px); }
   .index-hero {
     display: none;
   }
   .mobile-guardian-card {
     display: block;
-    margin: 32px clamp(16px, 6vw, 28px) 12px;
+    margin: 20px clamp(16px, 6vw, 28px) 12px;
     padding: 16px clamp(16px, 6vw, 28px);
     border-radius: 20px;
     border: 1px solid rgba(0, 123, 255, 0.08);
@@ -534,7 +532,7 @@ body.sheet-open { overflow: hidden; }
   .app-nav__link { flex: 1 1 auto; justify-content: center; }
   .index-shell { padding-inline: clamp(18px, 8vw, 32px); }
   .lead-card, .aside-card { padding: clamp(24px, 6vw, 32px); }
-  .report-shell { padding-inline: clamp(18px, 8vw, 32px); }
+  .report-shell { margin-top: 8px; padding-inline: clamp(14px, 5vw, 22px); }
   .kpi-board .kpi-grid { grid-template-columns: 1fr; }
   .guard-card { flex-direction: column; align-items: flex-start; }
   .guard-card .btn { width: 100%; }
@@ -546,8 +544,8 @@ body.sheet-open { overflow: hidden; }
   .competitor-table [data-label]::before { display: inline-block; color: var(--color-text-secondary); }
   .report-meta { grid-template-columns: 1fr; }
   .report-hero__content h1 { font-size: 2rem; }
-  #onboarding-stage { margin: 8px auto 48px; padding: clamp(12px, 4vw, 20px); }
-  .stage-frame { max-width: 100%; padding: clamp(2px, 2vw, 10px); }
+  #onboarding-stage { margin: 4px auto 40px; padding: clamp(10px, 4vw, 18px); }
+  .stage-frame { max-width: 100%; padding: clamp(2px, 2vw, 8px); }
   .narrative-stack { min-height: auto; }
   .narrative-card { position: relative; min-height: auto; opacity: 1; transform: none; pointer-events: auto; }
   .narrative-card:not(.is-active) { display: none; }

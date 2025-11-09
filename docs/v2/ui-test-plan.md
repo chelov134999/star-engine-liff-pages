@@ -72,3 +72,16 @@
 - build 產生 `dist/index.html` 與 CSS/JS bundle，確認內容可供部署。
 
 > 完成正式 LIFF Smoke Test 後，請將對應 reportId / runId / requestId 追加於本文件並同步更新 quicklog。
+
+## 5. S7 守護接力（LIFF）
+- **CTA 文案**：主按鈕需為「看分析結果」，次按鈕為「啟動每日監控 🔍」。若出現舊文案（與守護專家聊聊 / 升級到監控版），表示頁面 cache 尚未更新。
+- **導流**：點擊「看分析結果」應開啟 ChatKit 連結；完成後守護專家會貼出 LIFF 升級超連結。若使用手動升級流程，按下「啟動每日監控 🔍」需導向 `https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/` 並顯示正式帳號資料。
+- **Smoke Test 記錄**：請於此處填入最新一次正式測試的 `reportId`、`runId`、`eventId`、Rich Menu 截圖 URL 及時間戳，例如：
+  ```
+  2025-11-07 Smoke Test（正式帳）：
+    - reportId=0f4915e3-d9ec-4a5f-91b7-f3215ff82fe1
+    - guardian_report_refresh runId=TODO（請填實際值）
+    - guardian_plan_events eventId=TODO
+    - Rich Menu 截圖：<link>
+  ```
+  若尚未取得正式數值，請標註 TODO 並於 quicklog 補上說明。

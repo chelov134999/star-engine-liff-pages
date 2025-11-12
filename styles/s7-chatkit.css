@@ -6,6 +6,11 @@
   justify-content: center;
   box-sizing: border-box;
 }
+.page-s7-handoff .report-shell {
+  width: min(960px, 100%);
+  margin: clamp(16px, 6vw, 32px) auto clamp(80px, 16vw, 140px);
+  padding-inline: clamp(18px, 6vw, 36px);
+}
 
 .s7-shell {
   display: grid;
@@ -383,6 +388,9 @@
 @media (max-width: 720px) {
   .page-s7-handoff {
     padding: clamp(24px, 10vw, 48px) clamp(16px, 8vw, 28px) clamp(90px, 12vw, 130px);
+  }
+  .page-s7-handoff .report-shell {
+    padding-inline: clamp(14px, 7vw, 24px);
   }
   .s7-card {
     padding: clamp(24px, 8vw, 36px);

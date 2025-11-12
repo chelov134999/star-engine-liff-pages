@@ -85,3 +85,4 @@
     - Rich Menu 截圖：<link>
   ```
   若尚未取得正式數值，請標註 TODO 並於 quicklog 補上說明。
+- **2025-11-12 更新**：`guardian-cta-upgrade` / `main` 已同步 `.lead-actions` 與 `.s7-cta` 等寬置中、S7 Launch 提示卡與 `activate.html` padding；GitHub Pages 尚未 rebuild，LIFF S0 入口仍引用舊 artifact（回首頁後 3 秒跳 404 / Flax 卡未顯示）。完成 push 後須重新執行 S0→S7→啟動 smoke test，並補上 runId / eventId / Rich Menu 截圖。

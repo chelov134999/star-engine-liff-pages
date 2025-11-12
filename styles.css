@@ -97,16 +97,15 @@ body.sheet-open { overflow: hidden; }
 .form-status.is-success { color: var(--color-primary); }
 
 .lead-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  width: 100%;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  width: min(640px, 100%);
+  margin-inline: auto;
 }
 .lead-actions .btn {
-  flex: 1 1 220px;
+  width: 100%;
   min-width: 0;
-  max-width: none;
   text-align: center;
 }
 
@@ -543,7 +542,6 @@ body.sheet-open { overflow: hidden; }
   .app-nav__link { flex: 1 1 auto; justify-content: center; }
   .index-shell { padding-inline: clamp(18px, 8vw, 32px); }
   .lead-card, .aside-card { padding: clamp(24px, 6vw, 32px); }
-  .lead-actions { flex-direction: column; gap: 12px; }
   .lead-actions .btn { width: 100%; }
   .report-shell { margin-top: 8px; padding-inline: clamp(14px, 5vw, 22px); }
   .kpi-board .kpi-grid { grid-template-columns: 1fr; }
@@ -567,7 +565,7 @@ body.sheet-open { overflow: hidden; }
   .hero-lead { font-size: 0.96rem; }
   .lead-form-grid { grid-template-columns: 1fr; }
   .lead-actions .btn { width: 100%; }
-.plan-card .btn, .guard-card .btn { min-width: 100%; }
+  .plan-card .btn, .guard-card .btn { min-width: 100%; }
 }
 
 

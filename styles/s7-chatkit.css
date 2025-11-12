@@ -1,10 +1,17 @@
 .page-s7-handoff {
   min-height: 100vh;
+  background: linear-gradient(180deg, #f8fbff 0%, #eef2ff 45%, #ffffff 100%);
+  padding: clamp(32px, 8vw, 72px) clamp(18px, 6vw, 32px) clamp(120px, 12vw, 160px);
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .s7-shell {
   display: grid;
   gap: clamp(28px, 5vw, 48px);
+  width: min(960px, 100%);
+  margin: 0 auto;
 }
 
 .s7-card {
@@ -14,6 +21,8 @@
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: var(--shadow-card);
   position: relative;
+  width: min(740px, 100%);
+  margin: 0 auto;
 }
 
 .s7-hero h1 {
@@ -48,7 +57,7 @@
 
 .s7-info-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: clamp(16px, 3vw, 24px);
   margin-bottom: clamp(28px, 5vw, 36px);
 }
@@ -98,12 +107,16 @@
 
 .s7-cta {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
-  align-items: start;
+  align-items: stretch;
+  width: min(640px, 100%);
+  margin: 0 auto;
 }
 
 .s7-button {
-  min-width: 260px;
+  min-width: 0;
+  width: 100%;
   box-shadow: var(--shadow-btn);
 }
 
@@ -204,15 +217,21 @@
   background: #ffffff;
   border: 1px dashed rgba(14, 111, 255, 0.25);
   box-shadow: 0 24px 48px -32px rgba(14, 41, 102, 0.2);
+  border-radius: var(--radius-xl);
+  padding: clamp(24px, 5vw, 36px);
+  display: grid;
+  gap: 18px;
+  width: min(680px, 100%);
+  margin: 0 auto;
 }
 
 .s7-launch__steps {
   margin: 0;
-  padding-left: 1.4em;
+  padding-left: 1.2em;
   display: grid;
   gap: 12px;
   font-size: 0.98rem;
-  line-height: 1.65;
+  line-height: 1.6;
   color: rgba(15, 23, 42, 0.92);
 }
 
@@ -361,6 +380,48 @@
   text-decoration: none;
 }
 
+@media (max-width: 720px) {
+  .page-s7-handoff {
+    padding: clamp(24px, 10vw, 48px) clamp(16px, 8vw, 28px) clamp(90px, 12vw, 130px);
+  }
+  .s7-card {
+    padding: clamp(24px, 8vw, 36px);
+  }
+  .s7-info-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+  .s7-cta {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    width: 100%;
+  }
+  .s7-launch {
+    padding: clamp(22px, 7vw, 32px);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-s7-handoff {
+    padding: 18px 14px 72px;
+  }
+  .s7-shell {
+    gap: 28px;
+  }
+  .s7-card {
+    border-radius: 24px;
+  }
+  .s7-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .s7-button {
+    min-width: 0;
+  }
+  .s7-empty__actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   .se-chatkit-footer {
     background: linear-gradient(180deg, #0f1722 0%, #0b1220 100%);
@@ -385,9 +446,9 @@
 
 @media (max-width: 768px) {
   .page-report .s7-shell {
-    max-width: 420px;
+    max-width: 400px;
     margin: 0 auto;
-    padding: 0 clamp(12px, 6vw, 20px);
+    padding: 0 clamp(12px, 5vw, 20px);
   }
   .page-report .s7-card {
     padding: clamp(22px, 6vw, 32px);

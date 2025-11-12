@@ -17,6 +17,13 @@ interface AdminAccountSummary {
 
 const mockAccounts: AdminAccountSummary[] = [
   {
+    accountId: '5d71ea12-92bd-4c00-b21a-0e507ebe4a13',
+    storeName: 'Guardian 官方示範店',
+    city: '台北市',
+    planCode: 'pro',
+    planSource: 'manual',
+  },
+  {
     accountId: 'acct-guardian-demo',
     storeName: '星級引擎 台北信義店',
     city: '台北市',

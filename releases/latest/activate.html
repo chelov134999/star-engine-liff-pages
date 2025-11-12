@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>星級引擎｜啟動每日監控</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
+    <link rel="stylesheet" href="styles.css?ts=20251112T0930" />
+  </head>
+  <body class="page-activate">
+    <header class="app-header" aria-label="星級引擎導覽">
+      <a class="app-brand" href="index.html">
+        <img src="assets/brand/logo.png" alt="星級引擎 Star Engine" width="32" height="32" />
+        <span class="app-brand__name">星級引擎｜STAR ENGINE</span>
+      </a>
+      <nav class="app-nav" aria-label="主要導覽">
+        <a class="app-nav__link" href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-reports/" data-analytics-event="nav_reports"
+          >報表中心</a
+        >
+        <a class="app-nav__link" href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-competitors/" data-analytics-event="nav_competitors"
+          >監控名單</a
+        >
+        <a class="app-nav__link" href="activate.html" data-analytics-event="nav_plans">啟動每日監控 🔍</a>
+        <a class="app-nav__link" href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/#settings" data-analytics-event="nav_settings"
+          >設定</a
+        >
+      </nav>
+    </header>
+
+    <main class="activate-shell" id="main-content">
+      <section class="activate-card" aria-labelledby="activate-title">
+        <p class="activate-eyebrow">啟動每日監控 🔍</p>
+        <h1 id="activate-title">守護專家接手後，15 秒內完成 Rich Menu 切換</h1>
+        <p class="activate-lede">
+          透過啟動面板選擇方案（守望塔或領航艦），LINE 會立刻推播「守護巡邏已啟動」並切換 Rich Menu。若你正在和守護專家對話，訊息會自動繼續，無需重新輸入。 
+        </p>
+        <ol class="activate-steps">
+          <li>
+            <strong>登入啟動面板</strong>
+            <span>使用 LINE 帳號開啟 Guardian Admin，確認顯示的門市與負責人資訊。</span>
+          </li>
+          <li>
+            <strong>選擇方案並送出</strong>
+            <span>依需求挑選守望塔 / 領航艦，系統會呼叫 `api_v2_admin_set_plan` 並回傳 eventId。</span>
+          </li>
+          <li>
+            <strong>回到 LINE，確認推播</strong>
+            <span>15 秒內會收到「Rich Menu 已切換」與守護專家問候；若無通知請回 LINE 傳「守護專家」。</span>
+          </li>
+        </ol>
+        <div class="activate-actions">
+          <a
+            class="btn btn-primary"
+            href="https://chelov134999.github.io/star-engine-liff-v2/apps/v2-admin/"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-analytics-event="activate_admin_click"
+          >
+            前往啟動面板
+          </a>
+          <a class="btn btn-outline" href="report.html" data-analytics-event="activate_back_to_report">回到守護接力</a>
+        </div>
+        <div class="activate-support">
+          <p>
+            若流程卡在登入或推播階段，請寄信至 <a href="mailto:ai@mdzh.io">ai@mdzh.io</a> 或回傳「守護專家」，我們會協助確認 eventId 與當前狀態。
+          </p>
+          <p class="activate-tip">建議保留啟動畫面截圖與 eventId，方便追蹤守護巡邏的排程。</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="config.runtime.js?ts=20251027T1450" defer></script>
+    <script src="analytics.js?ts=20251022T2350" defer></script>
+  </body>
+</html>

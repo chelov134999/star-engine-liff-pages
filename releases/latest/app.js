@@ -40,7 +40,7 @@
     const viewTargets = {
       report: 'report.html',
       onboarding: 'onboarding.html',
-      plans: 'plans.html',
+      plans: 'activate.html',
       sample: 'sample-report.html',
       about: 'about.html',
     };

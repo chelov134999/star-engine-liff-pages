@@ -384,12 +384,26 @@
 }
 
 @media (max-width: 768px) {
+  .page-report .s7-shell {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 clamp(12px, 6vw, 20px);
+  }
+  .page-report .s7-card {
+    padding: clamp(22px, 6vw, 32px);
+  }
   .s7-info-grid {
     grid-template-columns: 1fr;
   }
-
+  .s7-cta {
+    grid-template-columns: 1fr;
+  }
   .s7-button {
     width: 100%;
+    min-width: 0;
   }
-
+  .s7-backup-link {
+    width: 100%;
+    text-align: center;
+  }
 }

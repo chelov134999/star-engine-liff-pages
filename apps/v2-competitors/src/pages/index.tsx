@@ -277,6 +277,10 @@ const GuardianCompetitorsPage: React.FC = () => {
           </div>
         )}
 
+        {!loading && !error && competitors.length === 0 && (
+          <div className="guardian-empty-state">尚未建立競品，請先使用下方表單新增。</div>
+        )}
+
         <section className="guardian-search">
           <label htmlFor="competitor-city" className="guardian-field__label">
             城市

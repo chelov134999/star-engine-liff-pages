@@ -158,6 +158,7 @@ const GuardianReportsPage: React.FC = () => {
             list="guardian-store-list"
           />
           <datalist id="guardian-store-list">
+            <option value="Guardian 官方示範店" />
             <option value="星級引擎 台北信義店" />
             <option value="星級引擎 台中公益店" />
           </datalist>

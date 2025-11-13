@@ -204,15 +204,22 @@
 
 @media (max-width: 680px) {
   .page-s7-handoff {
-    padding: clamp(18px, 6vw, 28px) clamp(14px, 5vw, 22px) clamp(42px, 10vw, 64px);
+    display: block;
+    padding: clamp(16px, 6vw, 26px) clamp(14px, 5vw, 20px) clamp(32px, 9vw, 48px);
+  }
+  .page-s7-handoff .app-header {
+    display: none;
   }
   .s7-shell {
-    gap: 20px;
-    padding-inline: clamp(10px, 6vw, 20px);
+    gap: 16px;
+    padding-inline: 0;
+    width: 100%;
   }
   .s7-card {
-    padding: clamp(22px, 7vw, 30px);
+    padding: clamp(20px, 7vw, 28px);
     width: 100%;
+    border-radius: 22px;
+    box-shadow: 0 16px 34px -24px rgba(15, 23, 42, 0.4);
   }
   .s7-info-grid {
     grid-template-columns: 1fr;

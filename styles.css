@@ -256,8 +256,8 @@ body.sheet-open { overflow: hidden; }
 .gh__btn--primary:hover { filter: brightness(1.05); box-shadow: 0 16px 32px -16px rgba(0, 86, 214, 0.55); }
 
 /* Buttons */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font-sans); font-weight: 600; font-size: 0.98rem; border-radius: var(--radius-button); border: none; cursor: pointer; padding: 12px 22px; min-height: 48px; transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), color var(--transition-fast); position: relative; }
-.btn .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.55); border-top-color: #ffffff; opacity: 0; visibility: hidden; transition: opacity var(--transition-fast); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-family: var(--font-sans); font-weight: 600; font-size: 0.98rem; border-radius: var(--radius-button); border: none; cursor: pointer; padding: 12px 22px; min-height: 48px; transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), color var(--transition-fast); position: relative; text-align: center; }
+.btn .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.55); border-top-color: #ffffff; opacity: 0; visibility: hidden; transition: opacity var(--transition-fast); position: absolute; right: 18px; top: calc(50% - 8px); pointer-events: none; }
 .btn.is-loading .spinner { opacity: 1; visibility: visible; animation: spinner-rotate 0.8s linear infinite; }
 .btn.is-loading .btn-label { opacity: 0.72; }
 .btn-primary { background: linear-gradient(140deg, #0e6fff 0%, #005bdb 100%); color: #ffffff; box-shadow: var(--shadow-btn); }

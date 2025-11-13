@@ -97,15 +97,18 @@ body.sheet-open { overflow: hidden; }
 .form-status.is-success { color: var(--color-primary); }
 
 .lead-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
+  justify-content: center;
+  align-items: stretch;
   width: min(640px, 100%);
   margin-inline: auto;
 }
 .lead-actions .btn {
-  width: 100%;
+  flex: 1 1 200px;
   min-width: 0;
+  max-width: 240px;
   text-align: center;
 }
 

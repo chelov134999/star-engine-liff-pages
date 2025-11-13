@@ -12,13 +12,13 @@
       rel="stylesheet"
     />
     <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
-    <link rel="stylesheet" href="styles.css?ts=20251022T2350" />
-    <link rel="stylesheet" href="styles/s7-chatkit.css?ts=20251022T2350" />
+    <link rel="stylesheet" href="styles.css?ts=20251113T1530" />
+    <link rel="stylesheet" href="styles/s7-chatkit.css?ts=20251113T1530" />
     <link rel="stylesheet" href="styles/mobile-fixes.css" />
-    <script src="config.runtime.js?ts=20251027T1450" defer></script>
-    <script src="analytics.js?ts=20251022T2350" defer></script>
-    <script src="app.js?ts=20251027T2310" defer></script>
-    <script src="report.js?ts=20251027T2250" defer></script>
+    <script src="config.runtime.js?ts=20251112T2000" defer></script>
+    <script src="analytics.js?ts=20251112T2000" defer></script>
+    <script src="app.js?ts=20251112T2000" defer></script>
+    <script src="report.js?ts=20251112T2000" defer></script>
   </head>
   <body class="page-report page-s7-handoff">
     <header class="app-header header" aria-label="星級引擎導覽">
@@ -80,17 +80,19 @@
         </div>
 
         <div class="s7-cta">
-          <button
-            type="button"
-            class="btn btn-primary s7-button"
-            data-chatkit-cta
-            data-analytics-event="guardian_cta_mobile_clicked"
-          >
-            看我的分析結果
-          </button>
-          <a class="btn btn-outline s7-button" href="activate.html" data-analytics-event="v2_entry_clicked">
-            啟動每日監控 🔍
-          </a>
+          <div class="s7-cta__actions">
+            <button
+              type="button"
+              class="btn btn-primary s7-button"
+              data-chatkit-cta
+              data-analytics-event="guardian_cta_mobile_clicked"
+            >
+              看我的分析結果
+            </button>
+            <a class="btn btn-outline s7-button" href="activate.html" data-analytics-event="v2_entry_clicked">
+              啟動每日監控 🔍
+            </a>
+          </div>
           <p class="s7-cta__note">
             看完分析後即可在 LIFF 與守護專家續聊；若想立即手動啟動，可透過啟動頁完成設定，15 秒內會收到「Rich Menu 已切換」通知。
           </p>

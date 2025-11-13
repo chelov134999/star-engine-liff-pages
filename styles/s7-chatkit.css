@@ -17,6 +17,8 @@
   gap: clamp(28px, 5vw, 48px);
   width: min(960px, 100%);
   margin: 0 auto;
+  padding-inline: clamp(12px, 5vw, 28px);
+  box-sizing: border-box;
 }
 
 .s7-card {
@@ -28,6 +30,7 @@
   position: relative;
   width: min(740px, 100%);
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .s7-hero h1 {
@@ -112,11 +115,16 @@
 
 .s7-cta {
   display: grid;
+  gap: 18px;
+  width: min(640px, 100%);
+  margin: 0 auto;
+}
+
+.s7-cta__actions {
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
   align-items: stretch;
-  width: min(640px, 100%);
-  margin: 0 auto;
 }
 
 .s7-button {
@@ -197,6 +205,31 @@
   background: #f4f6fb;
   border: 1px solid rgba(15, 23, 42, 0.06);
   box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 680px) {
+  .page-s7-handoff {
+    padding: clamp(18px, 6vw, 28px) clamp(14px, 5vw, 22px) clamp(42px, 10vw, 64px);
+  }
+  .s7-shell {
+    gap: 20px;
+    padding-inline: clamp(10px, 6vw, 20px);
+  }
+  .s7-card {
+    padding: clamp(22px, 7vw, 30px);
+    width: 100%;
+  }
+  .s7-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .s7-cta__actions {
+    grid-template-columns: 1fr;
+  }
+  .s7-cta__note,
+  .s7-backup-link,
+  .s7-external-notice {
+    text-align: left;
+  }
 }
 
 .s7-security__header {

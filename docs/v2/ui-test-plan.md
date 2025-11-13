@@ -86,3 +86,9 @@
   ```
   若尚未取得正式數值，請標註 TODO 並於 quicklog 補上說明。
 - **2025-11-12 更新**：`guardian-cta-upgrade` / `main` 已同步 `.lead-actions` 與 `.s7-cta` 等寬置中、S7 Launch 提示卡與 `activate.html` padding；GitHub Pages 尚未 rebuild，LIFF S0 入口仍引用舊 artifact（回首頁後 3 秒跳 404 / Flax 卡未顯示）。完成 push 後須重新執行 S0→S7→啟動 smoke test，並補上 runId / eventId / Rich Menu 截圖。
+
+## 6. Mobile 版面更新（2025-11-13）
+- **S0 表單**：`.lead-actions` 改為三等寬按鈕（「分析結果」/「預覽流程」/「啟動每日監控 🔍」）。手機寬度需呈現直向堆疊，無左傾。若仍出現不等寬，請確認 CSS `?ts=20251113T1530` 是否載入。
+- **S1～S7 卡片**：`#onboarding-stage` 於 ≤720px 會移除額外 padding，`narrative-card` 僅保留單一卡片並移除多餘留白。檢查跳轉至 S1 時畫面頂端不再出現大片空白。
+- **S7 / Activate**：`styles/s7-chatkit.css` 增加 `s7-cta__actions` 與 max-width 設定，卡片需置中且不應超出 LIFF 邊界；CTA 按鈕需對齊並填滿可用寬度。
+- **驗證步驟**：開啟 https://chelov134999.github.io/star-engine-liff-pages/index.html?ts=20251113T1530 ，以手機模擬器或 LINE LIFF 實機逐頁檢查 S0→S7；若任一頁仍看到舊樣式，請清除 LINE LIFF WebView cache（關閉視窗後重新開啟）。

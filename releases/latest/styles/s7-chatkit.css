@@ -203,7 +203,7 @@
   box-shadow: var(--shadow-card);
 }
 
-@media (max-width: 680px) {
+@media (max-width: 820px) {
   .page-s7-handoff {
     display: block;
     padding: 0;
@@ -232,6 +232,10 @@
   .s7-info-grid {
     grid-template-columns: 1fr;
   }
+  .s7-cta {
+    width: 100%;
+    gap: 14px;
+  }
   .s7-cta__actions {
     grid-template-columns: 1fr;
   }
@@ -239,6 +243,18 @@
   .s7-backup-link,
   .s7-external-notice {
     text-align: left;
+  }
+  .s7-launch {
+    padding: clamp(20px, 7vw, 32px);
+    width: 100%;
+  }
+  .s7-empty {
+    width: 100%;
+    margin: clamp(28px, 8vw, 48px) auto;
+  }
+  .s7-empty__actions .btn {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -428,48 +444,6 @@
   text-decoration: none;
 }
 
-@media (max-width: 720px) {
-  .page-s7-handoff {
-    padding: clamp(24px, 10vw, 48px) clamp(16px, 8vw, 28px) clamp(90px, 12vw, 130px);
-  }
-  .s7-card {
-    padding: clamp(24px, 8vw, 36px);
-  }
-  .s7-info-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  }
-  .s7-cta {
-    grid-template-columns: 1fr;
-    gap: 14px;
-    width: 100%;
-  }
-  .s7-launch {
-    padding: clamp(22px, 7vw, 32px);
-  }
-}
-
-@media (max-width: 480px) {
-  .page-s7-handoff {
-    padding: 18px 14px 72px;
-  }
-  .s7-shell {
-    gap: 28px;
-  }
-  .s7-card {
-    border-radius: 24px;
-  }
-  .s7-info-grid {
-    grid-template-columns: 1fr;
-  }
-  .s7-button {
-    min-width: 0;
-  }
-  .s7-empty__actions .btn {
-    width: 100%;
-    min-width: 0;
-  }
-}
-
 @media (prefers-color-scheme: dark) {
   .se-chatkit-footer {
     background: linear-gradient(180deg, #0f1722 0%, #0b1220 100%);
@@ -489,30 +463,5 @@
 
   .se-chatkit-footer__btn {
     box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
-  }
-}
-
-@media (max-width: 768px) {
-  .page-report .s7-shell {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 0 clamp(12px, 5vw, 20px);
-  }
-  .page-report .s7-card {
-    padding: clamp(22px, 6vw, 32px);
-  }
-  .s7-info-grid {
-    grid-template-columns: 1fr;
-  }
-  .s7-cta {
-    grid-template-columns: 1fr;
-  }
-  .s7-button {
-    width: 100%;
-    min-width: 0;
-  }
-  .s7-backup-link {
-    width: 100%;
-    text-align: center;
   }
 }

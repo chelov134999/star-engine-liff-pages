@@ -215,6 +215,7 @@
     max-width: 420px;
     margin: 0 auto;
     padding: clamp(10px, 6vw, 18px) clamp(12px, 7vw, 20px) clamp(24px, 8vw, 40px);
+    box-sizing: border-box;
   }
   .page-s7-handoff .app-header {
     display: none;

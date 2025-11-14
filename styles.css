@@ -98,17 +98,15 @@ body.sheet-open { overflow: hidden; }
 
 .lead-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+  gap: 16px;
   justify-content: center;
   align-items: stretch;
-  width: min(640px, 100%);
+  width: min(520px, 100%);
   margin-inline: auto;
 }
 .lead-actions .btn {
-  flex: 1 1 200px;
+  flex: 1 1 0;
   min-width: 0;
-  max-width: 240px;
   text-align: center;
 }
 
@@ -545,6 +543,7 @@ body.sheet-open { overflow: hidden; }
   .app-nav__link { flex: 1 1 auto; justify-content: center; }
   .index-shell { padding-inline: clamp(18px, 8vw, 32px); }
   .lead-card, .aside-card { padding: clamp(24px, 6vw, 32px); }
+  .lead-actions { flex-direction: column; }
   .lead-actions .btn { width: 100%; }
   .report-shell { margin-top: 8px; padding-inline: clamp(14px, 5vw, 22px); }
   .kpi-board .kpi-grid { grid-template-columns: 1fr; }

@@ -211,23 +211,25 @@
 @media (max-width: 680px) {
   .page-s7-handoff {
     display: block;
-    padding: clamp(16px, 6vw, 26px) clamp(14px, 5vw, 20px) clamp(32px, 9vw, 48px);
+    padding: 0;
   }
   .page-s7-handoff .report-shell {
     width: 100%;
-    padding-inline: clamp(10px, 5vw, 16px);
-    margin: clamp(6px, 4vw, 16px) auto clamp(20px, 8vw, 36px);
+    margin: 0;
+    padding: clamp(10px, 6vw, 18px) clamp(12px, 7vw, 20px) clamp(24px, 8vw, 40px);
   }
   .page-s7-handoff .app-header {
     display: none;
   }
   .s7-shell {
-    gap: 16px;
+    gap: 18px;
     padding-inline: 0;
     width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
   }
   .s7-card {
-    padding: clamp(20px, 7vw, 28px);
+    padding: clamp(20px, 7vw, 30px);
     width: 100%;
     border-radius: 22px;
     box-shadow: 0 16px 34px -24px rgba(15, 23, 42, 0.4);

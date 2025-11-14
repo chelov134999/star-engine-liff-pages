@@ -8,12 +8,22 @@
   overflow-x: hidden;
 }
 
+.page-s7-handoff .report-shell {
+  width: min(520px, 100%);
+  margin: clamp(16px, 5vw, 32px) auto clamp(40px, 10vw, 80px);
+  padding: clamp(18px, 5vw, 24px);
+}
+
+.page-s7-handoff .app-header {
+  display: none;
+}
+
 .s7-shell {
   display: grid;
   gap: clamp(28px, 5vw, 48px);
-  width: min(960px, 100%);
+  width: 100%;
   margin: 0 auto;
-  padding-inline: clamp(12px, 5vw, 28px);
+  padding-inline: 0;
   box-sizing: border-box;
 }
 
@@ -112,7 +122,7 @@
 .s7-cta {
   display: grid;
   gap: 18px;
-  width: min(640px, 100%);
+  width: 100%;
   margin: 0 auto;
 }
 

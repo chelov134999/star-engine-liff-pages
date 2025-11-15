@@ -6,6 +6,8 @@
   justify-content: center;
   box-sizing: border-box;
   overflow-x: hidden;
+  padding-left: calc(clamp(12px, 5vw, 20px) + env(safe-area-inset-left, 0px));
+  padding-right: calc(clamp(12px, 5vw, 20px) + env(safe-area-inset-right, 0px));
 }
 
 .page-s7-handoff .report-shell {

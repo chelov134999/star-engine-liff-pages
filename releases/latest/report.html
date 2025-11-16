@@ -3,10 +3,122 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
     <title>星級引擎｜S7 守護接力</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="assets/brand/favicon.ico" />
+    <link rel="stylesheet" href="styles.css?ts=20251116T1000" />
+    <link rel="stylesheet" href="styles/s7-chatkit.css?ts=20251116T1000" />
+    <link rel="stylesheet" href="styles/mobile-fixes.css" />
+    <script src="config.runtime.js?ts=20251116T1000" defer></script>
+    <script src="analytics.js?ts=20251116T1000" defer></script>
+    <script src="app.js?ts=20251116T1000" defer></script>
+    <script src="report.js?ts=20251116T1000" defer></script>
   </head>
-  <body>
-    <h1>正在重建 S7 報告頁面</h1>
-    <p>此頁面暫時移除，正在重新設計視覺。若需要查看守護報告，請回到 LINE 聯繫守護專家。</p>
+  <body class="page-report page-s7">
+    <main class="s7-shell" data-handoff>
+      <header class="s7-hero">
+        <div>
+          <p class="s7-pill">S7 · 守護接力</p>
+          <h1>AI 初檢完成，守護專家正準備陪你對話</h1>
+          <p class="s7-lede">
+            守護任務已啟動：AI 幫你掃描曝光與評論、排出守護節奏、準備好與守護專家交接的內容。
+            下一步只需留意三個重點，就能把成果握在手上。
+          </p>
+        </div>
+        <div class="s7-kpi-grid">
+          <article>
+            <p class="s7-kpi__label">入場券</p>
+            <p class="s7-kpi__value" data-lead-code>—</p>
+            <p class="s7-kpi__note">保留這組序號，守護專家就能找到你的品牌檔案。</p>
+          </article>
+          <article>
+            <p class="s7-kpi__label">最新版同步</p>
+            <p class="s7-kpi__value">
+              <span data-last-sync>--</span>
+              <span class="s7-kpi__divider">→</span>
+              <span data-next-sync>--</span>
+            </p>
+            <p class="s7-kpi__note">接下來一次掃描由星級引擎自動排程，無需手動提醒。</p>
+          </article>
+          <article>
+            <p class="s7-kpi__label">LINE 守護</p>
+            <p class="s7-kpi__value">15 秒抵達</p>
+            <p class="s7-kpi__note">回 LINE 傳「守護專家」即可觸發；未收到通知請寫信 ai@mdzh.io。</p>
+          </article>
+        </div>
+      </header>
+
+      <section class="s7-panel s7-steps" aria-labelledby="steps-title">
+        <div class="s7-panel__header">
+          <h2 id="steps-title">守護專家會為你做的 3 件事</h2>
+          <p>將 S0〜S6 累積的資料轉換成可以即時採取的行動。</p>
+        </div>
+        <ol>
+          <li>
+            <h3>梳理今日重點</h3>
+            <p>快速回顧你的曝光、星等與競品狀態，標示需要立即處理的訊號。</p>
+          </li>
+          <li>
+            <h3>安排守護節奏</h3>
+            <p>依照你選擇的節奏（守望塔 / 領航艦）排定巡邏、警報與顧問對話。</p>
+          </li>
+          <li>
+            <h3>準備回覆與升級腳本</h3>
+            <p>匯整低星回覆草稿、升級 CTA 與下次互動的提問句。</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="s7-panel s7-strips" aria-labelledby="cta-title">
+        <div class="s7-panel__header">
+          <h2 id="cta-title">下一步：與守護專家確認細節</h2>
+          <p>選擇最適合你的進入方式，保留當前節奏。</p>
+        </div>
+        <div class="s7-cta">
+          <button type="button" class="btn btn-primary" data-chatkit-cta data-analytics-event="guardian_cta_mobile_clicked">
+            與守護專家聊聊
+          </button>
+          <a class="btn btn-outline" href="activate.html" data-analytics-event="v2_entry_clicked">
+            啟動每日監控 🔍
+          </a>
+          <a
+            class="s7-backup"
+            data-backup-link
+            data-template="mailto:ai@mdzh.io?subject=請寄 S7 報告&body=我的入場券：{{lead_id}}"
+            href="mailto:ai@mdzh.io?subject=請寄 S7 報告"
+          >
+            不方便用 LINE？寄 Email 摘要給我
+          </a>
+          <div class="s7-external" data-external-notice hidden>
+            <p data-external-message></p>
+            <a class="btn btn-primary" data-external-open href="#" hidden>改在 LINE 中開啟</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="s7-panel s7-security" aria-labelledby="security-title">
+        <h2 id="security-title">資料安全與恢復</h2>
+        <ul>
+          <li>所有行為皆附帶 HMAC 與 timestamp，防止重複下達。</li>
+          <li>ChatKit 只讀取必要欄位；完整報告仍存放在星級引擎伺服器。</li>
+          <li>若 15 秒內沒有收到任務通知，請截圖後寄信，我們會人工補送。</li>
+        </ul>
+      </section>
+    </main>
+
+    <section class="s7-empty" data-empty-state hidden>
+      <div class="s7-empty__card">
+        <p class="s7-pill">S7 · 守護接力</p>
+        <h2>請先完成 S0 登記，再回到 S7 查看報告</h2>
+        <p>在 LINE 或此頁填完入場券，AI 需要幾分鐘整理資料。若需要協助，請與守護專家聯繫。</p>
+        <a class="btn btn-primary" href="index.html">我想先回 S0 填寫</a>
+      </div>
+    </section>
   </body>
 </html>
